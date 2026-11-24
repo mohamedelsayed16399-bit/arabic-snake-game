@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>لعبة الثعبان</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#12171f;color:#eee;font-family:system-ui,"Segoe UI",Tahoma,sans-serif;touch-action:none;overflow:hidden}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+h1{margin:0;font-size:22px}
+#bar{display:flex;gap:24px;font-size:18px}
+canvas{background:#1c2430;border:3px solid #2f3d52;border-radius:10px;max-width:92vw;max-height:60vh}
+#pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,56px);gap:6px;direction:ltr}
+#pad button{font-size:24px;border:0;border-radius:12px;background:#2f3d52;color:#fff}
+#pad button:active{background:#46618a}
+#up{grid-column:2;grid-row:1}#left{grid-column:1;grid-row:2}#down{grid-column:2;grid-row:2}#right{grid-column:3;grid-row:2}
+#msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,14,20,.85);gap:14px;text-align:center;padding:20px}
+#msg button{font-size:20px;padding:10px 28px;border:0;border-radius:12px;background:#3ddc84;color:#06210f;font-weight:bold}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<h1>🐍 لعبة الثعبان</h1>
+<div id="bar"><span>النقاط: <b id="score">0</b></span><span>أعلى نتيجة: <b id="best">0</b></span></div>
+<canvas id="c" width="320" height="320"></canvas>
+<div id="pad"><button id="up">▲</button><button id="left">◀</button><button id="down">▼</button><button id="right">▶</button></div>
+<div id="msg"><h2 id="mt">جاهز؟</h2><p id="mp">اسحب بإصبعك أو استخدم الأسهم للتحكم</p><button id="go">ابدأ اللعب</button></div>
+<script>
+const N=16,S=20,cv=document.getElementById('c'),x=cv.getContext('2d');
+let snake,dir,next,food,score,timer,best=+localStorage.getItem('snakeBest')||0;
+document.getElementById('best').textContent=best;
+function place(){do{food={x:Math.floor(Math.random()*N),y:Math.floor(Math.random()*N)}}while(snake.some(s=>s.x==food.x&&s.y==food.y))}
+function start(){snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8}];dir=next={x:1,y:0};score=0;document.getElementById('score').textContent=0;place();
+ document.getElementById('msg').classList.add('hide');clearInterval(timer);timer=setInterval(tick,130);draw()}
+function over(){clearInterval(timer);if(score>best){best=score;localStorage.setItem('snakeBest',best);document.getElementById('best').textContent=best}
+ document.getElementById('mt').textContent='انتهت اللعبة';document.getElementById('mp').textContent='نتيجتك: '+score;
+ document.getElementById('go').textContent='العب مرة أخرى';document.getElementById('msg').classList.remove('hide')}
+function tick(){dir=next;const h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+ if(h.x<0||h.y<0||h.x>=N||h.y>=N||snake.some(s=>s.x==h.x&&s.y==h.y))return over();
+ snake.unshift(h);if(h.x==food.x&&h.y==food.y){score++;document.getElementById('score').textContent=score;place();if(score%5==0){clearInterval(timer);timer=setInterval(tick,Math.max(60,130-score*3))}}else snake.pop();draw()}
+function draw(){x.fillStyle='#1c2430';x.fillRect(0,0,320,320);
+ x.fillStyle='#ff5a5f';x.beginPath();x.arc(food.x*S+10,food.y*S+10,8,0,7);x.fill();
+ snake.forEach((s,i)=>{x.fillStyle=i?'#3ddc84':'#a6ffcb';x.fillRect(s.x*S+1,s.y*S+1,S-2,S-2)})}
+function turn(dx,dy){if(dx==-dir.x&&dy==-dir.y)return;next={x:dx,y:dy}}
+const D={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+for(const k in D){const b=document.getElementById(k);b.addEventListener('pointerdown',e=>{e.preventDefault();turn(...D[k])})}
+addEventListener('keydown',e=>{const m={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'}[e.key];if(m){e.preventDefault();turn(...D[m])}});
+let t0;addEventListener('touchstart',e=>{t0=e.touches[0]},{passive:true});
+addEventListener('touchend',e=>{if(!t0)return;const t=e.changedTouches[0],dx=t.clientX-t0.clientX,dy=t.clientY-t0.clientY;
+ if(Math.max(Math.abs(dx),Math.abs(dy))<20)return;Math.abs(dx)>Math.abs(dy)?turn(dx>0?1:-1,0):turn(0,dy>0?1:-1);t0=null},{passive:true});
+document.getElementById('go').onclick=start;
+snake=[{x:8,y:8}];dir={x:1,y:0};food={x:3,y:3};draw();
+</script>
+</body>
+</html>
