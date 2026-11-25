@@ -26,12 +26,24 @@ canvas{background:#1c2430;border:3px solid #2f3d52;border-radius:12px;width:min(
 .mb.b{background:#7dd3ff;color:#06293a}.mb.c{background:#ffc93a;color:#3a2200}
 .mb small{display:block;font-size:12px;font-weight:600;opacity:.8}
 .hide{display:none!important}
+#achv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;background:rgba(10,14,20,.94);gap:10px;text-align:center;padding:20px;z-index:6;overflow-y:auto}
+#achv .list{display:flex;flex-direction:column;gap:8px;width:100%;max-width:400px}
+.aitem{display:flex;gap:10px;align-items:center;background:#ffffff10;border-radius:12px;padding:10px 12px;text-align:right;border:2px solid #ffffff14}
+.aitem .ic{font-size:24px}
+.aitem .tx{flex:1}.aitem .tx b{display:block;font-size:14px}.aitem .tx span{font-size:12px;color:#9fb0c8}
+.aitem .pbar{height:6px;background:#ffffff1a;border-radius:4px;overflow:hidden;margin-top:4px}.aitem .pbar i{display:block;height:100%;background:#3ddc84}
+.aitem.done{border-color:#3ddc84}.aitem.done .ic{filter:none}
+.aitem:not(.done) .ic{filter:grayscale(1);opacity:.5}
+#toast{position:absolute;top:56px;left:50%;transform:translateX(-50%);background:#3ddc84;color:#06210f;font-weight:800;padding:10px 20px;border-radius:99px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9;box-shadow:0 8px 24px #0008;white-space:nowrap}
+#toast.show{opacity:1}
+#recs{font-size:13px;color:#ffe27a;margin:0;line-height:1.7}
 </style>
 </head>
 <body>
 <div id="top"><button id="pause" class="hide">⏸</button><button id="skin">🎨</button><button id="mute">🔊</button></div>
 <h1>🐍 لعبة الثعبان</h1>
-<div id="bar"><span>النقاط: <b id="score">0</b></span><span>أعلى نتيجة: <b id="best">0</b></span><span>المرحلة: <b id="lvl">1</b></span><span id="cmb"></span></div>
+<div id="toast"></div>
+<div id="bar"><span>النقاط: <b id="score">0</b></span><span id="tleft"></span><span>أعلى نتيجة: <b id="best">0</b></span><span>المرحلة: <b id="lvl">1</b></span><span id="cmb"></span></div>
 <div id="fx"></div>
 <canvas id="c" width="360" height="360"></canvas>
 <div id="pad"><button id="up">▲</button><button id="left">◀</button><button id="down">▼</button><button id="right">▶</button></div>
@@ -39,7 +51,11 @@ canvas{background:#1c2430;border:3px solid #2f3d52;border-radius:12px;width:min(
 <button class="mb" data-mode="classic">كلاسيك<small>الحيطان بتقتلك</small></button>
 <button class="mb b" data-mode="wrap">بدون حدود<small>بتخرج من ناحية وتدخل من التانية</small></button>
 <button class="mb c" data-mode="adventure">المغامرة<small>عوائق جديدة كل مرحلة</small></button>
+<p id="recs"></p>
+<button class="mb" data-mode="time" style="background:#c084fc;color:#2a0a3a">⚡ تايم أتاك<small>٩٠ ثانية تجمع فيها أكبر نتيجة</small></button>
+<button class="mb" id="achBtn" style="background:#2f3d52;color:#fff">🏅 الإنجازات</button>
 <p id="help" style="font-size:13px;color:#9fb0c8">🍎 +١٠ · 🌟 دهبية +٥٠ (بتختفي) · ❄️ بتبطّئ الوقت · 🛡️ درع بينقذك من خبطة واحدة · كومبو لحد ×٥ لو أكلت بسرعة</p></div>
+<div id="achv" class="hide"><h2 style="margin:0;color:#ffe27a">🏅 الإنجازات</h2><div class="list" id="achList"></div><button class="mb" id="achBack" style="min-width:160px">رجوع</button></div>
 <script>
 const $=id=>document.getElementById(id);
 const N=18,S=20,SZ=N*S,cv=document.getElementById('c'),x=cv.getContext('2d');
@@ -58,7 +74,29 @@ function beep(f0,f1,d,v,type){if(muted)return;try{AC=AC||new (window.AudioContex
 function buzz(p){if(!muted&&navigator.vibrate)try{navigator.vibrate(p)}catch(e){}}
 $('mute').onclick=()=>{muted=!muted;localStorage.setItem('snakeMute',muted?'1':'0');$('mute').textContent=muted?'🔇':'🔊'};
 function rngf(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-let mode='classic',snake,prev,dir,queue,foods,obs,score,eaten,level,combo,lastEat,tickMs,acc,last,state='menu',shake=0,parts=[],slowUntil=0,shieldAt=0,goldenAt=0,slowAt=0,now=0,flash=0,banner=null,over_t=0;
+let mode='classic',snake,prev,dir,queue,foods,obs,score,eaten,level,combo,lastEat,tickMs,acc,last,state='menu',shake=0,parts=[],slowUntil=0,shieldAt=0,goldenAt=0,slowAt=0,now=0,flash=0,banner=null,over_t=0,timeLeft=0,goldRun=0;
+const SVK='snake_save2';
+let SV={ach:{},stats:{apples:0,runs:0,gold:0,bestCombo:0}};
+try{const sv0=JSON.parse(localStorage.getItem(SVK));if(sv0){Object.assign(SV.stats,sv0.stats||{});SV.ach=sv0.ach||{}}}catch(e){}
+function saveSV(){try{localStorage.setItem(SVK,JSON.stringify(SV))}catch(e){}}
+const ACHS=[
+ {id:'a50',ic:'🍎',t:'آكلكول',d:'كُل 50 تفاحة إجمالي',p:()=>[SV.stats.apples,50]},
+ {id:'a250',ic:'🍏',t:'جوعان دايماً',d:'كُل 250 تفاحة إجمالي',p:()=>[SV.stats.apples,250]},
+ {id:'a1000',ic:'🤰',t:'ثعبان مُحترف',d:'كُل 1000 تفاحة إجمالي',p:()=>[SV.stats.apples,1000]},
+ {id:'l3',ic:'🐣',t:'بداية قوية',d:'اوصل للمرحلة 3 في جولة',p:()=>[SV.stats.maxLevel||0,3]},
+ {id:'l6',ic:'🦅',t:'سرعة جنونية',d:'اوصل للمرحلة 6 في جولة',p:()=>[SV.stats.maxLevel||0,6]},
+ {id:'c4',ic:'🔥',t:'كومبو ×4',d:'اعمل كومبو ×4',p:()=>[SV.stats.bestCombo,4]},
+ {id:'c5',ic:'⚡',t:'كومبو ×5',d:'اعمل أقصى كومبو ×5',p:()=>[SV.stats.bestCombo,5]},
+ {id:'s500',ic:'💪',t:'نص بطل',d:'سجّل 500 نقطة في جولة واحدة',p:()=>[SV.stats.bestScore||0,500]},
+ {id:'s1500',ic:'👑',t:'ملك الثعابين',d:'سجّل 1500 نقطة في جولة واحدة',p:()=>[SV.stats.bestScore||0,1500]},
+ {id:'g10',ic:'🌟',t:'صياد الذهب',d:'كُل 10 تفاحات دهبية إجمالي',p:()=>[SV.stats.gold,10]},
+ {id:'r10',ic:'🎮',t:'مُداوم',d:'العب 10 جولات',p:()=>[SV.stats.runs,10]},
+ {id:'t300',ic:'⏱',t:'وحش التايم أتاك',d:'سجّل 300 نقطة في تايم أتاك',p:()=>[getBest('time'),300]}];
+let toastT=null;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400)}
+function checkAch(){let changed=false;for(const a of ACHS){if(SV.ach[a.id])continue;const [v,need]=a.p();if(v>=need){SV.ach[a.id]=1;changed=true;toast('🏅 إنجاز جديد: '+a.t);beep(600,1400,.4,.09,'triangle')}}if(changed)saveSV()}
+function renderAch(){const L=$('achList');L.innerHTML='';for(const a of ACHS){const [v,need]=a.p();const done=!!SV.ach[a.id];const d=document.createElement('div');d.className='aitem'+(done?' done':'');d.innerHTML='<div class="ic">'+a.ic+'</div><div class="tx"><b>'+a.t+(done?' ✓':'')+'</b><span>'+a.d+'</span><div class="pbar"><i style="width:'+Math.min(100,v/need*100)+'%"></i></div></div>';L.appendChild(d)}}
+function refreshRecs(){const r=$('recs');const tot=getBest('classic')+getBest('wrap')+getBest('adventure')+getBest('time');if(SV.stats.runs||tot){r.textContent='🍎 '+SV.stats.apples+' تفاحة • 🎮 '+SV.stats.runs+' جولة • 🏆 أفضل كومبو ×'+(SV.stats.bestCombo||0)+' • 🏅 '+Object.keys(SV.ach).length+'/'+ACHS.length}else r.textContent=''}
 const bestKey=m=>m==='classic'?'snakeBest':'snakeBest_'+m;
 function getBest(m){return +localStorage.getItem(bestKey(m))||0}
 function showBest(){$('best').textContent=getBest(mode)}
@@ -91,6 +129,7 @@ function start(m){
  mode=m;showBest();snake=[{x:8,y:9},{x:7,y:9},{x:6,y:9}];prev=snake.map(s=>({...s}));dir={x:1,y:0};queue=[];foods=[];obs=[];score=0;eaten=0;level=1;combo=0;lastEat=-1e9;
  slowUntil=0;shield=0;shieldAt=performance.now()+20000;parts=[];shake=0;banner=null;now=performance.now();goldenAt=now+25000;slowAt=now+14000;
  if(mode==='adventure')obs=genObstacles();
+ timeLeft=mode==='time'?90:0;goldRun=0;SV.stats.runs++;saveSV();refreshRecs();
  addFood('apple');tickMs=baseMs();acc=0;last=performance.now();state='play';
  $('msg').classList.add('hide');$('pause').classList.remove('hide');$('fx').textContent='';setHud();beep(500,900,.12,.07,'triangle');
 }
@@ -100,11 +139,19 @@ function die(){
  state='over';over_t=performance.now();shake=1;buzz([80,40,140]);beep(220,40,.5,.14,'sawtooth');
  const h=snake[0];popParts(h.x*S+10,h.y*S+10,'#ff5a5f',34,160);
  const nb=score>getBest(mode);if(nb)localStorage.setItem(bestKey(mode),score);showBest();
+ if(score>(SV.stats.bestScore||0))SV.stats.bestScore=score;if(level>(SV.stats.maxLevel||0))SV.stats.maxLevel=level;saveSV();checkAch();refreshRecs();
  $('pause').classList.add('hide');
  setTimeout(()=>{if(state!=='over')return;$('mt').textContent='انتهت اللعبة';
   $('mp').textContent='نتيجتك: '+score+' · المرحلة '+level+(nb&&score>0?' · رقم قياسي جديد! 🏆':'');
   $('msg').classList.remove('hide')},700);
 }
+function timeUp(){if(state!=='play')return;state='over';over_t=performance.now();buzz([60,40,60]);beep(500,900,.4,.1,'triangle');
+ const nb=score>getBest('time');if(nb)localStorage.setItem(bestKey('time'),score);showBest();
+ if(score>(SV.stats.bestScore||0))SV.stats.bestScore=score;saveSV();checkAch();refreshRecs();
+ $('pause').classList.add('hide');
+ setTimeout(()=>{if(state!=='over')return;$('mt').textContent='انتهى الوقت! ⏱';
+  $('mp').textContent='نتيجتك في التايم أتاك: '+score+(nb&&score>0?' · رقم قياسي جديد! 🏆':'');
+  $('msg').classList.remove('hide')},400)}
 function useShield(){if(!shield)return false;shield=0;shake=.7;buzz([40,30,60]);beep(300,700,.3,.1,'triangle');popParts(snake[0].x*S+10,snake[0].y*S+10,'#7dd3ff',30,170);floatText('🛡️ حماك!',snake[0].x*S+10,snake[0].y*S,'#7dd3ff');return true}
 function step(){
  if(queue.length)dir=queue.shift();
@@ -126,10 +173,10 @@ function step(){
   else if(f.type==='shield'){pts=15;shield=1;beep(600,1200,.25,.08,'sine');popParts(hx*S+10,hy*S+10,'#7dd3ff',22,130)}
   else if(f.type==='slow'){pts=20;slowUntil=now+4500;beep(900,300,.3,.08,'sine');popParts(hx*S+10,hy*S+10,'#7fe6ff',22,130)}
   else{beep(520+combo*60,880+combo*60,.09,.07,'square');buzz(12);popParts(hx*S+10,hy*S+10,'#ff5a5f',14)}
-  pts*=combo;score+=pts;eaten++;floatText('+'+pts+(combo>1?' ×'+combo:''),hx*S+10,hy*S,f.type=='gold'?'#ffd23a':'#ffffff');
+  pts*=combo;score+=pts;eaten++;SV.stats.apples++;if(f.type==='gold'){SV.stats.gold++;goldRun++}if(combo>(SV.stats.bestCombo||0))SV.stats.bestCombo=combo;if(level>(SV.stats.maxLevel||0))SV.stats.maxLevel=level;floatText('+'+pts+(combo>1?' ×'+combo:''),hx*S+10,hy*S,f.type=='gold'?'#ffd23a':'#ffffff');
   if(f.type==='apple')addFood('apple');
   else if(!foods.some(q=>q.type==='apple'))addFood('apple');
-  if(eaten>0&&eaten%6===0){levelUp()}
+  if(eaten>0&&eaten%6===0&&mode!=='time'){levelUp()}
  }else snake.pop();
  while(prev.length<snake.length)prev.push({...prev[prev.length-1]});
  setHud();
@@ -149,7 +196,8 @@ function setDir(dx,dy){
 function update(dt,ts){
  now=ts;
  if(state==='play'){
-  tickMs=baseMs()*(ts<slowUntil?1.6:1);
+  if(mode==='time'){timeLeft-=dt/1000;$('tleft').textContent='⏱ '+Math.max(0,Math.ceil(timeLeft));if(timeLeft<=0){timeUp();return}}else $('tleft').textContent='';
+  tickMs=(mode==='time'?95:baseMs())*(ts<slowUntil?1.6:1);
   acc+=dt;let g=0;while(acc>=tickMs&&state==='play'&&g++<4){acc-=tickMs;step()}
   if(state==='play'){
    for(let i=foods.length-1;i>=0;i--){const f=foods[i];if(f.life&&ts-f.born>f.life)foods.splice(i,1)}
@@ -219,10 +267,14 @@ addEventListener('keydown',e=>{const m={ArrowUp:'up',ArrowDown:'down',ArrowLeft:
 let t0;addEventListener('touchstart',e=>{t0=e.touches[0]},{passive:true});
 addEventListener('touchmove',e=>{if(!t0)return;const t=e.touches[0],dx=t.clientX-t0.clientX,dy=t.clientY-t0.clientY;if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;Math.abs(dx)>Math.abs(dy)?setDir(dx>0?1:-1,0):setDir(0,dy>0?1:-1);t0=e.touches[0]},{passive:true});
 document.querySelectorAll('.mb').forEach(b=>b.addEventListener('click',()=>start(b.dataset.mode)));
+$('achBtn').onclick=()=>{renderAch();$('msg').classList.add('hide');$('achv').classList.remove('hide')};
+$('achBack').onclick=()=>{$('achv').classList.add('hide');$('msg').classList.remove('hide');refreshRecs()};
+refreshRecs();
 showBest();snake=[{x:8,y:9},{x:7,y:9},{x:6,y:9}];prev=snake.map(s=>({...s}));dir={x:1,y:0};foods=[];obs=[];level=1;acc=0;tickMs=150;
 requestAnimationFrame(loop);window.__foods=()=>foods;window.__obs=()=>obs;
-window.__s={...{},setShield:v=>{shield=v},useShield,start,step,get:()=>({shield,skin,state,mode,score,level,eaten,len:snake&&snake.length,obs:obs.length,foods:foods.map(f=>f.type),head:snake&&snake[0],dir}),setDir,addFood,die,force:0,snake:()=>snake};
+window.__s={...{},SV:()=>SV,checkAch,timeUp,setShield:v=>{shield=v},useShield,start,step,get:()=>({shield,skin,state,mode,score,level,eaten,len:snake&&snake.length,obs:obs.length,foods:foods.map(f=>f.type),head:snake&&snake[0],dir}),setDir,addFood,die,force:0,snake:()=>snake};
 </script>
 </body>
 </html>
+
 
