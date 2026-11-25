@@ -29,7 +29,7 @@ canvas{background:#1c2430;border:3px solid #2f3d52;border-radius:12px;width:min(
 </style>
 </head>
 <body>
-<div id="top"><button id="pause" class="hide">⏸</button><button id="mute">🔊</button></div>
+<div id="top"><button id="pause" class="hide">⏸</button><button id="skin">🎨</button><button id="mute">🔊</button></div>
 <h1>🐍 لعبة الثعبان</h1>
 <div id="bar"><span>النقاط: <b id="score">0</b></span><span>أعلى نتيجة: <b id="best">0</b></span><span>المرحلة: <b id="lvl">1</b></span><span id="cmb"></span></div>
 <div id="fx"></div>
@@ -39,23 +39,26 @@ canvas{background:#1c2430;border:3px solid #2f3d52;border-radius:12px;width:min(
 <button class="mb" data-mode="classic">كلاسيك<small>الحيطان بتقتلك</small></button>
 <button class="mb b" data-mode="wrap">بدون حدود<small>بتخرج من ناحية وتدخل من التانية</small></button>
 <button class="mb c" data-mode="adventure">المغامرة<small>عوائق جديدة كل مرحلة</small></button>
-<p id="help" style="font-size:13px;color:#9fb0c8">🍎 +١٠ · 🌟 دهبية +٥٠ (بتختفي) · ❄️ زرقا بتبطّئ الوقت · كومبو لحد ×٥ لو أكلت بسرعة</p></div>
+<p id="help" style="font-size:13px;color:#9fb0c8">🍎 +١٠ · 🌟 دهبية +٥٠ (بتختفي) · ❄️ بتبطّئ الوقت · 🛡️ درع بينقذك من خبطة واحدة · كومبو لحد ×٥ لو أكلت بسرعة</p></div>
 <script>
+const $=id=>document.getElementById(id);
 const N=18,S=20,SZ=N*S,cv=document.getElementById('c'),x=cv.getContext('2d');
 const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=cv.height=SZ*dpr;x.scale(dpr,dpr);
-const $=id=>document.getElementById(id);
 const THEMES=[
  {a:'#1c2430',b:'#212b3a',h:'#c8ffe0',t1:'#3ddc84',t2:'#1b8f55',wall:'#5b6b86'},
  {a:'#2a2014',b:'#32271a',h:'#fff0c0',t1:'#ffc93a',t2:'#b8801a',wall:'#8a6a3a'},
  {a:'#10243a',b:'#142b46',h:'#d8f4ff',t1:'#4fc3ff',t2:'#1a6aa8',wall:'#4a7aa8'},
  {a:'#2a1230',b:'#341840',h:'#ffe0ff',t1:'#ff7ad9',t2:'#a83a95',wall:'#8a4a9a'},
  {a:'#2a1410',b:'#341a14',h:'#ffe8d0',t1:'#ff7a4a',t2:'#a8381a',wall:'#9a5a3a'}];
+const SKINS=[null,{t1:'#ff9bd2',t2:'#c2417f',h:'#fff0f8'},{t1:'#b8ff5a',t2:'#4a8f12',h:'#f4ffd8'},{t1:'#ffffff',t2:'#7a8aa0',h:'#ffffff'},{t1:'#ffd23a',t2:'#e0551a',h:'#fff6d0'}];
+let skin=+localStorage.getItem('snakeSkin')||0,shield=0;
+$('skin').onclick=()=>{skin=(skin+1)%SKINS.length;localStorage.setItem('snakeSkin',skin)};
 let AC=null,muted=localStorage.getItem('snakeMute')==='1';$('mute').textContent=muted?'🔇':'🔊';
 function beep(f0,f1,d,v,type){if(muted)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type||'square';o.frequency.setValueAtTime(f0,AC.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),AC.currentTime+d);g.gain.setValueAtTime(v||.06,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
 function buzz(p){if(!muted&&navigator.vibrate)try{navigator.vibrate(p)}catch(e){}}
 $('mute').onclick=()=>{muted=!muted;localStorage.setItem('snakeMute',muted?'1':'0');$('mute').textContent=muted?'🔇':'🔊'};
 function rngf(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-let mode='classic',snake,prev,dir,queue,foods,obs,score,eaten,level,combo,lastEat,tickMs,acc,last,state='menu',shake=0,parts=[],slowUntil=0,goldenAt=0,slowAt=0,now=0,flash=0,banner=null,over_t=0;
+let mode='classic',snake,prev,dir,queue,foods,obs,score,eaten,level,combo,lastEat,tickMs,acc,last,state='menu',shake=0,parts=[],slowUntil=0,shieldAt=0,goldenAt=0,slowAt=0,now=0,flash=0,banner=null,over_t=0;
 const bestKey=m=>m==='classic'?'snakeBest':'snakeBest_'+m;
 function getBest(m){return +localStorage.getItem(bestKey(m))||0}
 function showBest(){$('best').textContent=getBest(mode)}
@@ -63,7 +66,7 @@ const wrapMode=()=>mode==='wrap';
 function baseMs(){return Math.max(62,150-(level-1)*9)}
 function isFree(px,py,ignoreFood){if(snake.some(s=>s.x==px&&s.y==py))return false;if(obs.some(o=>o.x==px&&o.y==py))return false;if(!ignoreFood&&foods.some(f=>f.x==px&&f.y==py))return false;return true}
 function randFree(){for(let t=0;t<400;t++){const px=Math.floor(Math.random()*N),py=Math.floor(Math.random()*N);if(isFree(px,py)&&Math.abs(px-snake[0].x)+Math.abs(py-snake[0].y)>2)return{x:px,y:py}}return null}
-function addFood(type){const p=randFree();if(!p)return;foods.push({x:p.x,y:p.y,type,born:now,life:type=='gold'?6500:(type=='slow'?8000:0)})}
+function addFood(type){const p=randFree();if(!p)return;foods.push({x:p.x,y:p.y,type,born:now,life:type=='gold'?6500:(type=='slow'?8000:(type=='shield'?9000:0))})}
 function genObstacles(){
  const R=rngf(level*7919+13),count=Math.min(34,3+level*3);let best=[];
  for(let attempt=0;attempt<40;attempt++){
@@ -86,7 +89,7 @@ function genObstacles(){
 function setHud(){$('score').textContent=score;$('lvl').textContent=level;$('cmb').textContent=combo>1?'كومبو ×'+combo:'';}
 function start(m){
  mode=m;showBest();snake=[{x:8,y:9},{x:7,y:9},{x:6,y:9}];prev=snake.map(s=>({...s}));dir={x:1,y:0};queue=[];foods=[];obs=[];score=0;eaten=0;level=1;combo=0;lastEat=-1e9;
- slowUntil=0;parts=[];shake=0;banner=null;now=performance.now();goldenAt=now+25000;slowAt=now+14000;
+ slowUntil=0;shield=0;shieldAt=performance.now()+20000;parts=[];shake=0;banner=null;now=performance.now();goldenAt=now+25000;slowAt=now+14000;
  if(mode==='adventure')obs=genObstacles();
  addFood('apple');tickMs=baseMs();acc=0;last=performance.now();state='play';
  $('msg').classList.add('hide');$('pause').classList.remove('hide');$('fx').textContent='';setHud();beep(500,900,.12,.07,'triangle');
@@ -102,23 +105,25 @@ function die(){
   $('mp').textContent='نتيجتك: '+score+' · المرحلة '+level+(nb&&score>0?' · رقم قياسي جديد! 🏆':'');
   $('msg').classList.remove('hide')},700);
 }
+function useShield(){if(!shield)return false;shield=0;shake=.7;buzz([40,30,60]);beep(300,700,.3,.1,'triangle');popParts(snake[0].x*S+10,snake[0].y*S+10,'#7dd3ff',30,170);floatText('🛡️ حماك!',snake[0].x*S+10,snake[0].y*S,'#7dd3ff');return true}
 function step(){
  if(queue.length)dir=queue.shift();
  prev=snake.map(s=>({...s}));
  let hx=snake[0].x+dir.x,hy=snake[0].y+dir.y;
  if(wrapMode()){hx=(hx+N)%N;hy=(hy+N)%N}
- else if(hx<0||hy<0||hx>=N||hy>=N)return die();
+ else if(hx<0||hy<0||hx>=N||hy>=N){if(!useShield())return die();hx=(hx+N)%N;hy=(hy+N)%N}
  const fi=foods.findIndex(f=>f.x==hx&&f.y==hy);
  const tail=snake[snake.length-1],growing=fi>=0&&foods[fi].type!=='slow'||fi>=0;
- if(obs.some(o=>o.x==hx&&o.y==hy))return die();
+ {const oi=obs.findIndex(o=>o.x==hx&&o.y==hy);if(oi>=0){if(!useShield())return die();obs.splice(oi,1)}}
  const body=growing?snake:snake.slice(0,-1);
- if(body.some(s=>s.x==hx&&s.y==hy))return die();
+ if(body.some(s=>s.x==hx&&s.y==hy)&&!useShield())return die();
  snake.unshift({x:hx,y:hy});
  if(fi>=0){
   const f=foods.splice(fi,1)[0];
   combo=(now-lastEat<3200)?Math.min(5,combo+1):1;lastEat=now;
   let pts=10;
   if(f.type==='gold'){pts=50;beep(700,1500,.25,.08,'triangle');buzz([20,30,40]);popParts(hx*S+10,hy*S+10,'#ffd23a',26,150)}
+  else if(f.type==='shield'){pts=15;shield=1;beep(600,1200,.25,.08,'sine');popParts(hx*S+10,hy*S+10,'#7dd3ff',22,130)}
   else if(f.type==='slow'){pts=20;slowUntil=now+4500;beep(900,300,.3,.08,'sine');popParts(hx*S+10,hy*S+10,'#7fe6ff',22,130)}
   else{beep(520+combo*60,880+combo*60,.09,.07,'square');buzz(12);popParts(hx*S+10,hy*S+10,'#ff5a5f',14)}
   pts*=combo;score+=pts;eaten++;floatText('+'+pts+(combo>1?' ×'+combo:''),hx*S+10,hy*S,f.type=='gold'?'#ffd23a':'#ffffff');
@@ -149,9 +154,10 @@ function update(dt,ts){
   if(state==='play'){
    for(let i=foods.length-1;i>=0;i--){const f=foods[i];if(f.life&&ts-f.born>f.life)foods.splice(i,1)}
    if(ts>goldenAt){if(!foods.some(f=>f.type==='gold'))addFood('gold');goldenAt=ts+22000+Math.random()*12000}
+   if(ts>shieldAt){if(!foods.some(f=>f.type==='shield')&&!shield)addFood('shield');shieldAt=ts+28000+Math.random()*14000}
    if(ts>slowAt){if(!foods.some(f=>f.type==='slow'))addFood('slow');slowAt=ts+30000+Math.random()*15000}
    if(combo>1&&ts-lastEat>3200){combo=0;setHud()}
-   const fx=[];if(ts<slowUntil)fx.push('❄️ وقت بطيء '+Math.ceil((slowUntil-ts)/1000));$('fx').textContent=fx.join('  ');
+   const fx=[];if(shield)fx.push('🛡️ درع جاهز');if(ts<slowUntil)fx.push('❄️ وقت بطيء '+Math.ceil((slowUntil-ts)/1000));$('fx').textContent=fx.join('  ');
   }
  }
  if(shake>0)shake=Math.max(0,shake-dt/500);
@@ -162,7 +168,7 @@ function pos(i,al){const c=snake[i],p=prev[i]||c;if(Math.abs(c.x-p.x)>1.5||Math.
 function mix(c1,c2,t){const a=parseInt(c1.slice(1),16),b=parseInt(c2.slice(1),16);const r=Math.round(lerp(a>>16,b>>16,t)),g=Math.round(lerp((a>>8)&255,(b>>8)&255,t)),bl=Math.round(lerp(a&255,b&255,t));return'rgb('+r+','+g+','+bl+')'}
 function rr(px,py,w,h,r){x.beginPath();x.moveTo(px+r,py);x.arcTo(px+w,py,px+w,py+h,r);x.arcTo(px+w,py+h,px,py+h,r);x.arcTo(px,py+h,px,py,r);x.arcTo(px,py,px+w,py,r);x.closePath()}
 function draw(ts){
- const th=THEMES[((level||1)-1)%THEMES.length];
+ const th=Object.assign({},THEMES[((level||1)-1)%THEMES.length],SKINS[skin]||{});
  x.save();x.setTransform(dpr,0,0,dpr,0,0);x.direction='ltr';
  if(shake>0)x.translate((Math.random()-.5)*shake*8,(Math.random()-.5)*shake*8);
  for(let r=0;r<N;r++)for(let c=0;c<N;c++){x.fillStyle=(r+c)%2?th.a:th.b;x.fillRect(c*S,r*S,S,S)}
@@ -175,7 +181,7 @@ function draw(ts){
   const cx=f.x*S+10,cy=f.y*S+10,pul=1+Math.sin(ts/180+f.x)*.08;
   if(f.type==='apple'){x.fillStyle='#ff5a5f33';x.beginPath();x.arc(cx,cy,13*pul,0,7);x.fill();x.fillStyle='#ff5a5f';x.beginPath();x.arc(cx,cy,8*pul,0,7);x.fill();x.fillStyle='#ffffff88';x.beginPath();x.arc(cx-3,cy-3,2.5,0,7);x.fill();x.strokeStyle='#4caf50';x.lineWidth=2;x.beginPath();x.moveTo(cx,cy-7);x.lineTo(cx+3,cy-11);x.stroke()}
   else{
-   const gold=f.type==='gold',col=gold?'#ffd23a':'#7fe6ff',age=ts-f.born,left=1-age/f.life,blink=left<.3&&Math.floor(ts/110)%2;
+   const gold=f.type==='gold',col=gold?'#ffd23a':(f.type==='shield'?'#7dd3ff':'#7fe6ff'),age=ts-f.born,left=1-age/f.life,blink=left<.3&&Math.floor(ts/110)%2;
    if(!blink){x.fillStyle=col+'44';x.beginPath();x.arc(cx,cy,15*pul,0,7);x.fill();x.fillStyle=col;x.beginPath();
     for(let k=0;k<10;k++){const a=k/10*6.283-1.57+ts/700,rd=k%2?4:9*pul;x.lineTo(cx+Math.cos(a)*rd,cy+Math.sin(a)*rd)}x.closePath();x.fill()}
    x.strokeStyle=col;x.lineWidth=2;x.beginPath();x.arc(cx,cy,14,-1.57,-1.57+6.283*Math.max(0,left));x.stroke();
@@ -191,7 +197,7 @@ function draw(ts){
  }
  for(let i=L-1;i>=1;i--){const t=i/Math.max(1,L-1);if(i%2==0){x.fillStyle='#ffffff14';x.beginPath();x.arc(pts[i].x,pts[i].y,3.5,0,7);x.fill()}}
  const h=pts[0],ang=Math.atan2(dir.y,dir.x);
- x.fillStyle=th.h;x.beginPath();x.arc(h.x,h.y,10,0,7);x.fill();
+ x.fillStyle=th.h;x.beginPath();x.arc(h.x,h.y,10,0,7);x.fill();if(shield){x.strokeStyle='#7dd3ff';x.lineWidth=2.5;x.globalAlpha=.6+Math.sin(ts/120)*.3;x.beginPath();x.arc(h.x,h.y,15,0,7);x.stroke();x.globalAlpha=1}
  x.fillStyle=th.t1;x.beginPath();x.arc(h.x-Math.cos(ang)*2,h.y-Math.sin(ang)*2,7,0,7);x.globalAlpha=.25;x.fill();x.globalAlpha=1;
  for(const s of [-1,1]){const ex=h.x+Math.cos(ang)*4+Math.cos(ang+1.57)*s*4.5,ey=h.y+Math.sin(ang)*4+Math.sin(ang+1.57)*s*4.5;x.fillStyle='#fff';x.beginPath();x.arc(ex,ey,3.2,0,7);x.fill();x.fillStyle='#111';x.beginPath();x.arc(ex+Math.cos(ang),ey+Math.sin(ang),1.7,0,7);x.fill()}
  if(state==='play'&&Math.floor(ts/420)%4===0){x.strokeStyle='#ff4a6a';x.lineWidth=1.6;const tx=h.x+Math.cos(ang)*10,ty=h.y+Math.sin(ang)*10;x.beginPath();x.moveTo(tx,ty);x.lineTo(tx+Math.cos(ang)*6,ty+Math.sin(ang)*6);x.lineTo(tx+Math.cos(ang)*9+Math.cos(ang+1)*3,ty+Math.sin(ang)*9+Math.sin(ang+1)*3);x.moveTo(tx+Math.cos(ang)*6,ty+Math.sin(ang)*6);x.lineTo(tx+Math.cos(ang)*9+Math.cos(ang-1)*3,ty+Math.sin(ang)*9+Math.sin(ang-1)*3);x.stroke()}
@@ -215,7 +221,8 @@ addEventListener('touchmove',e=>{if(!t0)return;const t=e.touches[0],dx=t.clientX
 document.querySelectorAll('.mb').forEach(b=>b.addEventListener('click',()=>start(b.dataset.mode)));
 showBest();snake=[{x:8,y:9},{x:7,y:9},{x:6,y:9}];prev=snake.map(s=>({...s}));dir={x:1,y:0};foods=[];obs=[];level=1;acc=0;tickMs=150;
 requestAnimationFrame(loop);window.__foods=()=>foods;window.__obs=()=>obs;
-window.__s={...{},start,step,get:()=>({state,mode,score,level,eaten,len:snake&&snake.length,obs:obs.length,foods:foods.map(f=>f.type),head:snake&&snake[0],dir}),setDir,addFood,die,force:0,snake:()=>snake};
+window.__s={...{},setShield:v=>{shield=v},useShield,start,step,get:()=>({shield,skin,state,mode,score,level,eaten,len:snake&&snake.length,obs:obs.length,foods:foods.map(f=>f.type),head:snake&&snake[0],dir}),setDir,addFood,die,force:0,snake:()=>snake};
 </script>
 </body>
 </html>
+
