@@ -173,7 +173,9 @@ code.addEventListener('click',renderSuggest);
 /* --- autosave --- */
 let saveTimer=null;
 function autosave(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{
-  try{ localStorage.setItem('barmej-code',code.value); saveState.textContent='اتحفظ تلقائيًا ✓'; }catch(e){}
+  try{ localStorage.setItem('barmej-code',code.value);
+    const p=getPrograms(); p[currentProgram]=code.value; savePrograms(p);
+    saveState.textContent='اتحفظ تلقائيًا ✓'; }catch(e){}
 },600); }
 
 /* --- share --- */
@@ -206,6 +208,58 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   $('#panel-'+t.dataset.panel).classList.add('active');
 }));
+
+/* --- export canvas --- */
+$('#saveTurtle').addEventListener('click',()=>{
+  try{
+    const a=document.createElement('a');
+    a.download='رسمة-برمج.png'; a.href=tc.toDataURL('image/png'); a.click();
+    toast('اتحفظت الصورة 💾');
+  }catch(e){ toast('معرفتش أحفظ الصورة'); }
+});
+
+/* --- programs drawer --- */
+const drawer=$('#programsDrawer'), programsList=$('#programsList');
+let currentProgram=localStorage.getItem('barmej-current')||'برنامجي';
+function getPrograms(){ try{ return JSON.parse(localStorage.getItem('barmej-programs')||'{}'); }catch(e){ return {}; } }
+function savePrograms(p){ try{ localStorage.setItem('barmej-programs',JSON.stringify(p)); }catch(e){} }
+function stashCurrent(){ const p=getPrograms(); p[currentProgram]=code.value; savePrograms(p); }
+function renderPrograms(){
+  const p=getPrograms(); programsList.innerHTML='';
+  const names=Object.keys(p);
+  if(!names.length){ programsList.innerHTML='<div style="padding:14px;color:var(--muted)">لسه مفيش برامج محفوظة — الكود الحالي بيتحفظ لوحده.</div>'; }
+  names.forEach(n=>{
+    const d=document.createElement('div');
+    d.className='program-item'+(n===currentProgram?' active':'');
+    d.innerHTML='<span>'+n+'</span>'+(names.length>1?'<button class="del" title="امسح">✕</button>':'<span></span>');
+    d.querySelector('.del')?.addEventListener('click',ev=>{ ev.stopPropagation();
+      const pp=getPrograms(); delete pp[n]; savePrograms(pp);
+      if(n===currentProgram){ currentProgram=Object.keys(pp)[0]||'برنامجي'; code.value=pp[currentProgram]||''; $('#fileName').textContent=currentProgram+'.برمج'; renderHL(); }
+      renderPrograms(); });
+    d.addEventListener('click',()=>{
+      stashCurrent();
+      currentProgram=n; const pp=getPrograms();
+      code.value=pp[n]||''; $('#fileName').textContent=n+'.برمج';
+      try{localStorage.setItem('barmej-current',n);}catch(e){}
+      renderHL(); renderPrograms(); drawer.classList.add('hidden');
+    });
+    programsList.appendChild(d);
+  });
+}
+$('#programsBtn').addEventListener('click',()=>{ stashCurrent(); renderPrograms(); drawer.classList.toggle('hidden'); });
+$('#closeDrawer').addEventListener('click',()=>drawer.classList.add('hidden'));
+$('#newProgramBtn').addEventListener('click',()=>{
+  const name=window.prompt('اسم البرنامج الجديد؟');
+  if(!name) return;
+  stashCurrent();
+  currentProgram=name.trim();
+  const p=getPrograms(); p[currentProgram]=p[currentProgram]||'اطبع "أهلاً من '+currentProgram+'"';
+  savePrograms(p);
+  code.value=p[currentProgram];
+  $('#fileName').textContent=currentProgram+'.برمج';
+  try{localStorage.setItem('barmej-current',currentProgram);}catch(e){}
+  renderHL(); toast('برنامج جديد: '+currentProgram);
+});
 
 /* --- toast --- */
 let toastTimer=null;
@@ -415,8 +469,10 @@ $('#docsContent').innerHTML=`
 
 /* --- init --- */
 if(!loadFromHash()){
-  try{ const saved=localStorage.getItem('barmej-code');
-    code.value=saved||BARMEJ_EXAMPLES[0].code; }catch(e){ code.value=BARMEJ_EXAMPLES[0].code; }
+  try{ const p=getPrograms();
+    if(p[currentProgram]!==undefined){ code.value=p[currentProgram]; $('#fileName').textContent=currentProgram+'.برمج'; }
+    else { const saved=localStorage.getItem('barmej-code'); code.value=saved||BARMEJ_EXAMPLES[0].code; }
+  }catch(e){ code.value=BARMEJ_EXAMPLES[0].code; }
 }
 renderHL(); renderLesson(); renderChallenge();
 const tabM=location.hash.match(/[#&]tab=(\w+)/);
