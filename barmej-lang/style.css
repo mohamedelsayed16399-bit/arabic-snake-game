@@ -247,3 +247,14 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .sprite-pal{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; direction:ltr; }
 .spal{ width:30px; height:30px; border-radius:8px; border:2px solid var(--line); cursor:pointer; color:var(--muted); padding:0; }
 .spal.on{ border-color:#2dd4a7; box-shadow:0 0 0 2px rgba(45,212,167,.4); }
+
+.ex-tools{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:12px 14px 0; }
+#exSearch{ flex:1 1 200px; min-width:160px; background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:10px; padding:8px 12px; font-family:inherit; font-size:14px; }
+.ex-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.chip{ background:var(--panel); border:1px solid var(--line); color:var(--muted); border-radius:999px; padding:5px 12px; cursor:pointer; font-family:inherit; font-size:13px; }
+.chip.on{ border-color:#2dd4a7; color:#2dd4a7; background:rgba(45,212,167,.12); }
+.ex-count{ color:var(--muted); font-size:12px; }
+.example-card{ position:relative; }
+.fav-btn{ position:absolute; top:8px; left:8px; background:none; border:0; color:var(--muted); font-size:20px; cursor:pointer; padding:2px 6px; }
+.fav-btn.on{ color:#fbbf24; }
+#panel-examples.active{flex-direction:column;overflow:auto}
