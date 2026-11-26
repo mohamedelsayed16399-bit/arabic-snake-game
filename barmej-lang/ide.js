@@ -187,7 +187,8 @@ $('#freehandBtn').addEventListener('click',()=>{
 });
 function canvasPos(ev){
   const r=tc.getBoundingClientRect(); if(!r.width||!r.height) return {x:0,y:0};
-  const cx=(ev.clientX-r.left)*(tc.width/r.width), cy=(ev.clientY-r.top)*(tc.height/r.height);
+  const k=Math.min(r.width/tc.width,r.height/tc.height); /* object-fit:contain */
+  const cx=(ev.clientX-r.left-(r.width-tc.width*k)/2)/k, cy=(ev.clientY-r.top-(r.height-tc.height*k)/2)/k;
   return {x:cx-tc.width/2, y:cy-tc.height/2};
 }
 tc.addEventListener('pointerdown',ev=>{ if(!freehand) return; drawing=true;
