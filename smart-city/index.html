@@ -158,7 +158,7 @@ function step(){
  for(let i=0;i<W*H;i++)if(cells[i].t===1){rc++;tl+=Math.min(1.5,LOAD[i]/9)}
  S.cong=rc?Math.min(1,tl/rc):0;
  let hs=0,hn=0,inc=0;
- const resDem=jobs+25>resPop,jobDem=resPop*0.9+12>jobs;
+ const resDem=jobs+25>resPop,jobDem=resPop*0.9+12>jobs;S.rd=jobs+25-resPop;S.jd=resPop*0.9+12-jobs;
  const pollN=new Float32Array(W*H);
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=cells[idx(x,y)];if(c.t===4||c.t===5){for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const X=x+dx,Y=y+dy;if(inb(X,Y))pollN[idx(X,Y)]+=c.t===5?1.2:1}}}
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
@@ -174,13 +174,13 @@ function step(){
   if(c.t===2&&c.pop>0){hs+=c.h*c.pop;hn+=c.pop}
   const dm=c.t===2?resDem:jobDem;
   const ok=c.acc&&S.pr>0.6&&S.wr>0.6&&c.h>42&&!c.fire;
-  if(ok&&dm&&c.pop<cap(c)&&Math.random()<0.7)c.pop=Math.min(cap(c),c.pop+1+(Math.random()<0.3?1:0));
+  if(ok&&dm&&c.pop<cap(c)&&Math.random()<0.7)c.pop=Math.min(cap(c),c.pop+1+Math.floor(Math.random()*3));
   else if((c.h<28||!c.acc||S.pr<0.35)&&c.pop>0&&Math.random()<0.4)c.pop--;
   if(c.pop<0)c.pop=0;
   const rate=S.tax*(S.boom>0?1.3:1);
-  if(c.t===2)inc+=c.pop*rate*0.06*(c.h/60)*(S.pr>0.6?1:0.5);
-  else if(c.t===3)inc+=c.pop*rate*0.1*(S.pr>0.6?1:0.2)+c.pop*0.2;
-  else inc+=c.pop*rate*0.08*(S.pr>0.6?1:0.2)+c.pop*0.3;
+  if(c.t===2)inc+=c.pop*rate*0.022*(c.h/60)*(S.pr>0.6?1:0.5);
+  else if(c.t===3)inc+=c.pop*rate*0.03*(S.pr>0.6?1:0.2)+c.pop*0.07;
+  else inc+=c.pop*rate*0.025*(S.pr>0.6?1:0.2)+c.pop*0.09;
   if(c.crime)inc-=c.pop*0.2;
   if(c.pop>0){
    const hot=S.heat>0?2:1;
@@ -280,7 +280,7 @@ function ui(){
 }
 function renderInfo(){
  const el=$('info');
- if(!sel){el.innerHTML='ضريبة '+S.tax+'% · دخل/ثانية '+S.income.toFixed(1)+' · مصروف '+S.expense.toFixed(1)+'<br>اضغط على أي مبنى لتفحصه.';return}
+ if(!sel){const bar=v=>{v=Math.max(-1,Math.min(1,(v||0)/40));return v>0.15?'<b class=good>مرتفع ▲</b>':v<-0.15?'<b class=bad>منخفض ▼</b>':'<b>متوازن</b>'};el.innerHTML='ضريبة '+S.tax+'% · دخل '+S.income.toFixed(1)+' · مصروف '+S.expense.toFixed(1)+'<br>الطلب على: 🏠 سكن '+bar(S.rd)+' · 🏬🏭 وظائف '+bar(S.jd)+'<br><small>ابني مناطق جنب الطرق ووفّر كهرباء ومياه. اضغط على أي مبنى أو مواطن لتفحصه.</small>';return}
  const[x,y]=sel,c=cells[idx(x,y)],d=DEFS[c.t];
  let h=selW?'<b>🧑 '+selW.name+'</b> ('+selW.job+')<br>مزاج: '+(S.avgH>70?'😍 مبسوط':S.avgH>45?'🙂 عادي':'😞 متضايق')+(S.pr<0.8?' · الكهرباء بتقطع':'')+(S.cong>0.55?' · الزحمة خانقة':'')+'<hr style="border-color:#345">':'';
  h+='<b>'+(d.i||'')+' '+d.n+'</b> ('+x+','+y+')';
