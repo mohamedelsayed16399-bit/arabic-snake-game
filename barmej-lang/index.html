@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=39">
+<link rel="stylesheet" href="style.css?v=40">
 </head>
 <body>
 <header id="topbar">
@@ -39,6 +39,7 @@
       <div class="editor-head">
         <span class="fname" id="fileName">برنامجي.برمج</span>
         <span>
+          <button id="snipBtn" class="ghost" title="قصاصات كود جاهزة">🧩 قصاصات</button>
           <button id="histBtn" class="ghost" title="سجل النسخ: ارجع لأي نسخة شغّلتها قبل كده">🕘 سجل</button>
           <button id="formatBtn" class="ghost" title="نسّق الكود (Ctrl+Shift+F)">✨ نسّق</button>
           <button id="fontDown" class="ghost" title="صغّر الخط">أ−</button>
@@ -174,6 +175,7 @@
 </div></div>
 <div id="histModal" class="modal-back hidden"><div class="modal hist-modal"><h2>🕘 سجل النسخ</h2><p>كل مرة بتشغّل فيها بنحتفظ بنسخة (آخر ٢٥ نسخة لكل برنامج). اختار نسخة وارجع لها.</p><div id="histList" class="hist-list"></div><div class="piano-btns"><button id="histClose" class="ghost small">إغلاق</button></div></div></div>
 <div id="tourOverlay" class="tour hidden"><div id="tourCard" class="tour-card"><div id="tourText"></div><div class="tour-btns"><span id="tourStep" class="tour-step"></span><button id="tourSkip" class="ghost small">تخطي</button><button id="tourPrev" class="ghost small">السابق</button><button id="tourNext" class="run small">التالي</button></div></div></div>
+<div id="snipModal" class="modal-back hidden"><div class="modal snip-modal"><h2>🧩 قصاصات جاهزة</h2><input id="snipSearch" type="search" placeholder="🔎 دوّر: حلقة، دالة، لعبة…" dir="rtl"><div id="snipList" class="snip-list"></div><div class="piano-btns"><button id="snipClose" class="ghost small">إغلاق</button></div></div></div>
 <div id="achModal" class="modal-back hidden"><div class="modal ach-modal" id="achBox"></div></div>
 <div id="welcomeModal" class="modal-back hidden">
   <div class="modal">
@@ -194,8 +196,8 @@
 </div>
 <div id="toast"></div>
 
-<script src="lang.js?v=39"></script>
-<script src="lessons.js?v=39"></script>
-<script src="ide.js?v=39"></script>
+<script src="lang.js?v=40"></script>
+<script src="lessons.js?v=40"></script>
+<script src="ide.js?v=40"></script>
 </body>
 </html>
