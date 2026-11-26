@@ -543,7 +543,7 @@ function renderPrograms(){
   names.forEach(n=>{
     const d=document.createElement('div');
     d.className='program-item'+(n===currentProgram?' active':'');
-    d.innerHTML='<span>'+n+'</span>'+(names.length>1?'<button class="del" title="امسح">✕</button>':'<span></span>');
+    d.innerHTML='<span></span>'+(names.length>1?'<button class="del" title="امسح">✕</button>':'<span></span>'); d.firstChild.textContent=n;
     d.querySelector('.del')?.addEventListener('click',ev=>{ ev.stopPropagation();
       const pp=getPrograms(); delete pp[n]; savePrograms(pp);
       if(n===currentProgram){ currentProgram=Object.keys(pp)[0]||'برنامجي'; code.value=pp[currentProgram]||''; $('#fileName').textContent=currentProgram+'.برمج'; renderHL(); }
@@ -949,6 +949,30 @@ $('#docsContent').innerHTML=`
   window.addEventListener('keydown',e=>{ if(ov.classList.contains('hidden')) return; if(e.key==='Escape') end(); if(e.key==='ArrowLeft') $('#tourNext').click(); });
 })();
 
+/* --- backup / restore --- */
+(function(){
+  const KEYS=['barmej-programs','barmej-lessons-done','barmej-challenges-done','barmej-fav-ex','barmej-daily','barmej-hist'];
+  $('#backupBtn').addEventListener('click',()=>{ stashCurrent();
+    const data={app:'barmej',v:1,time:new Date().toISOString(),keys:{}};
+    try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(KEYS.includes(k)||k.startsWith('barmej-data:')) data.keys[k]=localStorage.getItem(k); } }catch(e){}
+    const n=Object.keys(getPrograms()).length;
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'})); a.download='نسخة-برمج-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    toast('نزلت نسخة احتياطية فيها '+n+' برنامج 💼'); });
+  $('#restoreBtn').addEventListener('click',()=>$('#restoreFile').click());
+  $('#restoreFile').addEventListener('change',async e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
+    try{ const d=JSON.parse(await f.text()); if(!d||d.app!=='barmej'||typeof d.keys!=='object') throw 0; const r=restoreData(d.keys); toast('اتسترجع '+r.progs+' برنامج جديد ✅'); renderPrograms(); }
+    catch(err){ toast('الملف ده مش نسخة احتياطية من برمج'); } });
+  function restoreData(keys){ let progs=0; const cur=getPrograms();
+    try{ const inc=JSON.parse(keys['barmej-programs']||'{}'); for(const n of Object.keys(inc)){ if(typeof inc[n]!=='string') continue; const name=String(n).slice(0,60); if(cur[name]===undefined){ cur[name]=inc[n]; progs++; } else if(cur[name]!==inc[n]){ let m=name+' (مستورد)', i=2; while(cur[m]!==undefined) m=name+' (مستورد '+(i++)+')'; cur[m]=inc[n]; progs++; } } }catch(e){}
+    savePrograms(cur);
+    const union=(k,set)=>{ try{ const inc=JSON.parse(keys[k]||'[]'); if(Array.isArray(inc)){ inc.forEach(x=>set.add(x)); localStorage.setItem(k,JSON.stringify([...set])); } }catch(e){} };
+    union('barmej-lessons-done',doneLessons); union('barmej-challenges-done',doneChallenges);
+    try{ renderLessonList(); }catch(e){}
+    for(const k of Object.keys(keys)){ if(k.startsWith('barmej-data:')&&typeof keys[k]==='string'){ try{ if(localStorage.getItem(k)===null) localStorage.setItem(k,keys[k]); }catch(e){} } }
+    return {progs}; }
+  window.__barmejRestore=restoreData;
+})();
 /* --- snippets --- */
 (function(){
   const SN=[["🔁 حلقة عدّ", "كرر ٥ {\n  اطبع \"رقم \" + عداد\n}\n"], ["🔂 لكل عنصر", "لكل ع في [١، ٢، ٣] {\n  اطبع ع\n}\n"], ["❓ لو وإلا", "خلي س = ١٥\nلو س > ١٠ {\n  اطبع \"كبير\"\n} وإلا {\n  اطبع \"صغير\"\n}\n"], ["🧮 دالة", "دالة جمع(أ، ب) {\n  ارجع أ + ب\n}\nاطبع جمع(٢، ٣)\n"], ["📋 قائمة وعمليات", "خلي ق = [٣، ١، ٢]\nأضف(ق، ٤)\nاطبع رتّب(ق)\nاطبع مجموع(ق)\n"], ["📖 قاموس", "خلي شخص = {اسم: \"منى\"، عمر: ٢٥}\nاطبع شخص.اسم\n"], ["🛡️ معالجة أخطاء", "جرّب {\n  اطبع رقم(\"abc\")\n} لو_خطأ ح {\n  اطبع \"حصل خطأ: \" + ح\n}\n"], ["🧱 صنف", "صنف حيوان {\n  دالة بناء(اسم) {\n    هذا.اسم = اسم\n  }\n  دالة صوت() {\n    اطبع هذا.اسم + \" بيتكلم\"\n  }\n}\nخلي ح = جديد حيوان(\"قطة\")\nح.صوت()\n"], ["⚡ دالة بلا اسم", "خلي ضعف = دالة(س): س * ٢\nاطبع خريطة([١، ٢، ٣]، ضعف)\n"], ["🎨 ارسم مربع", "كرر ٤ {\n  قدم(١٠٠)\n  يمين(٩٠)\n}\n"], ["🎵 لحن", "لحن(\"دو ري مي فا صول لا سي دو+\"، ٣٠٠)\n"], ["🎮 قالب لعبة (حلقة إطارات)", "خلي س = ٠\nخلي ص = ٠\nطالما صح {\n  خلي م = مفتاح()\n  لو م == \"يمين\" { س = س + ٨ }\n  لو م == \"يسار\" { س = س - ٨ }\n  لو ماوس_مضغوط() { س = ماوس_س()؛ ص = ماوس_ص() }\n  خلفية(\"أسود\")\n  ارفع()\n  اذهب(س، ص)\n  رمز(\"🚀\"، ٥٠)\n  استنى(٢٠)\n}\n"], ["💥 تصادم", "خلي س = ٠\nخلي ص = ٠\nخلي هدف_س = ١٠\nخلي هدف_ص = ١٠\nلو تصادم(س، ص، ٢٥، هدف_س، هدف_ص، ٢٠) {\n  اطبع \"لمسته!\"\n}\n"], ["🖱️ ضغطة الماوس", "خلي ض = نقرة()\nلو ض != فراغ {\n  اطبع \"ضغطت على \" + ض[٠] + \"، \" + ض[١]\n}\n"], ["📦 استورد مكتبة", "استورد \"رياضيات\"\nاطبع مضروب(٥)\n"], ["🎲 عشوائي", "اطبع عشوائي(١، ١٠)\nخلي ألوان = [\"أحمر\"، \"أخضر\"، \"أزرق\"]\nاطبع ألوان[عشوائي(٠، ٢)]\n"], ["⏳ انتظار", "اطبع \"ثانية واحدة…\"\nاستنى(١٠٠٠)\nاطبع \"خلصت\"\n"]];
