@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=17">
+<link rel="stylesheet" href="style.css?v=18">
 </head>
 <body>
 <header id="topbar">
@@ -21,6 +21,7 @@
     <button class="tab" data-panel="examples">أمثلة</button>
   </nav>
   <div class="actions">
+    <button id="achBtn" title="إنجازاتك">🏆 1</button>
     <button id="muteBtn" title="الصوت">🔊</button>
     <button id="shareBtn" title="انسخ رابط المشاركة">🔗 مشاركة</button>
     <button id="themeBtn" title="بدّل المظهر">🌓</button>
@@ -148,6 +149,7 @@
   </div>
   <div id="programsList"></div>
 </div>
+<div id="achModal" class="modal-back hidden"><div class="modal ach-modal" id="achBox"></div></div>
 <div id="welcomeModal" class="modal-back hidden">
   <div class="modal">
     <h2>أهلاً بيك في برمِج 👋</h2>
@@ -155,8 +157,8 @@
     <ul>
       <li>📝 <b>المحرر</b> — اكتب كود عربي ودوس «شغّل»</li>
       <li>👣 <b>خطوة بخطوة</b> — نفّذ سطر سطر وراقب المتغيرات</li>
-      <li>🎓 <b>١٢ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
-      <li>🐍 <b>٢٠ مثال جاهز</b> — منهم لعبة ثعبان كاملة!</li>
+      <li>🎓 <b>٢٠ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
+      <li>🐍 <b>٤٠ مثال جاهز</b> — منهم لعبة ثعبان كاملة!</li>
     </ul>
     <div class="modal-actions">
       <button id="welcomeLessons" class="run">ابدأ الدروس 🎓</button>
@@ -166,8 +168,8 @@
 </div>
 <div id="toast"></div>
 
-<script src="lang.js?v=17"></script>
-<script src="lessons.js?v=17"></script>
-<script src="ide.js?v=17"></script>
+<script src="lang.js?v=18"></script>
+<script src="lessons.js?v=18"></script>
+<script src="ide.js?v=18"></script>
 </body>
 </html>
