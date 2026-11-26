@@ -97,6 +97,7 @@ function turtleReset(){
   tctx.setTransform(1,0,0,1,tc.width/2,tc.height/2);
   tctx.lineCap='round'; tctx.lineJoin='round';
 }
+const SPRITE_PAL={'1':'#111827','2':'#ef4444','3':'#f59e0b','4':'#fde047','5':'#22c55e','6':'#3b82f6','7':'#a855f7','8':'#f9fafb','9':'#92400e'};
 function turtleHandle(o){
   turtlePanel.classList.remove('hidden');
   if(!turtle) turtleReset();
@@ -121,6 +122,8 @@ function turtleHandle(o){
       tctx.strokeStyle=T.color; tctx.lineWidth=T.w; tctx.strokeRect(T.lastRect.x,T.lastRect.y,o.w,o.h); break;
     case 'fill': if(T.lastRect){ tctx.fillStyle=T.color; tctx.fillRect(T.lastRect.x,T.lastRect.y,T.lastRect.w,T.lastRect.h); } break;
     case 'emoji': tctx.save(); tctx.translate(T.x,T.y); tctx.rotate(rad(o.ang||0)); tctx.font=(o.size||40)+'px "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif'; tctx.textAlign='center'; tctx.textBaseline='middle'; tctx.fillText(o.t,0,0); tctx.restore(); break;
+    case 'pixels': { const PAL=SPRITE_PAL, rows=o.rows, s=o.size||10, w=Math.max(...rows.map(r=>r.length)), x0=T.x-w*s/2, y0=T.y-rows.length*s/2;
+      rows.forEach((r,j)=>{ for(let i=0;i<r.length;i++){ const c=PAL[r[i]]; if(c){ tctx.fillStyle=c; tctx.fillRect(x0+i*s,y0+j*s,s+0.5,s+0.5); } } }); break; }
     case 'bg': tctx.save(); tctx.fillStyle=AR_COLORS[o.c]||o.c; tctx.fillRect(-tc.width,-tc.height,tc.width*2,tc.height*2); tctx.restore(); break;
     case 'text': tctx.fillStyle=T.color; tctx.font='bold '+(o.size||22)+'px Tahoma,Arial'; tctx.textAlign='center'; tctx.direction='rtl'; tctx.fillText(o.t,T.x,T.y); break;
   }
@@ -371,7 +374,7 @@ $('#finishSteps').addEventListener('click',()=>{
 $('#stopSteps').addEventListener('click',()=>stopStepMode('⏹ اتوقف وضع الخطوة'));
 
 /* --- autocomplete chips --- */
-const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','رمز','خلفية','لحن','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب','مسافة','زاوية','تصادم','داخل','ماوس_س','ماوس_ص','ماوس_مضغوط','نقرة'];
+const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','رمز','خلفية','بكسلات','لحن','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب','مسافة','زاوية','تصادم','داخل','ماوس_س','ماوس_ص','ماوس_مضغوط','نقرة'];
 const ALL_WORDS=[...KWS,...BUILTINS];
 const suggestBar=$('#suggestBar');
 function currentWord(){
@@ -773,6 +776,7 @@ $('#docsContent').innerHTML=`
 <p>برنامجك يقدر يتفاعل مع الضغط على اللوحة (بالماوس أو بالإصبع على الموبايل):</p>
 <table><tr><td><code>نقرة()</code></td><td>لو في ضغطة جديدة بترجّع [س، ص] (مرة واحدة لكل ضغطة)، وإلا فراغ</td></tr>
 <tr><td><code>لحن("دو ري مي+ صول:2 _"، ٣٠٠)</code></td><td>يعزف لحن كامل: + أعلى، - أوطى، :٢ نوتة طويلة، _ سكوت. الرقم = مللي ثانية للنوتة</td></tr>
+<tr><td><code>بكسلات(شكل، حجم)</code></td><td>يرسم شخصية من قائمة صفوف نصية (٠-٩ ألوان، نقطة = شفاف) مكان القلم. ارسمها بزر 🎨</td></tr>
 <tr><td><code>رمز("🚀"، حجم، زاوية)</code></td><td>يرسم إيموجي (شخصية/سبرايت) مكان القلم، وممكن تلفّه بزاوية</td></tr>
 <tr><td><code>خلفية("لون")</code></td><td>يملا اللوحة كلها بلون (أول سطر في كل إطار لعبة)</td></tr>
 <tr><td><code>مسافة(س١،ص١،س٢،ص٢)</code></td><td>المسافة بين نقطتين</td></tr>
@@ -869,6 +873,31 @@ $('#docsContent').innerHTML=`
 `;
 
 
+
+/* --- sprite editor --- */
+(function(){
+  const N=12, grid=$('#spriteGrid'), pal=$('#spritePal'); const cells=Array.from({length:N},()=>Array(N).fill('.')); let cur='2';
+  const cellEls=[]; let painting=false;
+  grid.style.gridTemplateColumns='repeat('+N+',1fr)';
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const d=document.createElement('div'); d.className='scell'; d.dataset.i=i; d.dataset.j=j; grid.appendChild(d); cellEls.push(d); }
+  function paint(d){ if(!d||!d.classList.contains('scell')) return; const i=+d.dataset.i,j=+d.dataset.j; cells[j][i]=(cur==='.')?'.':cur; d.style.background=cur==='.'?'':SPRITE_PAL[cur]; }
+  grid.addEventListener('pointerdown',e=>{ e.preventDefault(); painting=true; paint(e.target); });
+  grid.addEventListener('pointermove',e=>{ if(painting){ paint(document.elementFromPoint(e.clientX,e.clientY)); } });
+  window.addEventListener('pointerup',()=>{ painting=false; });
+  ['.','1','2','3','4','5','6','7','8','9'].forEach(k=>{ const b=document.createElement('button'); b.className='spal'+(k===cur?' on':''); b.dataset.k=k; b.style.background=k==='.'?'transparent':SPRITE_PAL[k]; b.textContent=k==='.'?'✖':''; b.title=k==='.'?'ممحاة':'لون '+k;
+    b.addEventListener('click',()=>{ cur=k; pal.querySelectorAll('.spal').forEach(x=>x.classList.toggle('on',x===b)); }); pal.appendChild(b); });
+  function redraw(){ cellEls.forEach(d=>{ const c=cells[+d.dataset.j][+d.dataset.i]; d.style.background=c==='.'?'':SPRITE_PAL[c]; }); }
+  $('#spriteClear').addEventListener('click',()=>{ cells.forEach(r=>r.fill('.')); redraw(); });
+  $('#spriteFlip').addEventListener('click',()=>{ cells.forEach(r=>r.reverse()); redraw(); });
+  $('#spriteIns').addEventListener('click',()=>{ let rows=cells.map(r=>r.join('')); while(rows.length&&/^\.+$/.test(rows[0])) rows.shift(); while(rows.length&&/^\.+$/.test(rows[rows.length-1])) rows.pop();
+    if(!rows.length){ toast('ارسم حاجة الأول 🎨'); return; }
+    const sp=code.selectionStart; const pre=(sp>0&&code.value[sp-1]!=='\n')?'\n':'';
+    $('#spriteModal').classList.add('hidden');
+    insText(pre+'خلي شكل = [\n'+rows.map(r=>'  "'+r+'"').join('،\n')+'\n]\nارفع()\nاذهب(٠، ٠)\nبكسلات(شكل، ٢٠)\n'); toast('اتضافت الشخصية في الكود 🎨'); });
+  $('#spriteClose').addEventListener('click',()=>$('#spriteModal').classList.add('hidden'));
+  $('#spriteModal').addEventListener('click',e=>{ if(e.target.id==='spriteModal') $('#spriteModal').classList.add('hidden'); });
+  $('#spriteBtn').addEventListener('click',()=>$('#spriteModal').classList.remove('hidden'));
+})();
 /* --- piano --- */
 (function(){
   const NAMES=['دو','ري','مي','فا','صول','لا','سي','دو+'], FREQ=[261.6,293.7,329.6,349.2,392,440,493.9,523.3], KEYS=['a','s','d','f','g','h','j','k'];
