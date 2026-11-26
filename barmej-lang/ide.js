@@ -136,16 +136,17 @@ renderSpeed();
 
 /* --- sound --- */
 let actx=null;
-function beep(freq,ms){
+function beep(freq,ms,delay){
   if(muted) return;
   try{
     if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
     const o=actx.createOscillator(), g=actx.createGain();
     o.type='triangle'; o.frequency.value=freq;
-    g.gain.setValueAtTime(.18,actx.currentTime);
-    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+(ms||200)/1000);
+    const t0=actx.currentTime+(delay||0)/1000;
+    g.gain.setValueAtTime(.18,t0);
+    g.gain.exponentialRampToValueAtTime(.001,t0+(ms||200)/1000);
     o.connect(g); g.connect(actx.destination);
-    o.start(); o.stop(actx.currentTime+(ms||200)/1000);
+    o.start(t0); o.stop(t0+(ms||200)/1000);
   }catch(e){}
 }
 $('#clearTurtle').addEventListener('click',()=>{ turtleReset(); });
@@ -259,7 +260,7 @@ function makeIO(){
     askAsync:q=>askInline(q),
     chooseAsync:(q,opts)=>chooseInline(q,opts),
     draw:o=>{ turtleHandle(o); return drawDelay>0? {__sleep:drawDelay} : null; },
-    beep:(f,m)=>beep(f,m),
+    beep:(f,m,d)=>beep(f,m,d),
     key:()=>pressedKey,
     mouse:()=>mouse,
     module:n=>{ const p=getPrograms(); n=String(n).replace(/\.برمج$/,''); return Object.prototype.hasOwnProperty.call(p,n)?p[n]:null; },
@@ -370,7 +371,7 @@ $('#finishSteps').addEventListener('click',()=>{
 $('#stopSteps').addEventListener('click',()=>stopStepMode('⏹ اتوقف وضع الخطوة'));
 
 /* --- autocomplete chips --- */
-const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','رمز','خلفية','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب','مسافة','زاوية','تصادم','داخل','ماوس_س','ماوس_ص','ماوس_مضغوط','نقرة'];
+const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','رمز','خلفية','لحن','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب','مسافة','زاوية','تصادم','داخل','ماوس_س','ماوس_ص','ماوس_مضغوط','نقرة'];
 const ALL_WORDS=[...KWS,...BUILTINS];
 const suggestBar=$('#suggestBar');
 function currentWord(){
@@ -742,6 +743,7 @@ $('#docsContent').innerHTML=`
 <h2>الماوس واللمس 🖱️</h2>
 <p>برنامجك يقدر يتفاعل مع الضغط على اللوحة (بالماوس أو بالإصبع على الموبايل):</p>
 <table><tr><td><code>نقرة()</code></td><td>لو في ضغطة جديدة بترجّع [س، ص] (مرة واحدة لكل ضغطة)، وإلا فراغ</td></tr>
+<tr><td><code>لحن("دو ري مي+ صول:2 _"، ٣٠٠)</code></td><td>يعزف لحن كامل: + أعلى، - أوطى، :٢ نوتة طويلة، _ سكوت. الرقم = مللي ثانية للنوتة</td></tr>
 <tr><td><code>رمز("🚀"، حجم، زاوية)</code></td><td>يرسم إيموجي (شخصية/سبرايت) مكان القلم، وممكن تلفّه بزاوية</td></tr>
 <tr><td><code>خلفية("لون")</code></td><td>يملا اللوحة كلها بلون (أول سطر في كل إطار لعبة)</td></tr>
 <tr><td><code>مسافة(س١،ص١،س٢،ص٢)</code></td><td>المسافة بين نقطتين</td></tr>
