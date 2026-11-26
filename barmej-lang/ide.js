@@ -902,7 +902,7 @@ $('#docsContent').innerHTML=`
     ['#code','📝 هنا بتكتب كودك بالعربي. بيكمّل الأقواس لوحده وبينسّق (✨) لما تحب.','editor'],
     ['#runBtn','▶ دوس «شغّل» والنتيجة بتظهر على الشمال. وفيه «خطوة بخطوة» لو عايز تتابع المتغيرات.','editor'],
     ['#histBtn','🕘 كل تشغيل بيتسجل كنسخة، فتقدر ترجع لأي نسخة قديمة.','editor'],
-    ['.tab[data-panel="lessons"]','🎓 ٢٣ درس تفاعلي: بتقرا وتحل وبيتحقق من حلك لوحده.','editor'],
+    ['.tab[data-panel="lessons"]','🎓 ٢٤ درس تفاعلي: بتقرا وتحل وبيتحقق من حلك لوحده.','editor'],
     ['.tab[data-panel="challenges"]','🧩 تحديات، وفوقها ⭐ تحدي اليوم بسلسلة أيام متتالية.','editor'],
     ['.tab[data-panel="examples"]','🎮 ٤٦ مثال: ألعاب ومنصات وموسيقى ورسم. دوّر وضيف مفضلتك ⭐.','editor'],
     ['#spriteBtn','🎨 ارسم شخصيتك بالبكسل وحطها في الكود بضغطة.','editor'],
@@ -957,6 +957,30 @@ $('#docsContent').innerHTML=`
   $('#histBtn').addEventListener('click',()=>{ histSnap(); render(); $('#histModal').classList.remove('hidden'); });
   $('#histClose').addEventListener('click',()=>$('#histModal').classList.add('hidden'));
   $('#histModal').addEventListener('click',e=>{ if(e.target.id==='histModal') $('#histModal').classList.add('hidden'); });
+})();
+/* --- map editor --- */
+(function(){
+  const W=16,H=11, grid=$('#mapGrid'), pal=$('#mapPal'); const cells=Array.from({length:H},()=>Array(W).fill('.')); let cur='#', painting=false; const els=[];
+  grid.style.gridTemplateColumns='repeat('+W+',1fr)';
+  const col=k=>k==='#'?'#64748b':(k==='.'?'':SPRITE_PAL[k]);
+  for(let j=0;j<H;j++) for(let i=0;i<W;i++){ const d=document.createElement('div'); d.className='mcell'; d.dataset.i=i; d.dataset.j=j; grid.appendChild(d); els.push(d); }
+  function border(){ for(let j=0;j<H;j++) for(let i=0;i<W;i++) cells[j][i]=(i===0||j===0||i===W-1||j===H-1)?'#':'.'; }
+  function redraw(){ els.forEach(d=>{ d.style.background=col(cells[+d.dataset.j][+d.dataset.i]); }); }
+  function paint(d){ if(!d||!d.classList.contains('mcell')) return; cells[+d.dataset.j][+d.dataset.i]=cur; d.style.background=col(cur); }
+  grid.addEventListener('pointerdown',e=>{ e.preventDefault(); painting=true; paint(e.target); });
+  grid.addEventListener('pointermove',e=>{ if(painting) paint(document.elementFromPoint(e.clientX,e.clientY)); });
+  window.addEventListener('pointerup',()=>{ painting=false; });
+  ['#','.','2','3','4','5','6','7','8','9','1'].forEach(k=>{ const b=document.createElement('button'); b.className='spal'+(k===cur?' on':''); b.style.background=k==='.'?'transparent':col(k); b.textContent=k==='.'?'✖':(k==='#'?'🧱':''); b.title=k==='.'?'ممحاة':(k==='#'?'جدار':'لون '+k);
+    b.addEventListener('click',()=>{ cur=k; pal.querySelectorAll('.spal').forEach(x=>x.classList.toggle('on',x===b)); }); pal.appendChild(b); });
+  border(); redraw();
+  $('#mapClear').addEventListener('click',()=>{ cells.forEach(r=>r.fill('.')); redraw(); });
+  $('#mapBorder').addEventListener('click',()=>{ border(); redraw(); });
+  $('#mapIns').addEventListener('click',()=>{ const sp=code.selectionStart; const pre=(sp>0&&code.value[sp-1]!=='\n')?'\n':'';
+    $('#mapModal').classList.add('hidden');
+    insText(pre+'خلي خريطة = [\n'+cells.map(r=>'  "'+r.join('')+'"').join('،\n')+'\n]\nخلفية("#0f172a")\nخريطة_بلاط(خريطة، ٣٦)\n'); toast('اتضافت الخريطة في الكود 🗺️'); });
+  $('#mapClose').addEventListener('click',()=>$('#mapModal').classList.add('hidden'));
+  $('#mapModal').addEventListener('click',e=>{ if(e.target.id==='mapModal') $('#mapModal').classList.add('hidden'); });
+  $('#mapBtn').addEventListener('click',()=>$('#mapModal').classList.remove('hidden'));
 })();
 /* --- sprite editor --- */
 (function(){
