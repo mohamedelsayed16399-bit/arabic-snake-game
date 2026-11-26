@@ -103,6 +103,9 @@ button.check{background:var(--accent2);color:#fff;border:none;padding:10px 20px;
 @media (max-width:760px){
   #panel-editor{flex-direction:column}
   .editor-wrap{border-left:none;border-bottom:1px solid var(--line)}
+  .editor-wrap{min-height:0;flex:1.2 1 0}
+  .editor-area{min-height:0}
+  .console-wrap{min-height:0;flex:1 1 0}
   .lessons-layout{flex-direction:column}
   .lesson-list{width:100%;display:flex;overflow-x:auto;gap:4px;border-left:none;border-bottom:1px solid var(--line)}
   .lesson-item{white-space:nowrap}
