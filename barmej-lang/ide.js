@@ -159,7 +159,7 @@ $('#freehandBtn').addEventListener('click',()=>{
   toast(freehand?'✏️ ارسم بالماوس على اللوحة':'اتقفل الرسم الحر');
 });
 function canvasPos(ev){
-  const r=tc.getBoundingClientRect();
+  const r=tc.getBoundingClientRect(); if(!r.width||!r.height) return {x:0,y:0};
   const cx=(ev.clientX-r.left)*(tc.width/r.width), cy=(ev.clientY-r.top)*(tc.height/r.height);
   return {x:cx-tc.width/2, y:cy-tc.height/2};
 }
@@ -237,7 +237,8 @@ function makeIO(){
 }
 function resetRunUI(){
   clearConsole();
-  turtle=null; turtlePanel.classList.add('hidden');
+  turtle=null; turtlePanel.classList.add('hidden'); clickQ=null;
+  if(/نقرة|ماوس_/.test(code.value)){ turtleReset(); turtlePanel.classList.remove('hidden'); }
   const bar=$('#errBar'); bar.classList.add('hidden'); bar.classList.remove('step-mode');
   $('#stepBar').classList.add('hidden'); $('#varsPanel').classList.add('hidden');
   stepper=null;
