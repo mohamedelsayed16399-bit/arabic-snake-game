@@ -78,7 +78,9 @@ const WPS=['linear-gradient(135deg,#1e3a8a,#7c3aed,#db2777)','linear-gradient(16
 function defFS(){return{t:'d',c:{'المستندات':{t:'d',c:{'مرحبا.txt':{t:'f',d:'أهلاً بك في ويب OS!\nده نظام تشغيل كامل شغال في المتصفح.\nكل ملفاتك بتتحفظ على جهازك.'},'أفكار.txt':{t:'f',d:'- مشروع جديد\n- اتعلم حاجة جديدة'}}},'الصور':{t:'d',c:{}},'التنزيلات':{t:'d',c:{}},'سطح المكتب':{t:'d',c:{}}}}}
 let S;try{S=JSON.parse(localStorage[KEY])}catch(e){}
 if(!S||!S.fs)S={fs:defFS(),wp:0,ac:'#3b82f6',light:false,inst:['clock'],trash:[]};
-const save=()=>{try{localStorage[KEY]=JSON.stringify(S)}catch(e){toast('المساحة امتلأت!')}};
+const IDB={open:()=>new Promise((res,rej)=>{try{const r=indexedDB.open('webos-db',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}),put:async(k,v)=>{const d=await IDB.open();return new Promise((res,rej)=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res(true);t.onerror=()=>rej(t.error)})},get:async k=>{const d=await IDB.open();return new Promise((res,rej)=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}};
+let _it=null,_lsOK=true;const save=()=>{S._ts=Date.now();let js;try{js=JSON.stringify(S)}catch(e){return}try{localStorage[KEY]=js;_lsOK=true}catch(e){_lsOK=false;toast('المساحة المحلية امتلأت - بنحفظ في التخزين الكبير')}clearTimeout(_it);_it=setTimeout(()=>IDB.put('state',js).then(()=>{window.__idbSaved=Date.now()}).catch(()=>{}),700)};
+window.__storage={ok:()=>_lsOK,idb:IDB};
 var toast=function(m){const t=el('div','toast',m);document.body.append(t);setTimeout(()=>t.remove(),2200)};
 /* FS */
 const split=p=>p.split('/').filter(Boolean);
@@ -367,7 +369,7 @@ document.addEventListener('dragover',e=>{const r=e.target.closest&&e.target.clos
 document.addEventListener('dragleave',e=>{e.target.classList&&e.target.classList.remove('over')});
 document.addEventListener('drop',e=>{const r=e.target.closest&&e.target.closest('.row[data-dir]');if(!r)return;e.preventDefault();r.classList.remove('over');const nm=e.dataTransfer.getData('text/plain'),w=window.__dragW;if(!nm||!w)return;const from=w.cwd,to=join(from,r.dataset.nm);if(nm===r.dataset.nm)return;const a=node(from),b=node(to);if(!a||!b||b.t!=='d')return;b.c[uniq(b,nm)]=a.c[nm];delete a.c[nm];save();toast('اتنقل '+nm+' ✓');w.redraw&&w.redraw();renderDesk()});
 /* about */
-app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 3.2'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
+app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 3.3'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
 STORE.push({id:'about',n:'عن النظام',i:'ℹ️',d:'معلومات النظام والاختصارات'});S.inst=[...new Set([...S.inst,'about'])];
 
 /* ROUND 7 */
@@ -757,6 +759,12 @@ w.openFile=p=>{openF(p);renderTree()};w.onclose=()=>clearTimeout(w._pt);renderTr
 /* route code files to the studio */
 const _op2=window.openPath;window.openPath=function(p){const n=node(p);if(n&&n.t==='f'&&/\.(html?|js|css|json|md|py|txt|xml|svg)$/i.test(p)&&!String(n.d).startsWith('data:')){const ex=wins.find(x=>x.id==='editor');if(ex){ex.openFile(p);focus(ex);return}return openApp('editor',p)}_op2(p)};
 STORE.push({id:'editor',n:'استوديو الكود',i:'🧑‍💻',d:'تبويبات وأرقام أسطر وتلوين وبحث ومعاينة'});S.inst=[...new Set([...S.inst,'editor'])];renderDesk();
+
+/* ROUND 23: IndexedDB mirror + recovery */
+(async()=>{try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();const raw=await IDB.get('state');window.__idbDbg='raw='+(raw?raw.length:0)+' S_ts='+S._ts;if(!raw)return IDB.put('state',JSON.stringify(S));const d=JSON.parse(raw);window.__idbDbg+=' d_ts='+d._ts;if(d&&d.fs&&(d._ts||0)>(S._ts||0)+1000){S=d;theme();renderDesk();wins.forEach(w=>w.redraw&&w.redraw());toast('☁️ استرجعت أحدث نسخة من التخزين الكبير')}}catch(e){window.__idbErr=String(e)}})();
+app('storage','التخزين','🗄️',w=>{const b=w.body;b.style.cssText+=';padding:14px;gap:10px;overflow:auto';const out=el('div'),bar=el('div');bar.style.cssText='height:14px;border-radius:7px;background:rgba(255,255,255,.12);overflow:hidden';const fill=el('div');fill.style.cssText='height:100%;background:var(--ac);width:0';bar.append(fill);const cp=el('button','btn','🧹 فضّي سلة المحذوفات'),rf=el('button','btn','🔄 حدّث');b.append(out,bar,cp,rf);
+const draw=async()=>{let est=null;try{est=await navigator.storage.estimate()}catch(e){}const ls=JSON.stringify(S).length;let pers=false;try{pers=await navigator.storage.persisted()}catch(e){}let idb='؟';try{const r=await IDB.get('state');idb=r?(r.length/1024).toFixed(0)+' ك.ب':'فاضي'}catch(e){idb='مش متاح'}out.innerHTML='';[['حجم بياناتك','~'+(ls/1024).toFixed(0)+' ك.ب'],['نسخة التخزين الكبير (IndexedDB)',idb],['تخزين دائم من المتصفح',pers?'مفعّل ✅':'مش مضمون'],['المساحة المتاحة للموقع',est&&est.quota?(est.quota/1048576).toFixed(0)+' م.ب (مستخدم '+(est.usage/1048576).toFixed(1)+')':'غير معروف'],['localStorage',_lsOK?'شغال':'ممتلئ - الحفظ في IndexedDB']].forEach(([a,c])=>{const r=el('div','card');r.append(el('span','',a),el('b','',c));r.children[1].style.marginInlineStart='auto';out.append(r)});fill.style.width=Math.min(100,ls/50000)+'%'};cp.onclick=()=>{S.trash=[];save();toast('اتفضّت');draw()};rf.onclick=draw;draw()},{w:440,h:400,single:true});
+STORE.push({id:'storage',n:'التخزين',i:'🗄️',d:'مساحة ونسخة احتياطية تلقائية'});S.inst=[...new Set([...S.inst,'storage'])];renderDesk();
 /* BOOT */
 theme();renderDesk();clock();
 setTimeout(()=>{$('#boot').classList.add('hide')},900);
