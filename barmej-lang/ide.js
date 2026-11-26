@@ -926,6 +926,21 @@ $('#docsContent').innerHTML=`
   const wt=$('#welcomeTour'); if(wt) wt.addEventListener('click',()=>{ $('#welcomeModal').classList.add('hidden'); try{ localStorage.setItem('barmej-welcomed','1'); }catch(e){} start(); });
   window.addEventListener('keydown',e=>{ if(ov.classList.contains('hidden')) return; if(e.key==='Escape') end(); if(e.key==='ArrowLeft') $('#tourNext').click(); });
 })();
+
+/* --- snippets --- */
+(function(){
+  const SN=[["🔁 حلقة عدّ", "كرر ٥ {\n  اطبع \"رقم \" + عداد\n}\n"], ["🔂 لكل عنصر", "لكل ع في [١، ٢، ٣] {\n  اطبع ع\n}\n"], ["❓ لو وإلا", "خلي س = ١٥\nلو س > ١٠ {\n  اطبع \"كبير\"\n} وإلا {\n  اطبع \"صغير\"\n}\n"], ["🧮 دالة", "دالة جمع(أ، ب) {\n  ارجع أ + ب\n}\nاطبع جمع(٢، ٣)\n"], ["📋 قائمة وعمليات", "خلي ق = [٣، ١، ٢]\nأضف(ق، ٤)\nاطبع رتّب(ق)\nاطبع مجموع(ق)\n"], ["📖 قاموس", "خلي شخص = {اسم: \"منى\"، عمر: ٢٥}\nاطبع شخص.اسم\n"], ["🛡️ معالجة أخطاء", "جرّب {\n  اطبع رقم(\"abc\")\n} لو_خطأ ح {\n  اطبع \"حصل خطأ: \" + ح\n}\n"], ["🧱 صنف", "صنف حيوان {\n  دالة بناء(اسم) {\n    هذا.اسم = اسم\n  }\n  دالة صوت() {\n    اطبع هذا.اسم + \" بيتكلم\"\n  }\n}\nخلي ح = جديد حيوان(\"قطة\")\nح.صوت()\n"], ["⚡ دالة بلا اسم", "خلي ضعف = دالة(س): س * ٢\nاطبع خريطة([١، ٢، ٣]، ضعف)\n"], ["🎨 ارسم مربع", "كرر ٤ {\n  قدم(١٠٠)\n  يمين(٩٠)\n}\n"], ["🎵 لحن", "لحن(\"دو ري مي فا صول لا سي دو+\"، ٣٠٠)\n"], ["🎮 قالب لعبة (حلقة إطارات)", "خلي س = ٠\nخلي ص = ٠\nطالما صح {\n  خلي م = مفتاح()\n  لو م == \"يمين\" { س = س + ٨ }\n  لو م == \"يسار\" { س = س - ٨ }\n  لو ماوس_مضغوط() { س = ماوس_س()؛ ص = ماوس_ص() }\n  خلفية(\"أسود\")\n  ارفع()\n  اذهب(س، ص)\n  رمز(\"🚀\"، ٥٠)\n  استنى(٢٠)\n}\n"], ["💥 تصادم", "خلي س = ٠\nخلي ص = ٠\nخلي هدف_س = ١٠\nخلي هدف_ص = ١٠\nلو تصادم(س، ص، ٢٥، هدف_س، هدف_ص، ٢٠) {\n  اطبع \"لمسته!\"\n}\n"], ["🖱️ ضغطة الماوس", "خلي ض = نقرة()\nلو ض != فراغ {\n  اطبع \"ضغطت على \" + ض[٠] + \"، \" + ض[١]\n}\n"], ["📦 استورد مكتبة", "استورد \"رياضيات\"\nاطبع مضروب(٥)\n"], ["🎲 عشوائي", "اطبع عشوائي(١، ١٠)\nخلي ألوان = [\"أحمر\"، \"أخضر\"، \"أزرق\"]\nاطبع ألوان[عشوائي(٠، ٢)]\n"], ["⏳ انتظار", "اطبع \"ثانية واحدة…\"\nاستنى(١٠٠٠)\nاطبع \"خلصت\"\n"]];
+  const list=$('#snipList');
+  function render(){ const q=_normAr($('#snipSearch').value.trim()); list.innerHTML='';
+    SN.filter(s=>!q||_normAr(s[0]+' '+s[1]).includes(q)).forEach(s=>{
+      const d=document.createElement('div'); d.className='snip-item'; d.innerHTML='<b></b><pre></pre>'; d.querySelector('b').textContent=s[0]; d.querySelector('pre').textContent=s[1];
+      d.addEventListener('click',()=>{ $('#snipModal').classList.add('hidden'); const sp=code.selectionStart; const pre=(sp>0&&code.value[sp-1]!=='\n')?'\n':''; insText(pre+s[1]); toast('اتضاف: '+s[0]); });
+      list.appendChild(d); }); }
+  $('#snipBtn').addEventListener('click',()=>{ $('#snipSearch').value=''; render(); $('#snipModal').classList.remove('hidden'); $('#snipSearch').focus(); });
+  $('#snipSearch').addEventListener('input',render);
+  $('#snipClose').addEventListener('click',()=>$('#snipModal').classList.add('hidden'));
+  $('#snipModal').addEventListener('click',e=>{ if(e.target.id==='snipModal') $('#snipModal').classList.add('hidden'); });
+})();
 /* --- version history --- */
 (function(){
   const list=$('#histList');
