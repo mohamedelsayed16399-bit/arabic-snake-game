@@ -122,6 +122,8 @@ function turtleHandle(o){
       tctx.strokeStyle=T.color; tctx.lineWidth=T.w; tctx.strokeRect(T.lastRect.x,T.lastRect.y,o.w,o.h); break;
     case 'fill': if(T.lastRect){ tctx.fillStyle=T.color; tctx.fillRect(T.lastRect.x,T.lastRect.y,T.lastRect.w,T.lastRect.h); } break;
     case 'emoji': tctx.save(); tctx.translate(T.x,T.y); tctx.rotate(rad(o.ang||0)); tctx.font=(o.size||40)+'px "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif'; tctx.textAlign='center'; tctx.textBaseline='middle'; tctx.fillText(o.t,0,0); tctx.restore(); break;
+    case 'tiles': { const rows=o.rows, s=o.size||40, w=Math.max(...rows.map(r=>r.length)), x0=-w*s/2, y0=-rows.length*s/2;
+      rows.forEach((r,j)=>{ for(let i=0;i<r.length;i++){ const ch=r[i], x=x0+i*s, y=y0+j*s; if(ch==='#'){ tctx.fillStyle='#475569'; tctx.fillRect(x,y,s+0.5,s+0.5); tctx.fillStyle='#64748b'; tctx.fillRect(x,y,s+0.5,s*0.12); tctx.fillStyle='#334155'; tctx.fillRect(x,y+s*0.88,s+0.5,s*0.12+0.5); } else { const c=SPRITE_PAL[ch]; if(c){ tctx.fillStyle=c; tctx.fillRect(x,y,s+0.5,s+0.5); } } } }); break; }
     case 'pixels': { const PAL=SPRITE_PAL, rows=o.rows, s=o.size||10, w=Math.max(...rows.map(r=>r.length)), x0=T.x-w*s/2, y0=T.y-rows.length*s/2;
       rows.forEach((r,j)=>{ for(let i=0;i<r.length;i++){ const c=PAL[r[i]]; if(c){ tctx.fillStyle=c; tctx.fillRect(x0+i*s,y0+j*s,s+0.5,s+0.5); } } }); break; }
     case 'bg': tctx.save(); tctx.fillStyle=AR_COLORS[o.c]||o.c; tctx.fillRect(-tc.width,-tc.height,tc.width*2,tc.height*2); tctx.restore(); break;
@@ -377,7 +379,7 @@ $('#finishSteps').addEventListener('click',()=>{
 $('#stopSteps').addEventListener('click',()=>stopStepMode('⏹ اتوقف وضع الخطوة'));
 
 /* --- autocomplete chips --- */
-const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','رمز','خلفية','بكسلات','لحن','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب','مسافة','زاوية','تصادم','داخل','ماوس_س','ماوس_ص','ماوس_مضغوط','نقرة'];
+const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','رمز','خلفية','بكسلات','خريطة_بلاط','بلاطة_عند','لحن','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب','مسافة','زاوية','تصادم','داخل','ماوس_س','ماوس_ص','ماوس_مضغوط','نقرة'];
 const ALL_WORDS=[...KWS,...BUILTINS];
 const suggestBar=$('#suggestBar');
 function currentWord(){
@@ -794,7 +796,7 @@ $('#docsContent').innerHTML=`
 <p>برنامجك يقدر يتفاعل مع الضغط على اللوحة (بالماوس أو بالإصبع على الموبايل):</p>
 <table><tr><td><code>نقرة()</code></td><td>لو في ضغطة جديدة بترجّع [س، ص] (مرة واحدة لكل ضغطة)، وإلا فراغ</td></tr>
 <tr><td><code>لحن("دو ري مي+ صول:2 _"، ٣٠٠)</code></td><td>يعزف لحن كامل: + أعلى، - أوطى، :٢ نوتة طويلة، _ سكوت. الرقم = مللي ثانية للنوتة</td></tr>
-<tr><td><code>بكسلات(شكل، حجم)</code></td><td>يرسم شخصية من قائمة صفوف نصية (٠-٩ ألوان، نقطة = شفاف) مكان القلم. ارسمها بزر 🎨</td></tr>
+<tr><td><code>خريطة_بلاط(صفوف، حجم)</code></td><td>يرسم عالم من بلاط في منتصف اللوحة: # = جدار، أرقام ١-٩ ألوان، نقطة = فاضي</td></tr>\n<tr><td><code>بلاطة_عند(صفوف، حجم، س، ص)</code></td><td>يرجّع الحرف اللي في الخريطة عند النقطة (للتصادم مع الجدران). برا الخريطة = #</td></tr>\n<tr><td><code>بكسلات(شكل، حجم)</code></td><td>يرسم شخصية من قائمة صفوف نصية (٠-٩ ألوان، نقطة = شفاف) مكان القلم. ارسمها بزر 🎨</td></tr>
 <tr><td><code>رمز("🚀"، حجم، زاوية)</code></td><td>يرسم إيموجي (شخصية/سبرايت) مكان القلم، وممكن تلفّه بزاوية</td></tr>
 <tr><td><code>خلفية("لون")</code></td><td>يملا اللوحة كلها بلون (أول سطر في كل إطار لعبة)</td></tr>
 <tr><td><code>مسافة(س١،ص١،س٢،ص٢)</code></td><td>المسافة بين نقطتين</td></tr>
@@ -902,7 +904,7 @@ $('#docsContent').innerHTML=`
     ['#histBtn','🕘 كل تشغيل بيتسجل كنسخة، فتقدر ترجع لأي نسخة قديمة.','editor'],
     ['.tab[data-panel="lessons"]','🎓 ٢٣ درس تفاعلي: بتقرا وتحل وبيتحقق من حلك لوحده.','editor'],
     ['.tab[data-panel="challenges"]','🧩 تحديات، وفوقها ⭐ تحدي اليوم بسلسلة أيام متتالية.','editor'],
-    ['.tab[data-panel="examples"]','🎮 ٤٥ مثال: ألعاب ومنصات وموسيقى ورسم. دوّر وضيف مفضلتك ⭐.','editor'],
+    ['.tab[data-panel="examples"]','🎮 ٤٦ مثال: ألعاب ومنصات وموسيقى ورسم. دوّر وضيف مفضلتك ⭐.','editor'],
     ['#spriteBtn','🎨 ارسم شخصيتك بالبكسل وحطها في الكود بضغطة.','editor'],
     ['#pianoBtn','🎹 لحّن على البيانو وانزّل اللحن كسطر كود.','editor'],
     ['#appLinkBtn','📱 رابط تطبيق بيفتح لعبتك لوحدها، و📦 ملف HTML بيشتغل أوفلاين. شاركها مع أصحابك!','editor']
