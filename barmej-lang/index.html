@@ -30,7 +30,11 @@
   <section id="panel-editor" class="panel active">
     <div class="editor-wrap">
       <div class="editor-head">
-        <span class="fname">برنامجي.برمج</span>
+        <span class="fname" id="fileName">برنامجي.برمج</span>
+        <span>
+          <button id="programsBtn" class="ghost">📂 برامجي</button>
+          <button id="newProgramBtn" class="ghost">＋ جديد</button>
+        </span>
         <span id="saveState" class="save-state"></span>
       </div>
       <div class="editor-area" id="editorArea">
@@ -50,7 +54,10 @@
       <div id="turtlePanel" class="turtle-panel hidden">
         <div class="console-head">
           <span>لوحة الرسم</span>
-          <button id="clearTurtle" class="ghost">امسح اللوحة</button>
+          <div>
+            <button id="saveTurtle" class="ghost">💾 حفظ كصورة</button>
+            <button id="clearTurtle" class="ghost">امسح اللوحة</button>
+          </div>
         </div>
         <canvas id="turtleCanvas" width="900" height="620"></canvas>
       </div>
@@ -102,6 +109,13 @@
   <span class="credit">اتعمل بحب — يشتغل كامل على جهازك، مجانًا</span>
 </footer>
 
+<div id="programsDrawer" class="drawer hidden">
+  <div class="drawer-head">
+    <span>برامجي المحفوظة</span>
+    <button id="closeDrawer" class="ghost">✕</button>
+  </div>
+  <div id="programsList"></div>
+</div>
 <div id="toast"></div>
 
 <script src="lang.js"></script>
