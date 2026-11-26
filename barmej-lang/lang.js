@@ -182,9 +182,25 @@ function show(v){
 }
 
 function makeEnv(parent){ return {vars:Object.create(null),parent}; }
+function levenshtein(a,b){
+  const m=a.length,n=b.length; if(!m) return n; if(!n) return m;
+  let prev=[]; for(let j=0;j<=n;j++) prev[j]=j;
+  for(let i=1;i<=m;i++){ const cur=[i];
+    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev=cur; }
+  return prev[n];
+}
+function closestName(name,candidates){
+  let best=null,bd=3;
+  for(const c of candidates){ const d=levenshtein(name,c);
+    if(d<bd){ bd=d; best=c; } }
+  return best;
+}
 function envGet(env,name,line){
   let e=env; while(e){ if(name in e.vars) return e.vars[name]; e=e.parent; }
-  throw new BError('متغير غير معروف: «'+name+'»',line);
+  const all=[]; e=env; while(e){ for(const k in e.vars) all.push(k); e=e.parent; }
+  const sug=closestName(name,all);
+  throw new BError('متغير غير معروف: «'+name+'»'+(sug?' — هل تقصد «'+sug+'»؟':' — اتأكد إنك عرّفته بـ«خلي» قبل ما تستخدمه'),line);
 }
 function envSet(env,name,val){
   let e=env; while(e){ if(name in e.vars){ e.vars[name]=val; return; } e=e.parent; }
@@ -222,11 +238,19 @@ function builtins(io){
   B['فهرس']=(l,x)=> Array.isArray(l)? l.indexOf(x) : String(l).indexOf(String(x));
   B['كرر_نص']=(s,n)=> String(s).repeat(Math.max(0,Math.floor(Number(n)||0)));
   B['قيم']=o=> Object.values(Object(o));
-  B['اسأل']=(q)=> io.ask(String(q===undefined?'':q));
+  B['اسأل']=(q)=>{ const s=String(q===undefined?'':q);
+    if(io.askAsync) return {__ask:s};
+    return io.ask? io.ask(s) : ''; };
+  B['اختار']=(q,opts)=>{ const s=String(q===undefined?'':q);
+    const list=Array.isArray(opts)? opts.map(o=>show(o)) : [];
+    if(io.chooseAsync) return {__choose:s, opts:list};
+    if(io.choose) return io.choose(s,list);
+    if(io.ask){ const a=io.ask(s+' ('+list.join(' / ')+')'); return a===null?'':a; }
+    return list[0]||''; };
   B['اطبع']=(...a)=>{ io.print(a.map(show).join(' ')); return null; };
   B['امسح']=()=>{ io.clear&&io.clear(); return null; };
   const N=x=>{ const v=parseFloat(normDigits(String(x))); return isNaN(v)?0:v; };
-  const D=(op,args)=>{ if(io.draw) io.draw(Object.assign({op},args)); return null; };
+  const D=(op,args)=>{ if(io.draw){ const r=io.draw(Object.assign({op},args)); if(r&&typeof r==='object'&&r.__sleep!==undefined) return r; } return null; };
   B['قدم']=n=>D('fd',{n:N(n)}); B['تقدم']=B['قدم'];
   B['ورا']=n=>D('bk',{n:N(n)}); B['ارجع_ورا']=B['ورا'];
   B['يمين']=z=>D('rt',{z:N(z)}); B['شمال']=z=>D('lt',{z:N(z)});
@@ -245,111 +269,195 @@ function builtins(io){
     const f=typeof n==='number'? n : NOTES[String(n)]; if(!f) throw new BError('نغمة غير معروفة: «'+n+'» — المتاح: دو ري مي فا صول لا سي');
     if(io.beep) io.beep(f,300); return null; };
   B['وقت']=()=>Date.now();
+  B['ساعات']=()=>new Date().getHours();
+  B['دقائق']=()=>new Date().getMinutes();
+  B['ثواني']=()=>new Date().getSeconds();
+  const RAD=Math.PI/180;
+  B['جيب']=z=>Math.sin(N(z)*RAD); B['جتا']=z=>Math.cos(N(z)*RAD); B['ظا']=z=>Math.tan(N(z)*RAD);
+  B['مدى']=(a,b)=>{ const from=b===undefined?1:N(a), to=b===undefined?N(a):N(b);
+    const out=[]; for(let i=from;i<=to;i++) out.push(i); return out; };
+  B['قطع']=(l,a,b)=> (Array.isArray(l)||typeof l==='string')? l.slice(a===undefined?0:N(a), b===undefined?undefined:N(b)) : (()=>{throw new BError('«قطع» تعمل على قوائم ونصوص فقط')})();
+  B['استنى']=ms=>({__sleep:N(ms)||0}); B['نام']=B['استنى'];
+  B['مفتاح']=()=>{ try{ return io.key? String(io.key()||'') : ''; }catch(e){ return ''; } };
   return B;
 }
 
 class ReturnSignal{ constructor(v){ this.v=v; } }
 class BreakSignal{} class ContinueSignal{}
 
-function run(prog,io,limits){
+/* المفسّر مبني على generators عشان يدعم: التنفيذ خطوة بخطوة، واستنى (توقف مؤقت) */
+function makeRunner(prog,io,limits){
   limits=limits||{}; const maxSteps=limits.maxSteps||500000; let steps=0;
   const global=makeEnv(null); const B=builtins(io);
   for(const k in B) global.vars[k]={__builtin:true,fn:B[k],name:k};
+  global.vars['باي']=Math.PI;
 
-  function evalExpr(n,env){
+  function num(v,line){ if(typeof v==='number') return v; if(typeof v==='boolean') return v?1:0;
+    const n=parseFloat(normDigits(String(v))); if(!isNaN(n)) return n; throw new BError('متوقع رقم لكن وجدت «'+show(v)+'»',line); }
+  function truthy(v){ return !(v===false||v===null||v===undefined||v===0||v===''); }
+  function eq(a,b){ return a===b; }
+
+  function* evalExpr(n,env){
     if(++steps>maxSteps) throw new BError('البرنامج طويل جدًا (تجاوز حد التنفيذ) — هل عندك حلقة لا نهائية؟',n.line);
     switch(n.k){
       case 'num': return n.v; case 'str': return n.v; case 'bool': return n.v; case 'null': return null;
       case 'var': return envGet(env,n.name,n.line);
-      case 'list': return n.items.map(e=>evalExpr(e,env));
-      case 'dict': { const o={}; for(const pr of n.pairs) o[pr.key]=evalExpr(pr.e,env); return o; }
-      case 'neg': return -num(evalExpr(n.e,env),n.line);
-      case 'not': return !truthy(evalExpr(n.e,env));
+      case 'list': { const out=[]; for(const e of n.items) out.push(yield* evalExpr(e,env)); return out; }
+      case 'dict': { const o={}; for(const pr of n.pairs) o[pr.key]=yield* evalExpr(pr.e,env); return o; }
+      case 'neg': return -num(yield* evalExpr(n.e,env),n.line);
+      case 'not': return !truthy(yield* evalExpr(n.e,env));
       case 'bin': {
-        if(n.op==='&&') return truthy(evalExpr(n.l,env)) ? evalExpr(n.r,env) : false;
-        if(n.op==='||') { const l=evalExpr(n.l,env); return truthy(l)? l : evalExpr(n.r,env); }
-        const l=evalExpr(n.l,env), r=evalExpr(n.r,env);
+        if(n.op==='&&') return truthy(yield* evalExpr(n.l,env)) ? (yield* evalExpr(n.r,env)) : false;
+        if(n.op==='||') { const l=yield* evalExpr(n.l,env); return truthy(l)? l : (yield* evalExpr(n.r,env)); }
+        const l=yield* evalExpr(n.l,env), r=yield* evalExpr(n.r,env);
         if(n.op==='+'){ if(typeof l==='string'||typeof r==='string') return show(l)+show(r); return num(l,n.line)+num(r,n.line); }
         if(n.op==='-') return num(l,n.line)-num(r,n.line);
         if(n.op==='*') return num(l,n.line)*num(r,n.line);
-        if(n.op==='/'){ const d=num(r,n.line); if(d===0) throw new BError('قسمة على صفر',n.line); return num(l,n.line)/d; }
+        if(n.op==='/'){ const d=num(r,n.line); if(d===0) throw new BError('قسمة على صفر — ممنوع رياضيًا! اتأكد إن المقام مش صفر قبل القسمة',n.line); return num(l,n.line)/d; }
         if(n.op==='%') return num(l,n.line)%num(r,n.line);
         if(n.op==='^') return Math.pow(num(l,n.line),num(r,n.line));
         if(n.op==='==') return eq(l,r); if(n.op==='!=') return !eq(l,r);
         if(n.op==='<') return l<r; if(n.op==='>') return l>r;
         if(n.op==='<=') return l<=r; if(n.op==='>=') return l>=r;
       }
-      case 'index': { const o=evalExpr(n.obj,env); const idx=evalExpr(n.idx,env);
+      case 'index': { const o=yield* evalExpr(n.obj,env); const idx=yield* evalExpr(n.idx,env);
         if(Array.isArray(o)||typeof o==='string'){ let i=num(idx,n.line); if(i<0) i=o.length+i;
-          const v=o[i]; if(v===undefined) throw new BError('فهرس خارج النطاق: '+arNum(i),n.line); return v; }
+          const v=o[i]; if(v===undefined) throw new BError('فهرس خارج النطاق: '+arNum(i)+' — الطول هو '+o.length+' فآخر فهرس صحيح هو '+(o.length-1),n.line); return v; }
         if(o&&typeof o==='object'){ const v=o[String(idx)]; return v===undefined?null:v; }
         throw new BError('لا يمكن الفهرسة في هذه القيمة',n.line); }
-      case 'call': { const fn=evalExpr(n.fn,env); const args=n.args.map(a=>evalExpr(a,env));
-        if(fn&&fn.__builtin) return fn.fn(...args);
+      case 'call': { const fn=yield* evalExpr(n.fn,env);
+        const args=[]; for(const a of n.args) args.push(yield* evalExpr(a,env));
+        if(fn&&fn.__builtin){ const res=fn.fn(...args);
+          if(res&&typeof res==='object'&&res.__sleep!==undefined){ yield {sleep:res.__sleep}; steps=0; return null; }
+          if(res&&typeof res==='object'&&res.__ask!==undefined){ const ans=yield {ask:res.__ask}; steps=0; return ans==null?'':String(ans); }
+          if(res&&typeof res==='object'&&res.__choose!==undefined){ const ans=yield {choose:res.__choose, opts:res.opts}; steps=0; return ans==null?'':String(ans); }
+          return res; }
         if(fn&&fn.__fn){ if(args.length!==fn.params.length) throw new BError('الدالة «'+fn.name+'» تتوقع '+fn.params.length+' معاملات وليس '+args.length,n.line);
           const local=makeEnv(fn.env); fn.params.forEach((pr,i)=>local.vars[pr]=args[i]);
-          try{ execBlock(fn.body,local); }catch(sig){ if(sig instanceof ReturnSignal) return sig.v; throw sig; }
+          try{ yield* execBlock(fn.body,local); }catch(sig){ if(sig instanceof ReturnSignal) return sig.v; throw sig; }
           return null; }
         throw new BError('محاولة استدعاء شيء ليس دالة',n.line); }
     }
     throw new BError('عقدة غير معروفة',n.line);
   }
-  function num(v,line){ if(typeof v==='number') return v; if(typeof v==='boolean') return v?1:0;
-    const n=parseFloat(normDigits(String(v))); if(!isNaN(n)) return n; throw new BError('متوقع رقم لكن وجدت «'+show(v)+'»',line); }
-  function truthy(v){ return !(v===false||v===null||v===undefined||v===0||v===''); }
-  function eq(a,b){ if(typeof a==='object'&&typeof b==='object') return a===b; return a===b; }
 
-  function execStmt(n,env){
+  function* execStmt(n,env){
     if(++steps>maxSteps) throw new BError('البرنامج طويل جدًا (تجاوز حد التنفيذ)',n.line);
     switch(n.k){
-      case 'print': io.print(show(evalExpr(n.e,env))); break;
-      case 'let': env.vars[n.name]=evalExpr(n.e,env); break;
-      case 'set': envSet(env,n.name,evalExpr(n.e,env)); break;
-      case 'setindex': { const val=evalExpr(n.e,env);
+      case 'print': io.print(show(yield* evalExpr(n.e,env))); break;
+      case 'let': env.vars[n.name]=yield* evalExpr(n.e,env); break;
+      case 'set': envSet(env,n.name,yield* evalExpr(n.e,env)); break;
+      case 'setindex': { const val=yield* evalExpr(n.e,env);
         let target=n.target; const chain=[];
         while(target.k==='index'){ chain.unshift(target.idx); target=target.obj; }
         if(target.k!=='var') throw new BError('تعديل غير مدعوم',n.line);
         let container=envGet(env,target.name,n.line);
         if(chain.length===0){ envSet(env,target.name,val); break; }
-        for(let ci=0;ci<chain.length-1;ci++){ container=container[evalExpr(chain[ci],env)]; }
-        const lastKey=evalExpr(chain[chain.length-1],env);
+        for(let ci=0;ci<chain.length-1;ci++){ container=container[yield* evalExpr(chain[ci],env)]; }
+        const lastKey=yield* evalExpr(chain[chain.length-1],env);
         if(Array.isArray(container)||typeof container==='object') container[lastKey]=val;
         else throw new BError('لا يمكن التعديل في هذه القيمة',n.line);
         break; }
-      case 'expr': evalExpr(n.e,env); break;
-      case 'if': if(truthy(evalExpr(n.cond,env))) execBlock(n.then,makeEnv(env));
-        else { let done=false; for(const el of n.elifs){ if(truthy(evalExpr(el.cond,env))){ execBlock(el.body,makeEnv(env)); done=true; break; } }
-          if(!done&&n.els) execBlock(n.els,makeEnv(env)); }
+      case 'expr': yield* evalExpr(n.e,env); break;
+      case 'if': if(truthy(yield* evalExpr(n.cond,env))) yield* execBlock(n.then,makeEnv(env));
+        else { let done=false; for(const el of n.elifs){ if(truthy(yield* evalExpr(el.cond,env))){ yield* execBlock(el.body,makeEnv(env)); done=true; break; } }
+          if(!done&&n.els) yield* execBlock(n.els,makeEnv(env)); }
         break;
-      case 'while': while(truthy(evalExpr(n.cond,env))){ if(++steps>maxSteps) throw new BError('حلقة لا نهائية؟ تجاوز حد التنفيذ',n.line);
-          try{ execBlock(n.body,makeEnv(env)); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } }
+      case 'while': while(truthy(yield* evalExpr(n.cond,env))){ if(++steps>maxSteps) throw new BError('حلقة لا نهائية؟ تجاوز حد التنفيذ',n.line);
+          try{ yield* execBlock(n.body,makeEnv(env)); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } }
         break;
-      case 'repeat': { const count=num(evalExpr(n.count,env),n.line);
+      case 'repeat': { const count=num(yield* evalExpr(n.count,env),n.line);
         for(let i=0;i<count;i++){ if(++steps>maxSteps) throw new BError('تكرار طويل جدًا',n.line);
           const loop=makeEnv(env); if(n.varName) loop.vars[n.varName]=i+1; loop.vars['عداد']=i+1;
-          try{ execBlock(n.body,loop); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } } }
+          try{ yield* execBlock(n.body,loop); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } } }
         break;
-      case 'foreach': { const list=evalExpr(n.list,env);
+      case 'foreach': { const list=yield* evalExpr(n.list,env);
         const items=Array.isArray(list)?list:(typeof list==='string'?list.split(''):(list&&typeof list==='object'?Object.values(list):null));
         if(!items) throw new BError('«لكل» تحتاج قائمة أو نص',n.line);
         for(const item of items){ if(++steps>maxSteps) throw new BError('حلقة طويلة جدًا',n.line);
           const loop=makeEnv(env); loop.vars[n.varName]=item;
-          try{ execBlock(n.body,loop); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } } }
+          try{ yield* execBlock(n.body,loop); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } } }
         break;
       case 'func': env.vars[n.name]={__fn:true,name:n.name,params:n.params,body:n.body,env}; break;
-      case 'return': throw new ReturnSignal(n.e?evalExpr(n.e,env):null);
+      case 'return': throw new ReturnSignal(n.e?(yield* evalExpr(n.e,env)):null);
       case 'break': throw new BreakSignal();
       case 'continue': throw new ContinueSignal();
     }
   }
-  function execBlock(body,env){ for(const s of body) execStmt(s,env); }
-
-  try{ execBlock(prog,global); }catch(sig){
-    if(sig instanceof ReturnSignal) throw new BError('«ارجع» خارج دالة',0);
-    if(sig instanceof BreakSignal||sig instanceof ContinueSignal) throw new BError('«قف/كمل» خارج حلقة',0);
-    throw sig;
+  function* execBlock(body,env){ for(const s of body){ yield {line:s.line,env}; yield* execStmt(s,env); } }
+  function* topLevel(){
+    try{ yield* execBlock(prog,global); }
+    catch(sig){
+      if(sig instanceof ReturnSignal) throw new BError('«ارجع» خارج دالة',0);
+      if(sig instanceof BreakSignal||sig instanceof ContinueSignal) throw new BError('«قف/كمل» خارج حلقة',0);
+      throw sig;
+    }
   }
+
+  function snapshot(env){
+    const out={}; const chain=[]; let e=env;
+    while(e){ chain.unshift(e); e=e.parent; }
+    for(const fr of chain){ for(const k in fr.vars){ const v=fr.vars[k];
+      if(v&&v.__builtin) continue;
+      if(k==='باي'&&fr===global) continue;
+      out[k]=(v&&v.__fn)? '<دالة '+v.name+'>' : show(v); } }
+    return out;
+  }
+
+  const gen=topLevel(); let finished=false;
+  function pump(send){
+    if(finished) return null;
+    try{
+      const r=send===undefined? gen.next() : gen.next(send);
+      if(r.done){ finished=true; return null; }
+      return r.value;
+    }catch(e){ finished=true; throw e; }
+  }
+  function drainAskSync(item){
+    // في الوضع المتزامن/الخطوة: جاوب على اسأل بـ io.ask العادي
+    let it=item, guard=0;
+    while(it&&(it.ask!==undefined||it.choose!==undefined)&&guard++<100){
+      if(it.choose!==undefined){
+        const a=io.choose? io.choose(it.choose,it.opts) : (it.opts&&it.opts[0])||'';
+        it=pump(a==null?'':String(a));
+      }else{
+        const a=io.ask? io.ask(it.ask) : '';
+        it=pump(a==null?'':String(a));
+      }
+    }
+    return it;
+  }
+  function windowPromptFallback(q){ return ''; }
+  return {
+    isFinished(){ return finished; },
+    step(){
+      let item=pump();
+      item=drainAskSync(item);
+      if(!item) return {done:true};
+      if(item.sleep!==undefined) return this.step();
+      return {done:false,line:item.line,vars:snapshot(item.env)};
+    },
+    runSync(onLine){
+      let item;
+      while((item=pump())){
+        item=drainAskSync(item);
+        if(!item) break;
+        if(item.sleep===undefined&&onLine) onLine(item.line,snapshot(item.env));
+      }
+    },
+    async runAsync(onLine){
+      let item,n=0;
+      while((item=pump())){
+        if(item.ask!==undefined){ const a=await io.askAsync(item.ask); item=pump(a==null?'':String(a)); if(!item) break; }
+        if(item.choose!==undefined){ const a=await io.chooseAsync(item.choose,item.opts); item=pump(a==null?'':String(a)); if(!item) break; }
+        if(item.sleep!==undefined){ await new Promise(r=>setTimeout(r,Math.min(Math.max(item.sleep,0),10000))); }
+        else{ if(onLine) onLine(item.line,snapshot(item.env)); if(++n%2000===0) await new Promise(r=>setTimeout(r,0)); }
+      }
+    }
+  };
 }
+
+function run(prog,io,limits){ makeRunner(prog,io,limits).runSync(); }
 
 function runSource(src,io,limits){
   try{
@@ -361,7 +469,28 @@ function runSource(src,io,limits){
   }
 }
 
-const Barmej={tokenize,parse,runSource,show,KEYWORDS};
+async function runSourceAsync(src,io,limits,onLine){
+  try{
+    const toks=tokenize(src); const prog=parse(toks);
+    await makeRunner(prog,io,limits).runAsync(onLine);
+    return {ok:true};
+  }catch(e){
+    if(e&&e.isBarmej) return {ok:false,error:e.message,line:e.line};
+    throw e;
+  }
+}
+
+function createStepper(src,io,limits){
+  try{
+    const toks=tokenize(src); const prog=parse(toks);
+    return {ok:true,stepper:makeRunner(prog,io,limits)};
+  }catch(e){
+    if(e&&e.isBarmej) return {ok:false,error:e.message,line:e.line};
+    throw e;
+  }
+}
+
+const Barmej={tokenize,parse,run,runSource,runSourceAsync,createStepper,makeRunner,show,KEYWORDS};
 if(typeof module!=='undefined'&&module.exports) module.exports=Barmej;
 root.Barmej=Barmej;
 })(typeof window!=='undefined'?window:globalThis);
