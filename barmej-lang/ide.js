@@ -839,6 +839,25 @@ $('#docsContent').innerHTML=`
 <p><code>Ctrl + Enter</code> لتشغيل البرنامج من الكيبورد. الكود بيتحفظ تلقائيًا في متصفحك، وزر «مشاركة» بيعمل رابط فيه الكود.</p>
 `;
 
+
+/* --- piano --- */
+(function(){
+  const NAMES=['دو','ري','مي','فا','صول','لا','سي','دو+'], FREQ=[261.6,293.7,329.6,349.2,392,440,493.9,523.3], KEYS=['a','s','d','f','g','h','j','k'];
+  const keysEl=$('#pianoKeys'), seqEl=$('#pianoSeq'); let seq=[];
+  NAMES.forEach((n,i)=>{ const b=document.createElement('button'); b.className='pkey'; b.innerHTML='<span>'+n+'</span><small>'+KEYS[i].toUpperCase()+'</small>'; b.dataset.i=i; keysEl.appendChild(b); });
+  function showSeq(){ seqEl.textContent=seq.length? seq.join(' ') : 'اضغط مفاتيح…'; }
+  function press(i){ seq.push(NAMES[i]); beep(FREQ[i],350); const b=keysEl.children[i]; b.classList.add('on'); setTimeout(()=>b.classList.remove('on'),180); showSeq(); }
+  keysEl.addEventListener('pointerdown',e=>{ const b=e.target.closest('.pkey'); if(b){ e.preventDefault(); press(+b.dataset.i); } });
+  window.addEventListener('keydown',e=>{ if($('#pianoModal').classList.contains('hidden')) return; const i=KEYS.indexOf(e.key.toLowerCase()); if(i>=0&&!e.ctrlKey&&!e.metaKey){ e.preventDefault(); press(i); } });
+  $('#pianoRest').addEventListener('click',()=>{ seq.push('_'); showSeq(); });
+  $('#pianoBack').addEventListener('click',()=>{ seq.pop(); showSeq(); });
+  $('#pianoPlay').addEventListener('click',()=>{ let t=0; seq.forEach(n=>{ if(n!=='_'){ const i=NAMES.indexOf(n); beep(FREQ[i],280,t); } t+=300; }); });
+  $('#pianoIns').addEventListener('click',()=>{ if(!seq.length){ toast('اضغط كام نوتة الأول'); return; }
+    $('#pianoModal').classList.add('hidden'); insText('لحن("'+seq.join(' ')+'"، ٣٠٠)\n'); toast('اتضاف اللحن في الكود 🎶'); });
+  $('#pianoClose').addEventListener('click',()=>$('#pianoModal').classList.add('hidden'));
+  $('#pianoModal').addEventListener('click',e=>{ if(e.target.id==='pianoModal') $('#pianoModal').classList.add('hidden'); });
+  $('#pianoBtn').addEventListener('click',()=>{ $('#pianoModal').classList.remove('hidden'); });
+})();
 /* --- achievements: badges, XP, levels, certificate --- */
 const ACH_KEY='barmej-ach';
 function achState(){ try{ const s=JSON.parse(localStorage.getItem(ACH_KEY)||'{}'); s.badges=s.badges||{}; s.runs=s.runs||0; return s; }catch(e){ return {badges:{},runs:0}; } }
