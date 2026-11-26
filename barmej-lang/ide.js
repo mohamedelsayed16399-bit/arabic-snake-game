@@ -121,7 +121,7 @@ function turtleHandle(o){
       tctx.strokeStyle=T.color; tctx.lineWidth=T.w; tctx.strokeRect(T.lastRect.x,T.lastRect.y,o.w,o.h); break;
     case 'fill': if(T.lastRect){ tctx.fillStyle=T.color; tctx.fillRect(T.lastRect.x,T.lastRect.y,T.lastRect.w,T.lastRect.h); } break;
     case 'emoji': tctx.save(); tctx.translate(T.x,T.y); tctx.rotate(rad(o.ang||0)); tctx.font=(o.size||40)+'px "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif'; tctx.textAlign='center'; tctx.textBaseline='middle'; tctx.fillText(o.t,0,0); tctx.restore(); break;
-    case 'bg': tctx.save(); tctx.fillStyle=AR_COLORS[o.c]||o.c; tctx.fillRect(0,0,tc.width,tc.height); tctx.restore(); break;
+    case 'bg': tctx.save(); tctx.fillStyle=AR_COLORS[o.c]||o.c; tctx.fillRect(-tc.width,-tc.height,tc.width*2,tc.height*2); tctx.restore(); break;
     case 'text': tctx.fillStyle=T.color; tctx.font='bold '+(o.size||22)+'px Tahoma,Arial'; tctx.textAlign='center'; tctx.direction='rtl'; tctx.fillText(o.t,T.x,T.y); break;
   }
 }
