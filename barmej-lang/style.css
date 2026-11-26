@@ -177,7 +177,7 @@ body.light #turtleCanvas{background:#fdfdfd}
 .tp.left{ top:45px; left:0; }
 
 /* generic hidden */
-.hidden{ display:none !important; }
+#restoreFile{ display:none; }
 
 .choice-chip{ background:var(--bg2); border:1px solid var(--accent); color:var(--accent); border-radius:20px; padding:7px 16px; font-family:inherit; font-size:14px; cursor:pointer; }
 .choice-chip:hover{ background:var(--accent); color:#06281f; }
@@ -290,3 +290,6 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 #lineNumbers .ln.bp{ background:#ef4444; color:#fff; }
 .var-row.changed{ background:rgba(45,212,167,.18); border-radius:6px; animation:varflash 1.2s ease-out; }
 @keyframes varflash{ from{ background:rgba(250,204,21,.6) } to{ background:rgba(45,212,167,.18) } }
+
+.backup-row{ display:flex; gap:8px; flex-wrap:wrap; padding:12px; border-top:1px solid var(--line); margin-top:auto; }
+#restoreFile{ display:none; }
