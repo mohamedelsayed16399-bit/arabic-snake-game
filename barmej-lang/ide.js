@@ -286,8 +286,11 @@ function traceLine(line){
   lastTrace=now;
   showStepLine(line);
 }
+function histAll(){ try{ return JSON.parse(localStorage.getItem('barmej-hist')||'{}'); }catch(e){ return {}; } }
+function histSnap(){ try{ const h=histAll(), k=currentProgram, l=h[k]||[]; if(!code.value.trim()||(l.length&&l[0].c===code.value)) return; l.unshift({t:Date.now(),c:code.value}); h[k]=l.slice(0,25); localStorage.setItem('barmej-hist',JSON.stringify(h)); }catch(e){} }
 async function runProgram(){
   const myRun=++runSeq;
+  histSnap();
   resetRunUI();
   println('▶ بدأ التنفيذ…','sys');
   const t0=performance.now();
@@ -670,7 +673,7 @@ $('#checkChallenge').addEventListener('click',()=>{
 const _normAr=s=>(s||'').toLowerCase().replace(/[\u0640\u064B-\u065F]/g,'').replace(/[\u0623\u0625\u0622]/g,'\u0627').replace(/\u0649/g,'\u064A').replace(/\u0629/g,'\u0647');
 /* --- examples --- */
 const exList=$('#exampleList');
-const EX_CATS=[['all','الكل',()=>true],['fav','⭐ مفضلتي',(e,k)=>favSet.has(k)],['game','🎮 ألعاب',e=>/(مفتاح|ماوس_|نقرة)\s*\(/.test(e.code)||/ثعبان|لعبة/.test(e.title+e.desc)],['draw','🎨 رسم',e=>/(قدم|اذهب|دائرة|نقطة|رمز|بكسلات)\s*\(/.test(e.code)],['music','🎵 موسيقى',e=>/(لحن|نغمة|صوت)\s*\(/.test(e.code)],['learn','📚 تعلّم',e=>!/(قدم|اذهب|دائرة|نقطة|رمز|بكسلات|لحن|نغمة|صوت|مفتاح|ماوس_|نقرة)\s*\(/.test(e.code)]];
+const EX_CATS=[['all','الكل',()=>true],['fav','⭐ مفضلتي',(e,k)=>favSet.has(k)],['game','🎮 ألعاب',e=>/(مفتاح|ماوس_|نقرة)\s*\(/.test(e.code)||/ثعبان|لعبة/.test(e.title+e.desc)],['draw','🎨 رسم',e=>/(قدم|اذهب|دائرة|نقطة|رمز|بكسلات)\s*\(/.test(e.code)],['music','🎵 موسيقى',e=>/لحن\s*\(/.test(e.code)||/موسيق|نغم|عيد ميلاد|عازف|بيانو/.test(e.title+e.desc)],['learn','📚 تعلّم',e=>!/(قدم|اذهب|دائرة|نقطة|رمز|بكسلات|لحن|نغمة|صوت|مفتاح|ماوس_|نقرة)\s*\(/.test(e.code)]];
 let favSet=new Set(); try{ favSet=new Set(JSON.parse(localStorage.getItem('barmej-fav-ex')||'[]')); }catch(e){}
 let exCat='all'; const exCards=[];
 function saveFav(){ try{ localStorage.setItem('barmej-fav-ex',JSON.stringify([...favSet])); }catch(e){} }
@@ -889,6 +892,22 @@ $('#docsContent').innerHTML=`
 
 
 
+
+/* --- version history --- */
+(function(){
+  const list=$('#histList');
+  function render(){ const l=histAll()[currentProgram]||[]; list.innerHTML='';
+    if(!l.length){ list.innerHTML='<div class="hist-empty">لسه مفيش نسخ — شغّل برنامجك وهتتسجل هنا.</div>'; return; }
+    l.forEach((v,i)=>{ const d=new Date(v.t); const lines=v.c.split('\n').length; const first=(v.c.split('\n').find(x=>x.trim())||'').slice(0,46);
+      const row=document.createElement('div'); row.className='hist-row';
+      row.innerHTML='<div><b>'+d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})+'</b> <small>'+d.toLocaleDateString('ar-EG')+' · '+lines+' سطر</small><div class="hist-prev"></div></div><button class="ghost small">↩ استرجع</button>';
+      row.querySelector('.hist-prev').textContent=first;
+      row.querySelector('button').addEventListener('click',()=>{ histSnap(); code.value=v.c; renderHL(); autosave(); $('#histModal').classList.add('hidden'); toast('رجعت للنسخة دي ✅ (والنسخة اللي قبلها اتحفظت)'); });
+      list.appendChild(row); }); }
+  $('#histBtn').addEventListener('click',()=>{ histSnap(); render(); $('#histModal').classList.remove('hidden'); });
+  $('#histClose').addEventListener('click',()=>$('#histModal').classList.add('hidden'));
+  $('#histModal').addEventListener('click',e=>{ if(e.target.id==='histModal') $('#histModal').classList.add('hidden'); });
+})();
 /* --- sprite editor --- */
 (function(){
   const N=12, grid=$('#spriteGrid'), pal=$('#spritePal'); const cells=Array.from({length:N},()=>Array(N).fill('.')); let cur='2';
