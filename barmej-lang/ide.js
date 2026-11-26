@@ -853,7 +853,7 @@ $('#docsContent').innerHTML=`
   $('#pianoBack').addEventListener('click',()=>{ seq.pop(); showSeq(); });
   $('#pianoPlay').addEventListener('click',()=>{ let t=0; seq.forEach(n=>{ if(n!=='_'){ const i=NAMES.indexOf(n); beep(FREQ[i],280,t); } t+=300; }); });
   $('#pianoIns').addEventListener('click',()=>{ if(!seq.length){ toast('اضغط كام نوتة الأول'); return; }
-    $('#pianoModal').classList.add('hidden'); insText('لحن("'+seq.join(' ')+'"، ٣٠٠)\n'); toast('اتضاف اللحن في الكود 🎶'); });
+    $('#pianoModal').classList.add('hidden'); const sp=code.selectionStart; const pre=(sp>0&&code.value[sp-1]!=='\n')?'\n':''; insText(pre+'لحن("'+seq.join(' ')+'"، ٣٠٠)\n'); toast('اتضاف اللحن في الكود 🎶'); });
   $('#pianoClose').addEventListener('click',()=>$('#pianoModal').classList.add('hidden'));
   $('#pianoModal').addEventListener('click',e=>{ if(e.target.id==='pianoModal') $('#pianoModal').classList.add('hidden'); });
   $('#pianoBtn').addEventListener('click',()=>{ $('#pianoModal').classList.remove('hidden'); });
