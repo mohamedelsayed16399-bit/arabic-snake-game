@@ -227,6 +227,10 @@ function builtins(io){
   B['نص']=x=>show(x); B['رقم']=x=>{ const n=parseFloat(normDigits(String(x))); if(isNaN(n)) throw new BError('لا يمكن تحويل «'+x+'» إلى رقم'); return n; };
   B['جزء']=(s,a,b)=> String(s).slice(a,b);
   B['حروف']=s=> String(s).split('');
+  B['أول']=x=>{ const v=typeof x==='string'?x.split(''):x; if(!Array.isArray(v)||!v.length) throw new BError('«أول» محتاجة قائمة أو نص مش فاضي'); return v[0]; };
+  B['آخر']=x=>{ const v=typeof x==='string'?x.split(''):x; if(!Array.isArray(v)||!v.length) throw new BError('«آخر» محتاجة قائمة أو نص مش فاضي'); return v[v.length-1]; };
+  B['فريد']=l=>{ if(!Array.isArray(l)) throw new BError('«فريد» تعمل على قوائم فقط'); const o=[]; for(const x of l) if(!o.includes(x)) o.push(x); return o; };
+  B['عدد_مرات']=(x,y)=>{ const v=typeof x==='string'?x.split(''):x; if(!Array.isArray(v)) throw new BError('«عدد_مرات» محتاجة قائمة أو نص'); return v.filter(e=>e===y).length; };
   B['فصل']=(s,sep)=> String(s).split(sep===undefined?' ':String(sep));
   B['وصل']=(l,sep)=> (Array.isArray(l)?l:[]).map(show).join(sep===undefined?'':String(sep));
   B['نوع']=x=> Array.isArray(x)?'قائمة': x===null?'فراغ': typeof x==='object'?'قاموس': typeof x==='number'?'رقم': typeof x==='string'?'نص': typeof x==='boolean'?'منطقي':'دالة';
