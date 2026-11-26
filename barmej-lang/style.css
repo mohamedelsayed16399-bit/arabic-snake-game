@@ -265,3 +265,10 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .hist-row small{ color:var(--muted); }
 .hist-prev{ color:var(--muted); font-family:monospace; font-size:12px; margin-top:2px; }
 .hist-empty{ color:var(--muted); padding:16px; text-align:center; }
+
+.tour{ position:fixed; inset:0; z-index:80; background:transparent; pointer-events:none; }
+.tour.hidden{ display:none; }
+.tour-card{ position:fixed; width:min(340px,calc(100vw - 20px)); background:var(--panel); border:1px solid #2dd4a7; border-radius:14px; padding:14px; pointer-events:auto; box-shadow:0 10px 40px rgba(0,0,0,.5); line-height:1.8; color:var(--text); }
+.tour-btns{ display:flex; gap:6px; align-items:center; margin-top:10px; }
+.tour-step{ margin-inline-end:auto; color:var(--muted); font-size:12px; }
+.tour-hi{ outline:3px solid #2dd4a7 !important; outline-offset:2px; box-shadow:0 0 18px 4px rgba(45,212,167,.6); }
