@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=41">
+<link rel="stylesheet" href="style.css?v=42">
 </head>
 <body>
 <header id="topbar">
@@ -22,6 +22,7 @@
   </nav>
   <div class="actions">
     <button id="tourBtn" title="جولة سريعة في برمِج">❓</button>
+    <button id="mapBtn" title="محرر الخرائط: ارسم متاهة أو مرحلة">🗺️</button>
     <button id="spriteBtn" title="محرر الرسومات: ارسم شخصية بالبكسل">🎨</button>
     <button id="pianoBtn" title="بيانو: لحّن ونزّل الكود">🎹</button>
     <button id="achBtn" title="إنجازاتك">🏆 1</button>
@@ -166,6 +167,13 @@
   <div id="pianoSeq" class="piano-seq">اضغط مفاتيح…</div>
   <div class="piano-btns"><button id="pianoRest" class="ghost small">_ سكوت</button><button id="pianoBack" class="ghost small">⌫ امسح نوتة</button><button id="pianoPlay" class="ghost small">▶ سمّع</button><button id="pianoIns" class="run small">📥 حطه في الكود</button><button id="pianoClose" class="ghost small">إغلاق</button></div>
 </div></div>
+<div id="mapModal" class="modal-back hidden"><div class="modal map-modal">
+  <h2>🗺️ محرر الخرائط</h2>
+  <p>ارسم مرحلة (١٦×١١): جدران وألوان، وبعدين حطها في الكود وارسمها بـ <code>خريطة_بلاط</code>.</p>
+  <div id="mapGrid" class="map-grid"></div>
+  <div id="mapPal" class="sprite-pal"></div>
+  <div class="piano-btns"><button id="mapClear" class="ghost small">🧹 فاضية</button><button id="mapBorder" class="ghost small">🧱 إطار</button><button id="mapIns" class="run small">📥 حطها في الكود</button><button id="mapClose" class="ghost small">إغلاق</button></div>
+</div></div>
 <div id="spriteModal" class="modal-back hidden"><div class="modal sprite-modal">
   <h2>🎨 محرر الشخصيات</h2>
   <p>ارسم شخصية بالبكسل (١٢×١٢)، وبعدين حطها في الكود وارسمها بـ <code>بكسلات</code>.</p>
@@ -184,7 +192,7 @@
     <ul>
       <li>📝 <b>المحرر</b> — اكتب كود عربي ودوس «شغّل»</li>
       <li>👣 <b>خطوة بخطوة</b> — نفّذ سطر سطر وراقب المتغيرات</li>
-      <li>🎓 <b>٢٣ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
+      <li>🎓 <b>٢٤ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
       <li>🐍 <b>٤٦ مثال جاهز</b> — منهم لعبة ثعبان كاملة!</li>
     </ul>
     <div class="modal-actions">
@@ -196,8 +204,8 @@
 </div>
 <div id="toast"></div>
 
-<script src="lang.js?v=41"></script>
-<script src="lessons.js?v=41"></script>
-<script src="ide.js?v=41"></script>
+<script src="lang.js?v=42"></script>
+<script src="lessons.js?v=42"></script>
+<script src="ide.js?v=42"></script>
 </body>
 </html>
