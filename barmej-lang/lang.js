@@ -396,6 +396,10 @@ function builtins(io){
     const out=[]; for(let i=from;i<=to;i++) out.push(i); return out; };
   B['قطع']=(l,a,b)=> (Array.isArray(l)||typeof l==='string')? l.slice(a===undefined?0:N(a), b===undefined?undefined:N(b)) : (()=>{throw new BError('«قطع» تعمل على قوائم ونصوص فقط')})();
   B['استنى']=ms=>({__sleep:N(ms)||0}); B['نام']=B['استنى'];
+  B['مسافة']=(a,b,c,d)=>Math.hypot(N(c)-N(a),N(d)-N(b));
+  B['زاوية']=(a,b,c,d)=>Math.round(Math.atan2(N(c)-N(a),N(d)-N(b))*180/Math.PI*100)/100;
+  B['تصادم']=(a,b,r1,c,d,r2)=>Math.hypot(N(c)-N(a),N(d)-N(b))<N(r1)+N(r2);
+  B['داخل']=(x,y,rx,ry,w,h)=>N(x)>=N(rx)&&N(x)<=N(rx)+N(w)&&N(y)>=N(ry)&&N(y)<=N(ry)+N(h);
   B['ماوس_س']=()=>{ try{ return io.mouse? Math.round(io.mouse().x) : 0; }catch(e){ return 0; } };
   B['ماوس_ص']=()=>{ try{ return io.mouse? Math.round(io.mouse().y) : 0; }catch(e){ return 0; } };
   B['ماوس_مضغوط']=()=>{ try{ return io.mouse? !!io.mouse().down : false; }catch(e){ return false; } };
