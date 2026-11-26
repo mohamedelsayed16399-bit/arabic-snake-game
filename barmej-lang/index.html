@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=26">
+<link rel="stylesheet" href="style.css?v=28">
 </head>
 <body>
 <header id="topbar">
@@ -21,6 +21,7 @@
     <button class="tab" data-panel="examples">أمثلة</button>
   </nav>
   <div class="actions">
+    <button id="pianoBtn" title="بيانو: لحّن ونزّل الكود">🎹</button>
     <button id="achBtn" title="إنجازاتك">🏆 1</button>
     <button id="muteBtn" title="الصوت">🔊</button>
     <button id="shareBtn" title="انسخ رابط المشاركة">🔗 مشاركة</button>
@@ -152,6 +153,13 @@
   </div>
   <div id="programsList"></div>
 </div>
+<div id="pianoModal" class="modal-back hidden"><div class="modal piano-modal">
+  <h2>🎹 بيانو برمج</h2>
+  <p>دوس على المفاتيح (أو A S D F G H J K) وبعدين انزّل اللحن في الكود.</p>
+  <div id="pianoKeys" class="piano-keys"></div>
+  <div id="pianoSeq" class="piano-seq">اضغط مفاتيح…</div>
+  <div class="piano-btns"><button id="pianoRest" class="ghost small">_ سكوت</button><button id="pianoBack" class="ghost small">⌫ امسح نوتة</button><button id="pianoPlay" class="ghost small">▶ سمّع</button><button id="pianoIns" class="run small">📥 حطه في الكود</button><button id="pianoClose" class="ghost small">إغلاق</button></div>
+</div></div>
 <div id="achModal" class="modal-back hidden"><div class="modal ach-modal" id="achBox"></div></div>
 <div id="welcomeModal" class="modal-back hidden">
   <div class="modal">
@@ -160,7 +168,7 @@
     <ul>
       <li>📝 <b>المحرر</b> — اكتب كود عربي ودوس «شغّل»</li>
       <li>👣 <b>خطوة بخطوة</b> — نفّذ سطر سطر وراقب المتغيرات</li>
-      <li>🎓 <b>٢٠ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
+      <li>🎓 <b>٢٢ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
       <li>🐍 <b>٤٣ مثال جاهز</b> — منهم لعبة ثعبان كاملة!</li>
     </ul>
     <div class="modal-actions">
@@ -171,8 +179,8 @@
 </div>
 <div id="toast"></div>
 
-<script src="lang.js?v=26"></script>
-<script src="lessons.js?v=26"></script>
-<script src="ide.js?v=26"></script>
+<script src="lang.js?v=28"></script>
+<script src="lessons.js?v=28"></script>
+<script src="ide.js?v=28"></script>
 </body>
 </html>
