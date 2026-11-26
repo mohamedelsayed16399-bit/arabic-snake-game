@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>المحافظ | محاكي المدينة الذكية</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#0b1220;color:#e8eefc;font-family:Tahoma,"Segoe UI",Arial,sans-serif;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100%}
+#top{display:flex;flex-wrap:wrap;gap:6px;padding:6px 8px;background:linear-gradient(90deg,#16233f,#0f1a30);border-bottom:1px solid #2a3b60;align-items:center}
+.stat{background:#1b2a49;border-radius:10px;padding:4px 9px;font-size:13px;white-space:nowrap}
+.stat b{color:#7fe3ff}
+.bad{color:#ff7b7b!important}.good{color:#7dffa0!important}
+#main{flex:1;display:flex;min-height:0}
+#cv-wrap{flex:1;position:relative;min-width:0;background:#0a0f1a}
+canvas{width:100%;height:100%;display:block;touch-action:none}
+#side{width:290px;background:#111b30;border-right:1px solid #2a3b60;display:flex;flex-direction:column;min-height:0}
+#side h4{margin:6px 10px 2px;font-size:13px;color:#8fb0ff}
+#info{padding:6px 10px;font-size:13px;min-height:90px;line-height:1.6}
+#mission{margin:4px 8px;padding:6px 8px;background:#1d2f1f;border:1px solid #2f6b3a;border-radius:8px;font-size:12.5px}
+#feed{flex:1;overflow:auto;padding:4px 10px;font-size:12.5px}
+#feed div{padding:3px 0;border-bottom:1px dashed #243556}
+#tools{display:flex;gap:5px;overflow-x:auto;padding:6px;background:#0f1a30;border-top:1px solid #2a3b60}
+.tb{flex:0 0 auto;min-width:64px;background:#1b2a49;border:2px solid transparent;border-radius:10px;color:#e8eefc;padding:4px 6px;text-align:center;font-size:11.5px;cursor:pointer;font-family:inherit}
+.tb .i{font-size:20px;display:block}
+.tb.sel{border-color:#ffd24a;background:#2c3c66}
+.tb small{color:#9db4e8;display:block;font-size:10.5px}
+button.b{background:#2d5bd6;border:0;color:#fff;border-radius:8px;padding:5px 10px;font-family:inherit;font-size:12.5px;margin:2px;cursor:pointer}
+button.b.r{background:#c0392b}button.b.g{background:#1e8f4e}button.b.o{background:#8a6d14}
+#ctrl{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+select,input[type=range]{font-family:inherit}
+select{background:#1b2a49;color:#fff;border:1px solid #2a3b60;border-radius:8px;padding:3px}
+#banner{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#ffb300;color:#222;padding:6px 14px;border-radius:14px;font-size:13px;font-weight:bold;display:none;max-width:90%;text-align:center;z-index:5}
+#toast{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#000c;border:1px solid #567;padding:6px 14px;border-radius:12px;font-size:13px;display:none;z-index:5;max-width:92%;text-align:center}
+#over{position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:9;text-align:center;flex-direction:column;gap:12px;font-size:18px}
+#start{position:absolute;inset:0;background:#000e;display:flex;align-items:center;justify-content:center;z-index:10;flex-direction:column;gap:10px;text-align:center;padding:20px}
+#start h1{margin:0;font-size:30px;color:#7fe3ff}
+#start p{max-width:520px;line-height:1.8;font-size:14px;margin:4px}
+@media(max-width:760px){
+ #main{flex-direction:column}
+ #side{width:100%;height:150px;border-right:0;border-top:1px solid #2a3b60;flex-direction:row;flex-wrap:wrap}
+ #info{flex:1 1 50%;min-height:0;overflow:auto;font-size:12px}
+ #feed{flex:1 1 40%;min-height:0}
+ #mission{flex:1 1 100%;order:-1;margin:2px 6px}
+ #side h4{display:none}
+ .stat{font-size:11.5px;padding:3px 6px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+ <div id="top">
+  <div class="stat">💰 <b id="sMoney">0</b></div>
+  <div class="stat">👥 <b id="sPop">0</b></div>
+  <div class="stat">📅 <b id="sDate">-</b></div>
+  <div class="stat">⭐ الرضا <b id="sAppr">0</b>%</div>
+  <div class="stat">⚡ <b id="sPow">0</b></div>
+  <div class="stat">💧 <b id="sWat">0</b></div>
+  <div class="stat">🚗 <b id="sTra">0</b>%</div>
+  <div class="stat">🚨 <b id="sInc">0</b></div>
+  <div id="ctrl">
+   <button class="b" id="bPause">⏸</button><button class="b" id="b1">×1</button><button class="b" id="b2">×2</button><button class="b" id="b4">×4</button>
+   <select id="layer"><option value="0">🗺 عادي</option><option value="1">🚗 الازدحام</option><option value="2">😊 السعادة</option><option value="3">🛡 الخدمات</option><option value="4">⚡ الكهرباء</option></select>
+   <span class="stat">ضريبة <b id="taxV">10</b>% <input id="tax" type="range" min="2" max="25" value="10" style="width:70px;vertical-align:middle"></span>
+   <button class="b o" id="bSave">💾</button><button class="b r" id="bReset">🗑</button>
+  </div>
+ </div>
+ <div id="main">
+  <div id="cv-wrap"><canvas id="cv"></canvas><div id="banner"></div><div id="toast"></div>
+   <div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
+   <div id="start"><h1>🏙 المحافظ</h1><p>انت محافظ مدينة ذكية. ابني الطرق والمناطق السكنية والتجارية والصناعية، وفّر كهرباء ومياه، وحافظ على الأمان والصحة. المواطنين بيتصرفوا حسب الظروف: لو الكهرباء قطعت أو المرور اتزحم هيتضايقوا وممكن يطردوك!</p><p>💡 اختار أداة من تحت واضغط أو اسحب على الخريطة. اضغط على أي مبنى (أداة 🔍) لتشوف حالته وتطوره أو ترسل الطوارئ.</p><button class="b g" id="bGo" style="font-size:18px;padding:10px 26px">ابدأ الحكم</button></div>
+  </div>
+  <div id="side"><div id="mission"></div><h4>🔍 معلومات</h4><div id="info">اضغط على مبنى</div><h4>📰 أخبار المدينة</h4><div id="feed"></div></div>
+ </div>
+ <div id="tools"></div>
+</div>
+<script>
+(function(){
+"use strict";
+const W=30,H=20;
+const DEFS={
+ 0:{n:'فاضي',c:0,u:0},
+ 1:{n:'طريق',c:20,u:0.15,i:'🛣'},
+ 2:{n:'سكني',c:100,u:0,i:'🏠'},
+ 3:{n:'تجاري',c:160,u:0,i:'🏬'},
+ 4:{n:'صناعي',c:160,u:0,i:'🏭'},
+ 5:{n:'محطة كهرباء (فحم)',c:1500,u:8,i:'⚡'},
+ 6:{n:'محطة شمسية',c:700,u:2,i:'☀️'},
+ 7:{n:'برج مياه',c:700,u:5,i:'💧'},
+ 8:{n:'شرطة',c:500,u:6,i:'👮'},
+ 9:{n:'إطفاء',c:500,u:6,i:'🚒'},
+ 10:{n:'مستشفى',c:900,u:10,i:'🏥'},
+ 11:{n:'مدرسة',c:600,u:5,i:'🏫'},
+ 12:{n:'حديقة',c:120,u:1,i:'🌳'}
+};
+const TOOLS=[['sel','🔍','فحص',0],[1,'🛣','طريق',20],[2,'🏠','سكني',100],[3,'🏬','تجاري',160],[4,'🏭','صناعي',160],[5,'⚡','كهرباء',1500],[6,'☀️','شمسية',700],[7,'💧','مياه',700],[8,'👮','شرطة',500],[9,'🚒','إطفاء',500],[10,'🏥','مستشفى',900],[11,'🏫','مدرسة',600],[12,'🌳','حديقة',120],['bd','🧨','هدم',0]];
+const RAD={8:8,9:7,10:9,11:8,12:4};
+const NAMES=['أحمد','محمد','منى','سارة','يوسف','هدى','كريم','نور','عمر','ليلى','خالد','دينا','مصطفى','ريم','طارق','سلمى','إبراهيم','آية','حسن','مريم'];
+let S,cells,walkers=[],sel=null,tool='sel',layer=0,speed=1,paused=false,timer=null,started=false;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+function newCells(){const a=[];for(let i=0;i<W*H;i++)a.push({t:0,lvl:1,pop:0,h:50,fire:0,crime:0,sick:0,acc:false});return a}
+function fresh(){
+ S={money:20000,tick:0,month:0,tax:10,pr:1,wr:1,cong:0,appr:60,badMonths:0,heat:0,drought:0,fest:0,boom:0,pop:0,missions:0,over:false,log:[],inc:0,jobs:0,resPop:0,sup:0,dem:0,wsup:0,wdem:0,avgH:60,income:0,expense:0};
+ cells=newCells();
+ const set=(x,y,t)=>{cells[y*W+x].t=t};
+ for(let x=6;x<=23;x++)set(x,10,1);
+ for(let y=6;y<=14;y++)set(14,y,1);
+ set(7,9,5);set(9,9,7);set(11,9,2);set(12,9,2);set(16,9,3);set(17,9,2);set(20,9,2);set(11,11,2);set(12,11,2);set(16,11,3);set(18,11,4);set(20,11,2);set(14,5,8);set(13,8,12);
+ for(const c of cells)if(c.t>=2&&c.t<=4)c.pop=3;
+ walkers=[];sel=null;
+ log('🏛 تم تعيينك محافظًا. ابدأ ببناء مدينتك!');
+}
+function log(m){S.log.unshift(m);if(S.log.length>40)S.log.pop();renderFeed()}
+function renderFeed(){$('feed').innerHTML=S.log.map(x=>'<div>'+x+'</div>').join('')}
+function toast(m,ms){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',ms||2200)}
+function banner(m){const b=$('banner');b.textContent=m;b.style.display=m?'block':'none'}
+const idx=(x,y)=>y*W+x,inb=(x,y)=>x>=0&&y>=0&&x<W&&y<H;
+const N4=[[1,0],[-1,0],[0,1],[0,-1]];
+function isZone(t){return t>=2&&t<=4}
+function cap(c){return 10*c.lvl*(c.t===4?1.2:1)}
+function coverage(){
+ const cov={8:new Uint8Array(W*H),9:new Uint8Array(W*H),10:new Uint8Array(W*H),11:new Uint8Array(W*H),12:new Uint8Array(W*H)};
+ if(S.money<0)return cov;
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=cells[idx(x,y)],r=RAD[c.t];if(!r)continue;
+  for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(dx*dx+dy*dy>r*r)continue;const X=x+dx,Y=y+dy;if(inb(X,Y))cov[c.t][idx(X,Y)]=1}}
+ return cov}
+let COV=null,LOAD=new Float32Array(W*H);
+function step(){
+ if(S.over)return;
+ S.tick++;
+ let sup=0,dem=0,wsup=0,wdem=0;
+ const heat=S.heat>0?1.4:1,dro=S.drought>0?0.6:1;
+ let resPop=0,jobs=0,pop=0,upkeep=0;
+ for(const c of cells){
+  if(c.t===5)sup+=70;else if(c.t===6)sup+=22;else if(c.t===7)wsup+=55*dro;
+  if(isZone(c.t)){const k=c.t===4?5:c.t===3?3:2;dem+=k*c.lvl*(c.pop>0?1:0.3)*heat;wdem+=(c.t===4?2:1)*c.lvl*(c.pop>0?1:0.3);
+   if(c.t===2)resPop+=c.pop;else jobs+=c.pop;pop+=c.pop}
+  upkeep+=DEFS[c.t].u;
+ }
+ S.sup=sup;S.dem=dem;S.wsup=wsup;S.wdem=wdem;
+ S.pr=dem>0?Math.min(1,sup/dem):1;S.wr=wdem>0?Math.min(1,wsup/wdem):1;
+ S.pop=pop;S.resPop=resPop;S.jobs=jobs;
+ COV=coverage();
+ LOAD.fill(0);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=cells[idx(x,y)];
+  c.acc=false;for(const[d,e]of N4){const X=x+d,Y=y+e;if(inb(X,Y)&&cells[idx(X,Y)].t===1){c.acc=true;break}}
+  if(isZone(c.t)&&c.pop>0&&c.acc){const rs=[];
+   for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const X=x+dx,Y=y+dy;if(inb(X,Y)&&cells[idx(X,Y)].t===1)rs.push(idx(X,Y))}
+   for(const r of rs)LOAD[r]+=c.pop*0.35/rs.length*2}}
+ let tl=0,rc=0;
+ for(let i=0;i<W*H;i++)if(cells[i].t===1){rc++;tl+=Math.min(1.5,LOAD[i]/9)}
+ S.cong=rc?Math.min(1,tl/rc):0;
+ let hs=0,hn=0,inc=0;
+ const resDem=jobs+25>resPop,jobDem=resPop*0.9+12>jobs;
+ const pollN=new Float32Array(W*H);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=cells[idx(x,y)];if(c.t===4||c.t===5){for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const X=x+dx,Y=y+dy;if(inb(X,Y))pollN[idx(X,Y)]+=c.t===5?1.2:1}}}
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const i=idx(x,y),c=cells[i];
+  if(!isZone(c.t))continue;
+  let h=45+S.pr*15+S.wr*10;
+  if(COV[10][i])h+=6;if(COV[8][i])h+=6;if(COV[9][i])h+=4;if(COV[12][i])h+=8;if(c.t===2&&COV[11][i])h+=5;
+  if(c.t===2)h-=Math.min(14,pollN[i]*4);
+  h-=S.cong*14;h-=c.crime?20:0;h-=c.sick?10:0;h-=c.fire?25:0;h-=Math.max(0,S.tax-12)*1.6;
+  if(S.fest>0)h+=10;
+  c.h=Math.max(0,Math.min(100,h));
+  if(c.t===2&&c.pop>0){hs+=c.h*c.pop;hn+=c.pop}
+  const dm=c.t===2?resDem:jobDem;
+  const ok=c.acc&&S.pr>0.6&&S.wr>0.6&&c.h>42&&!c.fire;
+  if(ok&&dm&&c.pop<cap(c)&&Math.random()<0.7)c.pop=Math.min(cap(c),c.pop+1+(Math.random()<0.3?1:0));
+  else if((c.h<28||!c.acc||S.pr<0.35)&&c.pop>0&&Math.random()<0.4)c.pop--;
+  if(c.pop<0)c.pop=0;
+  const rate=S.tax*(S.boom>0?1.3:1);
+  if(c.t===2)inc+=c.pop*rate*0.06*(c.h/60)*(S.pr>0.6?1:0.5);
+  else if(c.t===3)inc+=c.pop*rate*0.1*(S.pr>0.6?1:0.2)+c.pop*0.2;
+  else inc+=c.pop*rate*0.08*(S.pr>0.6?1:0.2)+c.pop*0.3;
+  if(c.crime)inc-=c.pop*0.2;
+  if(c.pop>0){
+   const hot=S.heat>0?2:1;
+   if(!c.fire&&Math.random()<0.0007*(c.t===4?2.5:1)*hot)newInc(c,'fire',x,y);
+   if(!c.crime&&Math.random()<0.0006*(1+(100-c.h)/45))newInc(c,'crime',x,y);
+   if(!c.sick&&Math.random()<0.0005*(c.t===2?1:0.4))newInc(c,'sick',x,y);
+  }
+  if(c.fire){
+   if(COV[9][i]&&Math.random()<0.28){c.fire=0;log('🚒 الإطفاء سيطرت على حريق ('+x+','+y+')')}
+   else{c.fire++;c.pop=Math.max(0,c.pop-1);
+    if(Math.random()<0.03){const[d,e]=N4[Math.floor(Math.random()*4)];if(inb(x+d,y+e)){const n=cells[idx(x+d,y+e)];if(isZone(n.t)&&!n.fire&&n.pop>0)newInc(n,'fire',x+d,y+e)}}
+    if(c.fire>28){log('🔥 احترق مبنى بالكامل ('+x+','+y+')!');c.t=0;c.pop=0;c.fire=0;c.crime=0;c.sick=0}}}
+  if(c.crime&&COV[8][i]&&Math.random()<0.15){c.crime=0;log('👮 الشرطة قبضت على المجرمين ('+x+','+y+')')}
+  if(c.sick){if(COV[10][i]&&Math.random()<0.2){c.sick=0;log('🏥 تم علاج المصابين ('+x+','+y+')')}else if(Math.random()<0.35)c.pop=Math.max(0,c.pop-1)}
+ }
+ for(const c of cells){if(c.t===0){c.fire=c.crime=c.sick=0}}
+ S.avgH=hn?hs/hn:60;
+ S.income=inc;S.expense=upkeep*0.5;
+ S.money+=inc-upkeep*0.5;
+ let ic=0;for(const c of cells)if(c.fire||c.crime||c.sick)ic++;S.inc=ic;
+ S.appr=Math.round(Math.max(0,Math.min(100,S.avgH-(S.money<0?15:0)-S.cong*8)));
+ if(S.heat>0)S.heat--;if(S.drought>0)S.drought--;if(S.fest>0)S.fest--;if(S.boom>0)S.boom--;
+ const ev=S.heat>0?'🌡 موجة حر: استهلاك الكهرباء +40%':S.drought>0?'🏜 جفاف: المياه نقصت':S.fest>0?'🎉 مهرجان في المدينة!':S.boom>0?'📈 ازدهار اقتصادي':'';
+ banner(ev);
+ if(S.tick%6===0&&pop>0)citizenSay();
+ if(S.tick%80===0&&pop>20&&Math.random()<0.8)randomEvent();
+ if(S.tick%30===0)monthly();
+ checkMissions();
+ ui();
+}
+function newInc(c,k,x,y){
+ c[k]=1;
+ const m={fire:'🔥 حريق',crime:'🚨 جريمة',sick:'🤒 انتشار مرض'}[k];
+ log(m+' في ('+x+','+y+') — اضغط على المبنى وأرسل الطوارئ');
+ if(k==='fire')toast('🔥 حريق جديد!');
+}
+function citizenSay(){
+ const z=cells.filter(c=>isZone(c.t)&&c.pop>0);if(!z.length)return;
+ const c=z[Math.floor(Math.random()*z.length)],n=NAMES[Math.floor(Math.random()*NAMES.length)];
+ let m;
+ if(S.pr<0.8)m='⚡ '+n+': الكهرباء بتقطع كتير يا محافظ!';
+ else if(S.wr<0.8)m='💧 '+n+': مفيش مياه كفاية!';
+ else if(S.cong>0.55)m='🚗 '+n+': الزحمة مش طبيعية، محتاجين طرق أكتر';
+ else if(c.crime)m='😠 '+n+': الأمان وحش في المنطقة دي';
+ else if(c.h<45)m='😞 '+n+': مش مرتاح في المنطقة، محتاجين خدمات وحدائق';
+ else if(S.tax>16)m='💸 '+n+': الضرايب غالية!';
+ else if(c.h>75)m='😍 '+n+': بحب مدينتنا، شكرًا يا محافظ!';
+ else m='🙂 '+n+': الحياة ماشية كويس';
+ log(m);
+}
+function randomEvent(){
+ const r=Math.random();
+ if(r<0.25){S.heat=25;log('🌡 موجة حر! الكهرباء هتتحمل أكتر');}
+ else if(r<0.45){S.drought=25;log('🏜 جفاف: إنتاج المياه قل!');}
+ else if(r<0.65){S.fest=20;log('🎉 مهرجان! الناس سعيدة وبتصرف');S.money+=500}
+ else if(r<0.85){S.boom=25;log('📈 ازدهار اقتصادي: الدخل زاد');}
+ else{const z=cells.map((c,i)=>[c,i]).filter(a=>isZone(a[0].t)&&a[0].pop>0);if(z.length){const[c,i]=z[Math.floor(Math.random()*z.length)];newInc(c,'fire',i%W,Math.floor(i/W));log('⛈ عاصفة ضربت المدينة!')}}
+}
+function monthly(){
+ S.month++;
+ if(S.appr<25){S.badMonths++;log('⚠ الرضا منخفض جدًا ('+S.appr+'%). '+(3-S.badMonths)+' شهور قبل الإقالة!')}else S.badMonths=Math.max(0,S.badMonths-1);
+ if(S.badMonths>=3||S.money<-5000)gameOver(S.money<-5000?'💸 المدينة أفلست!':'🗳 المواطنين أقالوك!');
+ save();
+}
+function gameOver(why){S.over=true;$('overT').innerHTML=why+'<br><small>وصل عدد السكان '+S.pop+' بعد '+S.month+' شهر</small>';$('over').style.display='flex';try{localStorage.removeItem('smartcity_v1')}catch(e){}}
+const MISSIONS=[
+ ['وصّل السكان لـ 50',()=>S.pop>=50,800],
+ ['ابني 3 محطات شمسية',()=>cells.filter(c=>c.t===6).length>=3,1200],
+ ['وصّل السكان لـ 150',()=>S.pop>=150,1500],
+ ['ابني مستشفى ومدرسة',()=>cells.some(c=>c.t===10)&&cells.some(c=>c.t===11),1500],
+ ['رضا المواطنين فوق 70% وسكان 250',()=>S.pop>=250&&S.appr>=70,2500],
+ ['وصّل السكان لـ 500',()=>S.pop>=500,4000],
+ ['3 مراكز شرطة و3 إطفاء',()=>cells.filter(c=>c.t===8).length>=3&&cells.filter(c=>c.t===9).length>=3,3000],
+ ['وصّل السكان لـ 1000 (مدينة كبرى!)',()=>S.pop>=1000,8000],
+ ['وصّل السكان لـ 2500',()=>S.pop>=2500,15000]
+];
+function checkMissions(){
+ const m=MISSIONS[S.missions];if(!m){$('mission').textContent='🏆 خلصت كل المهام! أنت محافظ أسطوري';return}
+ $('mission').innerHTML='🎯 المهمة '+(S.missions+1)+'/'+MISSIONS.length+': <b>'+m[0]+'</b> (مكافأة '+m[2]+')';
+ if(m[1]()){S.money+=m[2];S.missions++;log('🏆 أنجزت: '+m[0]+' +'+m[2]);toast('🏆 مهمة منجزة! +'+m[2],3000)}
+}
+function ui(){
+ $('sMoney').textContent=Math.floor(S.money);$('sMoney').parentNode.className='stat '+(S.money<0?'bad':'');
+ $('sPop').textContent=S.pop;
+ const y=2026+Math.floor(S.month/12),mo=S.month%12+1;$('sDate').textContent=mo+'/'+y;
+ $('sAppr').textContent=S.appr;$('sAppr').className=S.appr<35?'bad':S.appr>65?'good':'';
+ $('sPow').textContent=Math.round(S.sup)+'/'+Math.round(S.dem);$('sPow').className=S.pr<0.95?'bad':'';
+ $('sWat').textContent=Math.round(S.wsup)+'/'+Math.round(S.wdem);$('sWat').className=S.wr<0.95?'bad':'';
+ $('sTra').textContent=Math.round(S.cong*100);$('sTra').className=S.cong>0.6?'bad':'';
+ $('sInc').textContent=S.inc;$('sInc').className=S.inc?'bad':'';
+ renderInfo();
+}
+function renderInfo(){
+ const el=$('info');
+ if(!sel){el.innerHTML='ضريبة '+S.tax+'% · دخل/ثانية '+S.income.toFixed(1)+' · مصروف '+S.expense.toFixed(1)+'<br>اضغط على أي مبنى لتفحصه.';return}
+ const[x,y]=sel,c=cells[idx(x,y)],d=DEFS[c.t];
+ let h='<b>'+(d.i||'')+' '+d.n+'</b> ('+x+','+y+')';
+ if(isZone(c.t)){h+='<br>مستوى '+c.lvl+' · سكان/عمال '+c.pop+'/'+Math.round(cap(c))+'<br>سعادة '+Math.round(c.h)+'% '+(c.acc?'':'<span class=bad>🚫 بلا طريق</span>');
+  if(c.lvl<3)h+='<br><button class="b g" data-a="up">⬆ ترقية ('+300*c.lvl+')</button>'}
+ if(c.fire)h+='<br><span class=bad>🔥 حريق!</span>';if(c.crime)h+='<br><span class=bad>🚨 جريمة!</span>';if(c.sick)h+='<br><span class=bad>🤒 مرض!</span>';
+ if(c.fire||c.crime||c.sick)h+='<br><button class="b r" data-a="disp">🚑 إرسال طوارئ (100)</button>';
+ if(c.t===1){h+='<br>ازدحام '+Math.round(Math.min(1,LOAD[idx(x,y)]/9)*100)+'%'}
+ if(c.t&&RAD[c.t])h+='<br>تغطي نطاق '+RAD[c.t]+' مربعات'+(S.money<0?' <span class=bad>(متوقفة: عجز الميزانية)</span>':'');
+ el.innerHTML=h;
+}
+$('info').addEventListener('click',e=>{
+ const a=e.target.dataset&&e.target.dataset.a;if(!a||!sel)return;const c=cells[idx(sel[0],sel[1])];
+ if(a==='up'){const cost=300*c.lvl;if(S.money<cost)return toast('الفلوس مش كفاية');S.money-=cost;c.lvl++;log('⬆ تمت ترقية مبنى لمستوى '+c.lvl)}
+ if(a==='disp'){if(S.money<100)return toast('الفلوس مش كفاية');S.money-=100;c.fire=c.crime=c.sick=0;log('🚑 تم إرسال فرق الطوارئ')}
+ ui();
+});
+const tb=$('tools');
+TOOLS.forEach(t=>{const b=document.createElement('button');b.className='tb'+(t[0]==='sel'?' sel':'');b.dataset.k=t[0];b.innerHTML='<span class="i">'+t[1]+'</span>'+t[2]+(t[3]?'<small>'+t[3]+'</small>':'');
+ b.onclick=()=>{tool=t[0];[...tb.children].forEach(x=>x.classList.remove('sel'));b.classList.add('sel')};tb.appendChild(b)});
+let lastT=0;function toastOnce(m){const n=Date.now();if(n-lastT>1200){toast(m);lastT=n}}
+function apply(x,y){
+ if(!inb(x,y))return;const c=cells[idx(x,y)];
+ if(tool==='sel'){sel=[x,y];renderInfo();return}
+ if(tool==='bd'){if(c.t===0)return;S.money+=DEFS[c.t].c*0.3;Object.assign(c,{t:0,pop:0,lvl:1,fire:0,crime:0,sick:0});return}
+ const d=DEFS[tool];if(c.t===tool)return;
+ if(c.t!==0)return toastOnce('المكان مش فاضي: اهدم الأول');
+ if(S.money<d.c)return toastOnce('الفلوس مش كفاية!');
+ S.money-=d.c;c.t=tool;c.pop=0;c.lvl=1;sel=[x,y];ui();
+}
+let ts=20,ox=0,oy=0,dpr=1,down=false;
+function resize(){const r=cv.parentNode.getBoundingClientRect();dpr=window.devicePixelRatio||1;cv.width=Math.max(10,r.width*dpr);cv.height=Math.max(10,r.height*dpr);ts=Math.min(cv.width/W,cv.height/H);ox=(cv.width-ts*W)/2;oy=(cv.height-ts*H)/2}
+window.addEventListener('resize',resize);
+function pos(e){const r=cv.getBoundingClientRect();const px=(e.clientX-r.left)*dpr,py=(e.clientY-r.top)*dpr;return[Math.floor((px-ox)/ts),Math.floor((py-oy)/ts)]}
+cv.addEventListener('pointerdown',e=>{down=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}const[x,y]=pos(e);apply(x,y)});
+cv.addEventListener('pointermove',e=>{if(!down||tool==='sel')return;const[x,y]=pos(e);apply(x,y)});
+cv.addEventListener('pointerup',()=>down=false);cv.addEventListener('pointercancel',()=>down=false);
+function roads(){const r=[];for(let i=0;i<W*H;i++)if(cells[i].t===1)r.push(i);return r}
+function updWalkers(dt){
+ const rd=roads(),want=Math.min(70,Math.floor(S.pop/3));
+ while(walkers.length<want&&rd.length){const i=rd[Math.floor(Math.random()*rd.length)];walkers.push({x:i%W,y:Math.floor(i/W),tx:i%W,ty:Math.floor(i/W),p:1,px:-1,py:-1,col:['#ffd24a','#ff6b6b','#6bd6ff','#fff','#9cff6b'][Math.floor(Math.random()*5)],sp:1.4+Math.random()})}
+ while(walkers.length>want)walkers.pop();
+ for(const w of walkers){
+  if(cells[idx(w.x,w.y)].t!==1&&w.p>=1&&rd.length){w.x=w.tx=rd[0]%W;w.y=w.ty=Math.floor(rd[0]/W)}
+  w.p+=dt*w.sp*(S.cong>0.6?0.5:1)*speed*(paused?0:1);
+  if(w.p>=1){w.px=w.x;w.py=w.y;w.x=w.tx;w.y=w.ty;w.p=0;
+   const opts=N4.map(([a,b])=>[w.x+a,w.y+b]).filter(([a,b])=>inb(a,b)&&cells[idx(a,b)].t===1);
+   const f=opts.filter(([a,b])=>!(a===w.px&&b===w.py));const o=f.length?f:opts;
+   if(o.length){const n=o[Math.floor(Math.random()*o.length)];w.tx=n[0];w.ty=n[1]}else{w.tx=w.x;w.ty=w.y;w.p=1}}
+ }
+}
+function draw(t){
+ ctx.clearRect(0,0,cv.width,cv.height);
+ ctx.fillStyle='#16301f';ctx.fillRect(ox,oy,ts*W,ts*H);
+ const night=Math.sin(S.tick/20)<-0.2;
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const i=idx(x,y),c=cells[i],X=ox+x*ts,Y=oy+y*ts;
+  ctx.fillStyle=(x+y)%2?'#1c3a26':'#193522';ctx.fillRect(X,Y,ts,ts);
+  if(c.t===1){
+   const l=Math.min(1,LOAD[i]/9);ctx.fillStyle=l>0.5?'rgb('+(70+l*160|0)+','+(70-l*40|0)+',60)':'#3b414d';ctx.fillRect(X,Y,ts,ts);
+   ctx.fillStyle='#ffffff55';
+   const h=(x>0&&cells[idx(x-1,y)].t===1)||(x<W-1&&cells[idx(x+1,y)].t===1);
+   if(h)ctx.fillRect(X+ts*0.1,Y+ts*0.47,ts*0.8,Math.max(1,ts*0.06));else ctx.fillRect(X+ts*0.47,Y+ts*0.1,Math.max(1,ts*0.06),ts*0.8);
+  }else if(isZone(c.t)){
+   const col=c.t===2?'#4a8cff':c.t===3?'#ffa23a':'#9aa3b5';
+   const bh=ts*(0.45+0.17*c.lvl)*(c.pop>0?1:0.6);
+   ctx.fillStyle='#00000040';ctx.fillRect(X+ts*0.12,Y+ts*0.14,ts*0.8,ts*0.8);
+   ctx.fillStyle=col;ctx.fillRect(X+ts*0.1,Y+ts*0.92-bh,ts*0.8,bh);
+   ctx.fillStyle='#ffffff30';ctx.fillRect(X+ts*0.1,Y+ts*0.92-bh,ts*0.8,bh*0.18);
+   ctx.fillStyle=(night&&S.pr>0.6&&c.pop>0)?'#ffe680':'#ffffff55';
+   for(let k=0;k<c.lvl+1;k++){ctx.fillRect(X+ts*(0.2+0.22*(k%3)),Y+ts*0.92-bh+ts*0.12+ts*0.2*Math.floor(k/3),ts*0.12,ts*0.1)}
+   if(!c.acc||S.pr<0.6){ctx.font=ts*0.4+'px sans-serif';ctx.textAlign='center';ctx.fillText(!c.acc?'🚫':'⚡',X+ts/2,Y+ts*0.45)}
+   if(c.t===4&&c.pop>0){ctx.fillStyle='#ccc8';const s=(t/600+x)%1;ctx.beginPath();ctx.arc(X+ts*0.75,Y+ts*0.1-s*ts*0.3,ts*0.1*(1+s),0,6.3);ctx.fill()}
+  }else if(c.t){
+   ctx.fillStyle=({5:'#4a3b2f',6:'#26467a',7:'#2a5d7a',8:'#2d3f8a',9:'#8a2d2d',10:'#e6e6e6',11:'#8a7a2d',12:'#1f6b2a'})[c.t];
+   ctx.fillRect(X+ts*0.06,Y+ts*0.06,ts*0.88,ts*0.88);
+   ctx.font=ts*0.65+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.fillText(DEFS[c.t].i,X+ts/2,Y+ts/2+1);ctx.textBaseline='alphabetic';
+  }
+  if(layer){
+   if(layer===3){if(COV[8][i]||COV[10][i]||COV[9][i]){ctx.fillStyle='rgba(60,120,255,0.25)';ctx.fillRect(X,Y,ts,ts)}if(COV[9][i]){ctx.fillStyle='rgba(255,60,60,.2)';ctx.fillRect(X,Y,ts,ts)}}
+   else{let v=null;
+    if(layer===1&&c.t===1)v=Math.min(1,LOAD[i]/9);
+    else if(layer===2&&isZone(c.t))v=1-c.h/100;
+    else if(layer===4&&c.t)v=S.pr<1?1-S.pr:0;
+    if(v!==null){ctx.fillStyle='rgba('+(v*255|0)+','+((1-v)*255|0)+',60,0.55)';ctx.fillRect(X,Y,ts,ts)}}
+  }
+  if(c.fire){ctx.font=ts*0.7+'px sans-serif';ctx.textAlign='center';ctx.fillText('🔥',X+ts/2,Y+ts*0.75+Math.sin(t/120+x)*2)}
+  else if(c.crime){ctx.font=ts*0.6+'px sans-serif';ctx.textAlign='center';ctx.fillText('🚨',X+ts/2,Y+ts*0.7)}
+  else if(c.sick){ctx.font=ts*0.6+'px sans-serif';ctx.textAlign='center';ctx.fillText('🤒',X+ts/2,Y+ts*0.7)}
+ }
+ for(const w of walkers){const p=Math.min(1,w.p),px=ox+(w.x+(w.tx-w.x)*p+0.5)*ts,py=oy+(w.y+(w.ty-w.y)*p+0.5)*ts;ctx.fillStyle=w.col;ctx.fillRect(px-ts*0.1,py-ts*0.07,ts*0.2,ts*0.14)}
+ if(sel){ctx.strokeStyle='#ffd24a';ctx.lineWidth=2;ctx.strokeRect(ox+sel[0]*ts,oy+sel[1]*ts,ts,ts)}
+ const dn=Math.max(0,-Math.sin(S.tick/20));ctx.fillStyle='rgba(5,10,40,'+(dn*0.45)+')';ctx.fillRect(ox,oy,ts*W,ts*H);
+}
+let last=0;
+function frame(t){const dt=Math.min(0.1,(t-last)/1000);last=t;if(started&&COV){updWalkers(dt);draw(t)}requestAnimationFrame(frame)}
+function loop(){clearInterval(timer);if(!paused)timer=setInterval(()=>{if(started)step()},1000/speed)}
+$('bPause').onclick=()=>{paused=!paused;$('bPause').textContent=paused?'▶':'⏸';loop()};
+[1,2,4].forEach(s=>$('b'+s).onclick=()=>{speed=s;paused=false;$('bPause').textContent='⏸';loop()});
+$('layer').onchange=e=>layer=+e.target.value;
+$('tax').oninput=e=>{S.tax=+e.target.value;$('taxV').textContent=S.tax};
+function save(){try{localStorage.setItem('smartcity_v1',JSON.stringify({S,cells}));return true}catch(e){return false}}
+$('bSave').onclick=()=>toast(save()?'💾 تم الحفظ':'تعذر الحفظ');
+$('bReset').onclick=()=>{if(confirm('ابدأ مدينة جديدة؟ هيتمسح الحالي.')){fresh();COV=coverage();ui()}};
+$('bAgain').onclick=()=>{$('over').style.display='none';fresh();COV=coverage();ui()};
+$('bGo').onclick=()=>{$('start').style.display='none';started=true;ui()};
+window.addEventListener('beforeunload',()=>{if(S&&!S.over)save()});
+fresh();
+try{const j=JSON.parse(localStorage.getItem('smartcity_v1')||'null');if(j&&j.S&&j.cells&&j.cells.length===W*H){S=j.S;cells=j.cells;S.log=S.log||[];renderFeed()}}catch(e){}
+COV=coverage();
+$('tax').value=S.tax;$('taxV').textContent=S.tax;
+resize();ui();checkMissions();loop();requestAnimationFrame(frame);
+window.__city={get S(){return S},get cells(){return cells},step,apply,setTool:t=>{tool=t}};
+})();
+</script>
+</body>
+</html>
