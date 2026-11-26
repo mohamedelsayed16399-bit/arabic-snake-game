@@ -52,6 +52,33 @@ function showErrLine(line){
   bar.classList.remove('hidden'); bar.classList.remove('step-mode');
 }
 code.addEventListener('scroll',()=>{ hl.scrollTop=code.scrollTop; hl.scrollLeft=code.scrollLeft; nums.scrollTop=code.scrollTop; });
+function insText(txt,caretBack){
+  code.focus(); let ok=false; try{ ok=txt===''?document.execCommand('delete'):document.execCommand('insertText',false,txt); }catch(err){}
+  if(!ok){ const s=code.selectionStart; code.value=code.value.slice(0,s)+txt+code.value.slice(code.selectionEnd); code.selectionStart=code.selectionEnd=s+txt.length; }
+  if(caretBack){ code.selectionStart=code.selectionEnd=code.selectionStart-caretBack; }
+  renderHL(); autosave();
+}
+const PAIRS={'{':'}','[':']','(':')','"':'"'};
+code.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey||e.isComposing) return;
+  const v=code.value, s=code.selectionStart, en=code.selectionEnd, prev=v[s-1], next=v[en];
+  if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault();
+    const ls=v.lastIndexOf('\n',s-1)+1; const line=v.slice(ls,s); const ind=(line.match(/^[ \t]*/)||[''])[0];
+    const opens=/[\{\[\(]\s*$/.test(line.replace(/#.*$/,'')) ;
+    if(opens&&(next==='}'||next===']'||next===')')) insText('\n'+ind+'  \n'+ind,ind.length+1);
+    else insText('\n'+ind+(opens?'  ':''));
+    return;
+  }
+  if(PAIRS[e.key]&&s===en){
+    const closer=PAIRS[e.key];
+    if(e.key==='"'&&next==='"'){ e.preventDefault(); code.selectionStart=code.selectionEnd=s+1; return; }
+    if(e.key==='"'&&/[\wء-ي]/.test(prev||'')) return;
+    if(next===undefined||/[\s\)\]\}\n]/.test(next)){ e.preventDefault(); insText(e.key+closer,1); return; }
+  }
+  if((e.key==='}'||e.key===']'||e.key===')')&&s===en&&next===e.key){ e.preventDefault(); code.selectionStart=code.selectionEnd=s+1; return; }
+  if(e.key==='Backspace'&&s===en&&prev&&PAIRS[prev]&&next===PAIRS[prev]){ e.preventDefault(); code.selectionStart=s-1; code.selectionEnd=s+1; insText(''); return; }
+});
 code.addEventListener('keydown',e=>{
   if(e.key==='Tab'){ e.preventDefault();
     const s=code.selectionStart; code.value=code.value.slice(0,s)+'  '+code.value.slice(code.selectionEnd);
@@ -378,6 +405,16 @@ function applyFont(){
   try{ localStorage.setItem('barmej-font',String(editorFont)); }catch(e){}
 }
 $('#fontUp').addEventListener('click',()=>{ editorFont=Math.min(24,editorFont+1); applyFont(); renderHL(); });
+$('#formatBtn').addEventListener('click',()=>{
+  const before=code.value, after=Barmej.format(before);
+  if(before===after||before.trim()+'\n'===after){ toast('الكود منسّق بالفعل ✨'); return; }
+  code.focus(); code.select();
+  let ok=false; try{ ok=document.execCommand('insertText',false,after); }catch(e){}
+  if(!ok||code.value!==after){ code.value=after; }
+  code.dispatchEvent(new Event('input')); renderHL();
+  toast('اتنسّق الكود ✨ (Ctrl+Z للتراجع)');
+});
+document.addEventListener('keydown',e=>{ if(e.shiftKey&&(e.ctrlKey||e.metaKey)&&(e.key==='F'||e.key==='f')&&document.activeElement===code){ e.preventDefault(); $('#formatBtn').click(); } });
 $('#fontDown').addEventListener('click',()=>{ editorFont=Math.max(11,editorFont-1); applyFont(); renderHL(); });
 applyFont();
 
@@ -778,6 +815,7 @@ $('#docsContent').innerHTML=`
 // تعليق تاني</pre>
 
 <h2>اختصارات</h2>
+<p><code>Ctrl + Shift + F</code> (أو زر «✨ نسّق») بينسّق الكود ويظبط المسافات. وبمجرد ما تكتب <code>{</code> أو <code>(</code> أو <code>"</code> المحرر بيقفلها لوحده، و<code>Enter</code> بيكمل المسافة تلقائيًا.</p>
 <p><code>Ctrl + Enter</code> لتشغيل البرنامج من الكيبورد. الكود بيتحفظ تلقائيًا في متصفحك، وزر «مشاركة» بيعمل رابط فيه الكود.</p>
 `;
 
