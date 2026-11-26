@@ -388,6 +388,14 @@ function builtins(io){
   B['نغمة']=n=>{ const NOTES={'دو':261.6,'ري':293.7,'مي':329.6,'فا':349.2,'صول':392,'لا':440,'سي':493.9,'دو_عالية':523.3};
     const f=typeof n==='number'? n : NOTES[String(n)]; if(!f) throw new BError('نغمة غير معروفة: «'+n+'» — المتاح: دو ري مي فا صول لا سي');
     if(io.beep) io.beep(f,300); return null; };
+  B['لحن']=(txt,beat)=>{ const NOTES={'دو':261.6,'ري':293.7,'مي':329.6,'فا':349.2,'صول':392,'لا':440,'سي':493.9};
+    const ms=N(beat)||300; let t=0; const toks=String(txt).split(/\s+/).filter(Boolean);
+    for(const tk of toks){ const m=tk.match(/^(دو|ري|مي|فا|صول|لا|سي|_)([+\-]*)(?::(\d+(?:\.\d+)?))?$/);
+      if(!m) throw new BError('لحن: «'+tk+'» مش نوتة صح. اكتب مثلا: دو ري مي+ صول:2 _ (ـ+ أعلى، ـ- أوطى، :٢ طول، _ سكوت)');
+      const beats=m[3]?parseFloat(m[3]):1; const dur=beats*ms;
+      if(m[1]!=='_'){ let f=NOTES[m[1]]; for(const c of m[2]) f*= c==='+'?2:0.5; if(io.beep) io.beep(f,dur*0.92,t); }
+      t+=dur; }
+    return {__sleep:t}; };
   B['وقت']=()=>Date.now();
   B['ساعات']=()=>new Date().getHours();
   B['دقائق']=()=>new Date().getMinutes();
