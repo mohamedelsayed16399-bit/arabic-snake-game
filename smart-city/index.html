@@ -44,7 +44,12 @@ select{background:#1b2a49;color:#fff;border:1px solid #2a3b60;border-radius:8px;
  #feed{flex:1 1 40%;min-height:0}
  #mission{flex:1 1 100%;order:-1;margin:2px 6px}
  #side h4{display:none}
- .stat{font-size:11.5px;padding:3px 6px}
+ .stat{font-size:11px;padding:2px 5px}
+ .hm{display:none}
+ #top{gap:3px;padding:3px 5px}
+ button.b{padding:4px 7px;margin:1px;font-size:11.5px}
+ #tax{width:50px!important}
+ select{padding:2px;font-size:11px}
 }
 </style>
 </head>
@@ -53,7 +58,7 @@ select{background:#1b2a49;color:#fff;border:1px solid #2a3b60;border-radius:8px;
  <div id="top">
   <div class="stat">💰 <b id="sMoney">0</b></div>
   <div class="stat">👥 <b id="sPop">0</b></div>
-  <div class="stat">📅 <b id="sDate">-</b></div>
+  <div class="stat hm">📅 <b id="sDate">-</b></div>
   <div class="stat">⭐ الرضا <b id="sAppr">0</b>%</div>
   <div class="stat">⚡ <b id="sPow">0</b></div>
   <div class="stat">💧 <b id="sWat">0</b></div>
@@ -246,7 +251,7 @@ function randomEvent(){
  else{const z=cells.filter(c=>c.t>1&&isZone(c.t));const n=S.res.alarm?1:3;log(S.res.alarm?'🌍 زلزال! الإنذار المبكر قلل الخسائر':'🌍 زلزال ضرب المدينة!');beep(90,0.6);for(let k=0;k<n&&z.length;k++){const c=z[Math.floor(Math.random()*z.length)];c.pop=Math.floor(c.pop/2);c.fire=c.fire||1}}
 }
 function monthly(){
- S.month++;
+ S.month++;log('🧾 تقرير الشهر '+S.month+': دخل '+(S.income*30).toFixed(0)+' / مصروف '+(S.expense*30).toFixed(0)+' / صافي '+((S.income-S.expense)*30).toFixed(0));
  if(S.appr<25){S.badMonths++;log('⚠ الرضا منخفض جدًا ('+S.appr+'%). '+(3-S.badMonths)+' شهور قبل الإقالة!')}else S.badMonths=Math.max(0,S.badMonths-1);
  if(S.badMonths>=3||S.money<-5000)gameOver(S.money<-5000?'💸 المدينة أفلست!':'🗳 المواطنين أقالوك!');
  save();
@@ -263,7 +268,9 @@ const MISSIONS=[
  ['وصّل السكان لـ 1000 (مدينة كبرى!)',()=>S.pop>=1000,8000],
  ['وصّل السكان لـ 2500',()=>S.pop>=2500,15000]
 ];
-function checkMissions(){
+const ACH=[['blk','🕯 أول انقطاع كهرباء… اتعلمت الدرس',()=>S.pr<0.6&&S.pop>10],['mil','🌟 سكان 500',()=>S.pop>=500],['rich','💰 ميزانية 100 ألف',()=>S.money>=100000],['safe','🛡 صفر حوادث وسكان 150',()=>S.inc===0&&S.pop>=150],['happy','😍 رضا 90%+',()=>S.appr>=90&&S.pop>=60],['green','🌱 3 محطات طاقة نظيفة',()=>cells.filter(c=>c.t===6||c.t===15).length>=3]];
+function checkAch(){S.ach=S.ach||{};for(const a of ACH){if(!S.ach[a[0]]&&a[2]()){S.ach[a[0]]=1;log('🏅 إنجاز: '+a[1]);toast('🏅 '+a[1],3000);beep(990,0.2)}}}
+function checkMissions(){checkAch();
  const m=MISSIONS[S.missions];if(!m){$('mission').textContent='🏆 خلصت كل المهام! أنت محافظ أسطوري';return}
  $('mission').innerHTML='🎯 المهمة '+(S.missions+1)+'/'+MISSIONS.length+': <b>'+m[0]+'</b> (مكافأة '+m[2]+')';
  if(m[1]()){S.money+=m[2];S.missions++;log('🏆 أنجزت: '+m[0]+' +'+m[2]);toast('🏆 مهمة منجزة! +'+m[2],3000)}
@@ -409,6 +416,7 @@ function draw(t){
  for(const w of walkers){const p=Math.min(1,w.p),px=ox+(w.x+(w.tx-w.x)*p+0.5)*ts,py=oy+(w.y+(w.ty-w.y)*p+0.5)*ts;ctx.fillStyle=w.col;ctx.fillRect(px-ts*0.1,py-ts*0.07,ts*0.2,ts*0.14)}
  if(sel){ctx.strokeStyle='#ffd24a';ctx.lineWidth=2;ctx.strokeRect(ox+sel[0]*ts,oy+sel[1]*ts,ts,ts)}
  const dn=Math.max(0,-Math.sin(S.tick/20));ctx.fillStyle='rgba(5,10,40,'+(dn*0.45)+')';ctx.fillRect(ox,oy,ts*W,ts*H);
+ if(dn>0.3&&S.pr>0.6){for(let i=0;i<W*H;i++){const c=cells[i];if(c.t===1&&((i*7)%3===0)){const X=ox+(i%W+0.5)*ts,Y=oy+(Math.floor(i/W)+0.5)*ts;const g=ctx.createRadialGradient(X,Y,0,X,Y,ts*1.2);g.addColorStop(0,'rgba(255,220,120,'+dn*0.5+')');g.addColorStop(1,'rgba(255,220,120,0)');ctx.fillStyle=g;ctx.fillRect(X-ts*1.2,Y-ts*1.2,ts*2.4,ts*2.4)}}}
 }
 let last=0;
 function frame(t){const dt=Math.min(0.1,(t-last)/1000);last=t;if(started&&COV){updWalkers(dt);draw(t)}requestAnimationFrame(frame)}
