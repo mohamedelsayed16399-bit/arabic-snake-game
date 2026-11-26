@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=37">
+<link rel="stylesheet" href="style.css?v=39">
 </head>
 <body>
 <header id="topbar">
@@ -21,6 +21,7 @@
     <button class="tab" data-panel="examples">أمثلة</button>
   </nav>
   <div class="actions">
+    <button id="tourBtn" title="جولة سريعة في برمِج">❓</button>
     <button id="spriteBtn" title="محرر الرسومات: ارسم شخصية بالبكسل">🎨</button>
     <button id="pianoBtn" title="بيانو: لحّن ونزّل الكود">🎹</button>
     <button id="achBtn" title="إنجازاتك">🏆 1</button>
@@ -172,6 +173,7 @@
   <div class="piano-btns"><button id="spriteClear" class="ghost small">🧹 امسح</button><button id="spriteFlip" class="ghost small">↔ اعكس</button><button id="spriteIns" class="run small">📥 حطها في الكود</button><button id="spriteClose" class="ghost small">إغلاق</button></div>
 </div></div>
 <div id="histModal" class="modal-back hidden"><div class="modal hist-modal"><h2>🕘 سجل النسخ</h2><p>كل مرة بتشغّل فيها بنحتفظ بنسخة (آخر ٢٥ نسخة لكل برنامج). اختار نسخة وارجع لها.</p><div id="histList" class="hist-list"></div><div class="piano-btns"><button id="histClose" class="ghost small">إغلاق</button></div></div></div>
+<div id="tourOverlay" class="tour hidden"><div id="tourCard" class="tour-card"><div id="tourText"></div><div class="tour-btns"><span id="tourStep" class="tour-step"></span><button id="tourSkip" class="ghost small">تخطي</button><button id="tourPrev" class="ghost small">السابق</button><button id="tourNext" class="run small">التالي</button></div></div></div>
 <div id="achModal" class="modal-back hidden"><div class="modal ach-modal" id="achBox"></div></div>
 <div id="welcomeModal" class="modal-back hidden">
   <div class="modal">
@@ -180,19 +182,20 @@
     <ul>
       <li>📝 <b>المحرر</b> — اكتب كود عربي ودوس «شغّل»</li>
       <li>👣 <b>خطوة بخطوة</b> — نفّذ سطر سطر وراقب المتغيرات</li>
-      <li>🎓 <b>٢٢ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
+      <li>🎓 <b>٢٣ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
       <li>🐍 <b>٤٥ مثال جاهز</b> — منهم لعبة ثعبان كاملة!</li>
     </ul>
     <div class="modal-actions">
       <button id="welcomeLessons" class="run">ابدأ الدروس 🎓</button>
+      <button id="welcomeTour" class="ghost">❓ جولة سريعة</button>
       <button id="welcomeClose" class="ghost">ادخل المحرر</button>
     </div>
   </div>
 </div>
 <div id="toast"></div>
 
-<script src="lang.js?v=37"></script>
-<script src="lessons.js?v=37"></script>
-<script src="ide.js?v=37"></script>
+<script src="lang.js?v=39"></script>
+<script src="lessons.js?v=39"></script>
+<script src="ide.js?v=39"></script>
 </body>
 </html>
