@@ -230,3 +230,20 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .daily-streak{ color:#fbbf24; font-weight:700; font-size:13px; }
 .daily-title{ margin-bottom:8px; color:var(--text); }
 @media (max-width:760px){ .daily-banner{ flex:none; min-width:220px; margin:0 6px 0 0 } }
+
+@media (max-width:600px){
+  #topbar{ gap:4px 8px; padding:6px 8px }
+  .brand{ flex:0 0 auto }
+  .tabs{ order:3; width:100%; overflow-x:auto; flex-wrap:nowrap }
+  .tabs .tab{ white-space:nowrap; padding:6px 10px }
+  .actions{ margin-inline-start:auto; display:flex; gap:4px; flex-wrap:nowrap }
+  .actions button{ padding:6px 8px; min-width:36px }
+  .actions .lbl{ display:none }
+}
+
+.sprite-modal{ max-width:420px; }
+.sprite-grid{ display:grid; gap:1px; background:var(--line); border:1px solid var(--line); margin:6px auto 10px; width:min(100%,336px); aspect-ratio:1; touch-action:none; direction:ltr; }
+.scell{ background:var(--bg2); cursor:crosshair; }
+.sprite-pal{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; direction:ltr; }
+.spal{ width:30px; height:30px; border-radius:8px; border:2px solid var(--line); cursor:pointer; color:var(--muted); padding:0; }
+.spal.on{ border-color:#2dd4a7; box-shadow:0 0 0 2px rgba(45,212,167,.4); }
