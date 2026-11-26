@@ -667,20 +667,35 @@ $('#checkChallenge').addEventListener('click',()=>{
     renderChallengeList(); }
 });
 
+const _normAr=s=>(s||'').toLowerCase().replace(/[\u0640\u064B-\u065F]/g,'').replace(/[\u0623\u0625\u0622]/g,'\u0627').replace(/\u0649/g,'\u064A').replace(/\u0629/g,'\u0647');
 /* --- examples --- */
 const exList=$('#exampleList');
+const EX_CATS=[['all','الكل',()=>true],['fav','⭐ مفضلتي',(e,k)=>favSet.has(k)],['game','🎮 ألعاب',e=>/(مفتاح|ماوس_|نقرة)\s*\(/.test(e.code)||/ثعبان|لعبة/.test(e.title+e.desc)],['draw','🎨 رسم',e=>/(قدم|اذهب|دائرة|نقطة|رمز|بكسلات)\s*\(/.test(e.code)],['music','🎵 موسيقى',e=>/(لحن|نغمة|صوت)\s*\(/.test(e.code)],['learn','📚 تعلّم',e=>!/(قدم|اذهب|دائرة|نقطة|رمز|بكسلات|لحن|نغمة|صوت|مفتاح|ماوس_|نقرة)\s*\(/.test(e.code)]];
+let favSet=new Set(); try{ favSet=new Set(JSON.parse(localStorage.getItem('barmej-fav-ex')||'[]')); }catch(e){}
+let exCat='all'; const exCards=[];
+function saveFav(){ try{ localStorage.setItem('barmej-fav-ex',JSON.stringify([...favSet])); }catch(e){} }
 BARMEJ_EXAMPLES.forEach(ex=>{
   const c=document.createElement('div'); c.className='example-card';
-  c.innerHTML='<h3>'+ex.title+'</h3><p>'+ex.desc+'</p><div class="card-actions"><button class="run small">▶ شغّلها فورًا</button></div>';
+  c.innerHTML='<button class="fav-btn" title="مفضلة">☆</button><h3>'+ex.title+'</h3><p>'+ex.desc+'</p><div class="card-actions"><button class="run small">▶ شغّلها فورًا</button></div>';
   function load(){ code.value=ex.code; renderHL(); autosave();
     document.querySelector('.tab[data-panel="editor"]').click(); }
   c.addEventListener('click',()=>{ load(); toast('اتحمل مثال «'+ex.title+'» — دوس شغّل'); });
-  c.querySelector('button').addEventListener('click',ev=>{ ev.stopPropagation(); load(); runProgram(); });
-  exList.appendChild(c);
+  c.querySelector('.run').addEventListener('click',ev=>{ ev.stopPropagation(); load(); runProgram(); });
+  const fb=c.querySelector('.fav-btn');
+  fb.addEventListener('click',ev=>{ ev.stopPropagation(); if(favSet.has(ex.title)) favSet.delete(ex.title); else favSet.add(ex.title); saveFav(); fb.textContent=favSet.has(ex.title)?'★':'☆'; fb.classList.toggle('on',favSet.has(ex.title)); filterExamples(); });
+  fb.textContent=favSet.has(ex.title)?'★':'☆'; fb.classList.toggle('on',favSet.has(ex.title));
+  exList.appendChild(c); exCards.push({ex,c,load});
 });
+function filterExamples(){ const q=_normAr($('#exSearch').value.trim()); const cat=EX_CATS.find(x=>x[0]===exCat); let n=0;
+  exCards.forEach(o=>{ const ok=cat[2](o.ex,o.ex.title)&&(!q||_normAr(o.ex.title+' '+o.ex.desc).includes(q)); o.c.style.display=ok?'':'none'; if(ok) n++; });
+  $('#exCount').textContent=n+' مثال'; }
+EX_CATS.forEach(([k,label])=>{ const b=document.createElement('button'); b.className='chip'+(k==='all'?' on':''); b.textContent=label; b.dataset.k=k;
+  b.addEventListener('click',()=>{ exCat=k; $('#exChips').querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b)); filterExamples(); }); $('#exChips').appendChild(b); });
+$('#exSearch').addEventListener('input',filterExamples);
+$('#exRandom').addEventListener('click',()=>{ const o=exCards[Math.floor(Math.random()*exCards.length)]; o.load(); toast('🎲 «'+o.ex.title+'» — دوس شغّل'); });
+filterExamples();
 
 /* --- docs --- */
-const _normAr=s=>(s||'').toLowerCase().replace(/[\u0640\u064B-\u065F]/g,'').replace(/[\u0623\u0625\u0622]/g,'\u0627').replace(/\u0649/g,'\u064A').replace(/\u0629/g,'\u0647');
 $('#docsSearch').addEventListener('input',ev=>{
   const q=_normAr(ev.target.value.trim());
   const root=$('#docsContent');
