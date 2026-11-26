@@ -272,3 +272,10 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .tour-btns{ display:flex; gap:6px; align-items:center; margin-top:10px; }
 .tour-step{ margin-inline-end:auto; color:var(--muted); font-size:12px; }
 .tour-hi{ outline:3px solid #2dd4a7 !important; outline-offset:2px; box-shadow:0 0 18px 4px rgba(45,212,167,.6); }
+
+.snip-modal{ max-width:520px; }
+#snipSearch{ width:100%; box-sizing:border-box; background:var(--bg2); border:1px solid var(--line); color:var(--text); border-radius:10px; padding:8px 12px; margin-bottom:10px; font-family:inherit; }
+.snip-list{ max-height:340px; overflow:auto; margin-bottom:12px; }
+.snip-item{ padding:9px 10px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; cursor:pointer; }
+.snip-item:hover{ border-color:#2dd4a7; }
+.snip-item pre{ margin:6px 0 0; color:var(--muted); font-size:12px; max-height:64px; overflow:hidden; white-space:pre; direction:rtl; text-align:right; }
