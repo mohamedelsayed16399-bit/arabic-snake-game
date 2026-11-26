@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=32">
+<link rel="stylesheet" href="style.css?v=34">
 </head>
 <body>
 <header id="topbar">
@@ -21,12 +21,13 @@
     <button class="tab" data-panel="examples">أمثلة</button>
   </nav>
   <div class="actions">
+    <button id="spriteBtn" title="محرر الرسومات: ارسم شخصية بالبكسل">🎨</button>
     <button id="pianoBtn" title="بيانو: لحّن ونزّل الكود">🎹</button>
     <button id="achBtn" title="إنجازاتك">🏆 1</button>
     <button id="muteBtn" title="الصوت">🔊</button>
-    <button id="shareBtn" title="انسخ رابط المشاركة">🔗 مشاركة</button>
-    <button id="exportBtn" title="نزّل برنامجك كملف HTML واحد يشتغل أوفلاين">📦 ملف</button>
-    <button id="appLinkBtn" title="انسخ رابط تطبيق: بيفتح برنامجك لوحده بدون المحرر">📱 تطبيق</button>
+    <button id="shareBtn" title="انسخ رابط المشاركة">🔗<span class="lbl"> مشاركة</span></button>
+    <button id="exportBtn" title="نزّل برنامجك كملف HTML واحد يشتغل أوفلاين">📦<span class="lbl"> ملف</span></button>
+    <button id="appLinkBtn" title="انسخ رابط تطبيق: بيفتح برنامجك لوحده بدون المحرر">📱<span class="lbl"> تطبيق</span></button>
     <button id="themeBtn" title="بدّل المظهر">🌓</button>
   </div>
 </header>
@@ -161,6 +162,13 @@
   <div id="pianoSeq" class="piano-seq">اضغط مفاتيح…</div>
   <div class="piano-btns"><button id="pianoRest" class="ghost small">_ سكوت</button><button id="pianoBack" class="ghost small">⌫ امسح نوتة</button><button id="pianoPlay" class="ghost small">▶ سمّع</button><button id="pianoIns" class="run small">📥 حطه في الكود</button><button id="pianoClose" class="ghost small">إغلاق</button></div>
 </div></div>
+<div id="spriteModal" class="modal-back hidden"><div class="modal sprite-modal">
+  <h2>🎨 محرر الشخصيات</h2>
+  <p>ارسم شخصية بالبكسل (١٢×١٢)، وبعدين حطها في الكود وارسمها بـ <code>بكسلات</code>.</p>
+  <div id="spriteGrid" class="sprite-grid"></div>
+  <div id="spritePal" class="sprite-pal"></div>
+  <div class="piano-btns"><button id="spriteClear" class="ghost small">🧹 امسح</button><button id="spriteFlip" class="ghost small">↔ اعكس</button><button id="spriteIns" class="run small">📥 حطها في الكود</button><button id="spriteClose" class="ghost small">إغلاق</button></div>
+</div></div>
 <div id="achModal" class="modal-back hidden"><div class="modal ach-modal" id="achBox"></div></div>
 <div id="welcomeModal" class="modal-back hidden">
   <div class="modal">
@@ -170,7 +178,7 @@
       <li>📝 <b>المحرر</b> — اكتب كود عربي ودوس «شغّل»</li>
       <li>👣 <b>خطوة بخطوة</b> — نفّذ سطر سطر وراقب المتغيرات</li>
       <li>🎓 <b>٢٢ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
-      <li>🐍 <b>٤٣ مثال جاهز</b> — منهم لعبة ثعبان كاملة!</li>
+      <li>🐍 <b>٤٤ مثال جاهز</b> — منهم لعبة ثعبان كاملة!</li>
     </ul>
     <div class="modal-actions">
       <button id="welcomeLessons" class="run">ابدأ الدروس 🎓</button>
@@ -180,8 +188,8 @@
 </div>
 <div id="toast"></div>
 
-<script src="lang.js?v=32"></script>
-<script src="lessons.js?v=32"></script>
-<script src="ide.js?v=32"></script>
+<script src="lang.js?v=34"></script>
+<script src="lessons.js?v=34"></script>
+<script src="ide.js?v=34"></script>
 </body>
 </html>
