@@ -6,7 +6,7 @@ const code=$('#code'), hl=$('#highlight'), nums=$('#lineNumbers'),
       con=$('#console'), statusMsg=$('#statusMsg'), saveState=$('#saveState');
 
 /* --- syntax highlight --- */
-const KWS=Object.keys(Barmej.KEYWORDS);
+const KWS=Object.keys(Barmej.KEYWORDS).concat(['صنف','جديد','يرث','هذا','الأب']);
 const KW_RE=new RegExp('('+KWS.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g');
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function highlight(src){
@@ -659,6 +659,17 @@ $('#docsContent').innerHTML=`
 }</pre>
 <p>لو حصل خطأ جوه كتلة <code>جرّب</code> البرنامج مش بيقف، وبينفذ كتلة <code>لو_خطأ</code> ورسالة الخطأ بتتحط في المتغير اللي بعدها.</p>
 
+<h2>الأصناف (برمجة كائنية) 🧱</h2>
+<p>الصنف قالب للكائنات. <code>بناء</code> بتتنفذ عند الإنشاء بـ <code>جديد</code>، و<code>هذا</code> هو الكائن نفسه:</p>
+<pre>صنف لاعب {
+  دالة بناء(اسم) { هذا.اسم = اسم
+    هذا.نقاط = ٠ }
+  دالة سجّل() { هذا.نقاط = هذا.نقاط + ١ }
+}
+خلي ل = جديد لاعب("سارة")
+ل.سجّل()
+اطبع ل.نقاط</pre>
+<p><b>الوراثة:</b> <code>صنف ساحر يرث مقاتل { ... }</code> — الابن بياخد دوال الأب، وتقدر تغيّرها، وتنادي الأصلية بـ <code>الأب.اسم()</code> (حتى <code>الأب.بناء(...)</code>). <code>نوع(ل)</code> بترجّع اسم الصنف.</p>
 <h2>الوقت والألعاب</h2>
 <pre>استنى(١٠٠٠)        # يوقف التنفيذ ثانية (بالمللي ثانية)
 خلي م = مفتاح()    # المفتاح المدوس عليه دلوقتي: يمين يسار فوق تحت مسافة…</pre>
