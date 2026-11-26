@@ -102,6 +102,11 @@ function parse(toks){
       const params=[]; skipNL(); if(peek().t!==')'){ do{ skipNL(); params.push(expect('ID','متوقع اسم معامل').v); skipNL(); }while(peek().t===','&&p++); }
       expect(')','متوقع )'); node={k:'func',name:n.v,params,body:parseBlock(),line:tk.line}; }
     else if(tk.t==='RETURN'){ p++; skipNL(); node={k:'return',e:(peek().t==='NL'||peek().t==='}'||peek().t==='EOF')?null:parseExpr(),line:tk.line}; }
+    else if(tk.t==='ID'&&tk.v==='صنف'&&toks[p+1].t==='ID'){ p++; const n=expect('ID','متوقع اسم الصنف'); skipNL(); let parent=null;
+      if(peek().t==='ID'&&peek().v==='يرث'){ p++; parent=expect('ID','متوقع اسم الصنف الأب بعد «يرث»').v; }
+      const body=parseBlock(); const methods=[];
+      for(const m of body){ if(m.k!=='func') throw new BError('جوه الصنف مسموح بس بالدوال (الدوال هي الأفعال بتاعته)',m.line); methods.push(m); }
+      node={k:'class',name:n.v,parent,methods,line:tk.line}; }
     else if(tk.t==='BREAK'){ p++; node={k:'break',line:tk.line}; }
     else if(tk.t==='CONTINUE'){ p++; node={k:'continue',line:tk.line}; }
     else if(tk.t==='TRY'){ p++; const body=parseBlock(); skipNL(); expect('CATCH','متوقع «لو_خطأ» بعد كتلة جرّب');
@@ -149,6 +154,9 @@ function parse(toks){
     if(tk.t==='TRUE') return {k:'bool',v:true,line:tk.line};
     if(tk.t==='FALSE') return {k:'bool',v:false,line:tk.line};
     if(tk.t==='NULL') return {k:'null',line:tk.line};
+    if(tk.t==='ID'&&tk.v==='جديد'&&peek().t==='ID'){ const n=expect('ID','متوقع اسم الصنف بعد «جديد»'); const args=[];
+      if(peek().t==='('){ p++; skipNL(); if(peek().t!==')'){ do{ skipNL(); args.push(parseExpr()); skipNL(); }while(peek().t===','&&p++); } expect(')','متوقع ) بعد المعاملات'); }
+      return {k:'new',name:n.v,args,line:tk.line}; }
     if(tk.t==='ID') return {k:'var',name:tk.v,line:tk.line};
     if(tk.t==='('){ const e=parseExpr(); skipNL(); expect(')','متوقع )'); return e; }
     if(tk.t==='['){ const items=[]; skipNL();
@@ -173,15 +181,19 @@ function arNum(n){
   if(Number.isInteger(n)) return String(n);
   return String(Math.round(n*1e10)/1e10);
 }
-function show(v){
+function show(v,d){
+  d=d||0;
   if(v===null||v===undefined) return 'فراغ';
   if(v===true) return 'صحيح';
   if(v===false) return 'غلط';
   if(typeof v==='number') return arNum(v);
   if(typeof v==='string') return v;
-  if(Array.isArray(v)) return '['+v.map(show).join('، ')+']';
-  if(typeof v==='object') return '{ '+Object.keys(v).map(k=>k+': '+show(v[k])).join('، ')+' }';
-  if(v&&v.__fn) return '<دالة '+v.name+'>';
+  if(v.__fn) return '<دالة '+v.name+'>';
+  if(v.__builtin) return '<دالة '+v.name+'>';
+  if(v.__class) return '<صنف '+v.name+'>';
+  if(d>4) return '…';
+  if(Array.isArray(v)) return '['+v.map(x=>show(x,d+1)).join('، ')+']';
+  if(typeof v==='object') return (v.__cls?v.__cls+' ':'')+'{ '+Object.keys(v).map(k=>k+': '+show(v[k],d+1)).join('، ')+' }';
   return String(v);
 }
 
@@ -232,8 +244,8 @@ function builtins(io){
   B['فريد']=l=>{ if(!Array.isArray(l)) throw new BError('«فريد» تعمل على قوائم فقط'); const o=[]; for(const x of l) if(!o.includes(x)) o.push(x); return o; };
   B['عدد_مرات']=(x,y)=>{ const v=typeof x==='string'?x.split(''):x; if(!Array.isArray(v)) throw new BError('«عدد_مرات» محتاجة قائمة أو نص'); return v.filter(e=>e===y).length; };
   B['فصل']=(s,sep)=> String(s).split(sep===undefined?' ':String(sep));
-  B['وصل']=(l,sep)=> (Array.isArray(l)?l:[]).map(show).join(sep===undefined?'':String(sep));
-  B['نوع']=x=> Array.isArray(x)?'قائمة': x===null?'فراغ': typeof x==='object'?'قاموس': typeof x==='number'?'رقم': typeof x==='string'?'نص': typeof x==='boolean'?'منطقي':'دالة';
+  B['وصل']=(l,sep)=> (Array.isArray(l)?l:[]).map(x=>show(x)).join(sep===undefined?'':String(sep));
+  B['نوع']=x=> (x&&x.__cls)?x.__cls: Array.isArray(x)?'قائمة': x===null?'فراغ': typeof x==='object'?'قاموس': typeof x==='number'?'رقم': typeof x==='string'?'نص': typeof x==='boolean'?'منطقي':'دالة';
   B['مفاتيح']=o=> Object.keys(Object(o));
   B['بدل']=(s,a,b)=> String(s).split(String(a)).join(String(b)); B['بدّل']=B['بدل'];
   B['رتب']=(l,desc)=>{ if(!Array.isArray(l)) throw new BError('«رتب» تعمل على قوائم فقط');
@@ -255,7 +267,7 @@ function builtins(io){
     if(io.choose) return io.choose(s,list);
     if(io.ask){ const a=io.ask(s+' ('+list.join(' / ')+')'); return a===null?'':a; }
     return list[0]||''; };
-  B['اطبع']=(...a)=>{ io.print(a.map(show).join(' ')); return null; };
+  B['اطبع']=(...a)=>{ io.print(a.map(x=>show(x)).join(' ')); return null; };
   B['امسح']=()=>{ io.clear&&io.clear(); return null; };
   const N=x=>{ const v=parseFloat(normDigits(String(x))); return isNaN(v)?0:v; };
   const D=(op,args)=>{ if(io.draw){ const r=io.draw(Object.assign({op},args)); if(r&&typeof r==='object'&&r.__sleep!==undefined) return r; } return null; };
@@ -333,6 +345,26 @@ function makeRunner(prog,io,limits){
           const v=o[i]; if(v===undefined) throw new BError('فهرس خارج النطاق: '+arNum(i)+' — الطول هو '+o.length+' فآخر فهرس صحيح هو '+(o.length-1),n.line); return v; }
         if(o&&typeof o==='object'){ const v=o[String(idx)]; return v===undefined?null:v; }
         throw new BError('لا يمكن الفهرسة في هذه القيمة',n.line); }
+      case 'new': { const cls=envGet(env,n.name,n.line);
+        if(!cls||!cls.__class) throw new BError('«'+n.name+'» مش صنف',n.line);
+        const args=[]; for(const a of n.args) args.push(yield* evalExpr(a,env));
+        const inst={};
+        Object.defineProperty(inst,'__cls',{value:cls.name,enumerable:false});
+        const bind=(c)=>{ let inherited={}; let sup=null;
+          if(c.parent){ sup=bind(c.parent); inherited=Object.assign({},sup); }
+          const e=makeEnv(c.env); e.vars['هذا']=inst;
+          if(sup){ const so={}; for(const k in sup) Object.defineProperty(so,k,{value:sup[k],enumerable:true}); e.vars['الأب']=so; }
+          const own=Object.assign({},inherited);
+          for(const m of c.methods) own[m.name]={__fn:true,name:m.name,params:m.params,body:m.body,env:e};
+          return own; };
+        const ms=bind(cls);
+        for(const k in ms) Object.defineProperty(inst,k,{value:ms[k],enumerable:false,writable:true,configurable:true});
+        const ctor=ms['بناء'];
+        if(ctor){ if(args.length!==ctor.params.length) throw new BError('بناء الصنف «'+cls.name+'» يتوقع '+ctor.params.length+' معاملات وليس '+args.length,n.line);
+          const local=makeEnv(ctor.env); ctor.params.forEach((pr,i)=>local.vars[pr]=args[i]);
+          try{ yield* execBlock(ctor.body,local); }catch(sig){ if(!(sig instanceof ReturnSignal)) throw sig; } }
+        else if(args.length) throw new BError('الصنف «'+cls.name+'» ملوش «بناء» بس انت بعت معاملات',n.line);
+        return inst; }
       case 'call': { const fn=yield* evalExpr(n.fn,env);
         const args=[]; for(const a of n.args) args.push(yield* evalExpr(a,env));
         if(fn&&fn.__builtin){ const res=fn.fn(...args);
@@ -386,6 +418,8 @@ function makeRunner(prog,io,limits){
           const loop=makeEnv(env); loop.vars[n.varName]=item;
           try{ yield* execBlock(n.body,loop); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } } }
         break;
+      case 'class': { let parent=null; if(n.parent){ parent=envGet(env,n.parent,n.line); if(!parent||!parent.__class) throw new BError('«'+n.parent+'» مش صنف عشان ترث منه',n.line); }
+        env.vars[n.name]={__class:true,name:n.name,parent,methods:n.methods,env}; break; }
       case 'func': env.vars[n.name]={__fn:true,name:n.name,params:n.params,body:n.body,env}; break;
       case 'try': { try{ yield* execBlock(n.body,makeEnv(env)); }
         catch(e){ if(e instanceof ReturnSignal || e instanceof BreakSignal || e instanceof ContinueSignal) throw e;
