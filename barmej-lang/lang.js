@@ -1,1 +1,367 @@
+/* برمِج — لغة برمجة عربية: محلل ومفسّر (يعمل في المتصفح و Node) */
+(function (root) {
+'use strict';
 
+const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+function normDigits(s){ return s.replace(/[٠-٩]/g, d => String(AR_DIGITS.indexOf(d))).replace(/٫/g,'.'); }
+
+const KEYWORDS = {
+  'اطبع':'PRINT','اكتب':'PRINT',
+  'خلي':'LET','متغير':'LET',
+  'لو':'IF','وإلا':'ELSE','والا':'ELSE','إلا':'ELSE',
+  'طالما':'WHILE','كرر':'REPEAT','لكل':'FOREACH','في':'IN',
+  'دالة':'FUNC','ارجع':'RETURN','رجع':'RETURN',
+  'صحيح':'TRUE','صح':'TRUE','غلط':'FALSE','خطأ':'FALSE',
+  'فراغ':'NULL','لاشيء':'NULL',
+  'و':'AND','أو':'OR','او':'OR','مش':'NOT','ليس':'NOT',
+  'قف':'BREAK','كمل':'CONTINUE','استمر':'CONTINUE',
+  'نهاية':'END'
+};
+
+class BError extends Error { constructor(msg,line){ super(msg); this.line=line; this.isBarmej=true; } }
+
+/* ---------- Lexer ---------- */
+function tokenize(src){
+  src = normDigits(src);
+  const toks=[]; let i=0, line=1;
+  const isDig=c=>c>='0'&&c<='9';
+  const isAlpha=c=>/[\u0620-\u065F\u066E-\u06D3a-zA-Z_]/.test(c);
+  while(i<src.length){
+    const c=src[i];
+    if(c==='\n'){ toks.push({t:'NL',line}); line++; i++; continue; }
+    if(c===' '||c==='\t'||c==='\r'){ i++; continue; }
+    if(c==='#'||(c==='/'&&src[i+1]==='/')){ while(i<src.length&&src[i]!=='\n') i++; continue; }
+    if(isDig(c)||(c==='.'&&isDig(src[i+1]))){
+      let j=i; while(j<src.length&&(isDig(src[j])||src[j]==='.')) j++;
+      toks.push({t:'NUM',v:parseFloat(src.slice(i,j)),line}); i=j; continue;
+    }
+    if(c==='"'||c==="'"){
+      let j=i+1,s='';
+      while(j<src.length&&src[j]!==c){
+        if(src[j]==='\\'){ const n=src[j+1]; s+= n==='n'?'\n':n==='t'?'\t':n; j+=2; }
+        else { s+=src[j]; j++; }
+      }
+      if(j>=src.length) throw new BError('نص غير مقفول: ناقص علامة تنصيص',line);
+      toks.push({t:'STR',v:s,line}); i=j+1; continue;
+    }
+    if(isAlpha(c)){
+      let j=i; while(j<src.length&&(isAlpha(src[j])||isDig(src[j]))) j++;
+      const w=src.slice(i,j);
+      if(KEYWORDS[w]) toks.push({t:KEYWORDS[w],line});
+      else toks.push({t:'ID',v:w,line});
+      i=j; continue;
+    }
+    const two=src.slice(i,i+2);
+    if(['==','!=','<=','>=','&&','||'].includes(two)){
+      toks.push({t: two==='&&'?'AND': two==='||'?'OR': two, line}); i+=2; continue;
+    }
+    if('+-*/%^=<>!,(){}[].:'.includes(c)){ toks.push({t:c,line}); i++; continue; }
+    if(c==='،'||c===','){ toks.push({t:',',line}); i++; continue; }
+    if(c==='؛'||c===';'){ toks.push({t:'NL',line}); i++; continue; }
+    if(c==='؟'||c==='?'){ toks.push({t:'?',line}); i++; continue; }
+    throw new BError('رمز غير مفهوم: '+c,line);
+  }
+  toks.push({t:'EOF',line});
+  return toks;
+}
+
+/* ---------- Parser ---------- */
+function parse(toks){
+  let p=0;
+  const peek=()=>toks[p], next=()=>toks[p++];
+  const skipNL=()=>{ while(peek().t==='NL') p++; };
+  const expect=(t,msg)=>{ skipNLIfInline(); const tk=next(); if(tk.t!==t) throw new BError(msg||('متوقع '+t+' لكن وجدت «'+(tk.v||tk.t)+'»'),tk.line); return tk; };
+  const skipNLIfInline=()=>{};
+  function parseBlock(){
+    skipNL(); expect('{','متوقع { لبداية الكتلة');
+    const body=[];
+    while(true){ skipNL(); if(peek().t==='}'){ p++; break; } if(peek().t==='EOF') throw new BError('كتلة غير مقفولة: ناقص }',peek().line); body.push(parseStmt()); }
+    return body;
+  }
+  function parseStmt(){
+    skipNL(); const tk=peek(); let node;
+    if(tk.t==='PRINT'){ p++; node={k:'print',e:parseExpr(),line:tk.line}; }
+    else if(tk.t==='LET'){ p++; const n=expect('ID','متوقع اسم المتغير بعد «خلي»'); skipNL(); expect('=','متوقع = بعد اسم المتغير'); node={k:'let',name:n.v,e:parseExpr(),line:tk.line}; }
+    else if(tk.t==='IF'){
+      p++; const cond=parseExpr(); const then=parseBlock(); const elifs=[]; let els=null;
+      while(true){ const save=p; skipNL();
+        if(peek().t==='ELSE'){ p++; skipNL();
+          if(peek().t==='IF'){ p++; elifs.push({cond:parseExpr(),body:parseBlock()}); }
+          else { els=parseBlock(); break; }
+        } else { p=save; break; }
+      }
+      node={k:'if',cond,then,elifs,els,line:tk.line};
+    }
+    else if(tk.t==='WHILE'){ p++; node={k:'while',cond:parseExpr(),body:parseBlock(),line:tk.line}; }
+    else if(tk.t==='REPEAT'){ p++; const count=parseExpr(); let varName=null; skipNL();
+      if(peek().t===',' ){ p++; skipNL(); if(peek().t==='ID'){ varName=next().v; } }
+      node={k:'repeat',count,varName,body:parseBlock(),line:tk.line}; }
+    else if(tk.t==='FOREACH'){ p++; const v=expect('ID','متوقع اسم بعد «لكل»'); skipNL(); expect('IN','متوقع «في» بعد الاسم'); node={k:'foreach',varName:v.v,list:parseExpr(),body:parseBlock(),line:tk.line}; }
+    else if(tk.t==='FUNC'){ p++; const n=expect('ID','متوقع اسم الدالة'); skipNL(); expect('(','متوقع ( بعد اسم الدالة');
+      const params=[]; skipNL(); if(peek().t!==')'){ do{ skipNL(); params.push(expect('ID','متوقع اسم معامل').v); skipNL(); }while(peek().t===','&&p++); }
+      expect(')','متوقع )'); node={k:'func',name:n.v,params,body:parseBlock(),line:tk.line}; }
+    else if(tk.t==='RETURN'){ p++; skipNL(); node={k:'return',e:(peek().t==='NL'||peek().t==='}'||peek().t==='EOF')?null:parseExpr(),line:tk.line}; }
+    else if(tk.t==='BREAK'){ p++; node={k:'break',line:tk.line}; }
+    else if(tk.t==='CONTINUE'){ p++; node={k:'continue',line:tk.line}; }
+    else {
+      const save=p; let candidate=null; let ok=false;
+      try{ const base={k:'var',name:peek().v,line:peek().line}; p++;
+        candidate=parsePostfix(base);
+        if((candidate.k==='var'||candidate.k==='index')&&peek().t==='=') ok=true;
+      }catch(e){ ok=false; }
+      if(ok){ p++; const e=parseExpr();
+        if(candidate.k==='var') node={k:'set',name:candidate.name,e,line:tk.line};
+        else node={k:'setindex',target:candidate,e,line:tk.line};
+      } else { p=save; node={k:'expr',e:parseExpr(),line:tk.line}; }
+    }
+    return node;
+  }
+  /* expressions: or -> and -> cmp -> add -> mul -> unary -> postfix -> primary */
+  function parseExpr(){ return parseOr(); }
+  function parseOr(){ let l=parseAnd(); while(true){ skipNL(); if(peek().t==='OR'){ p++; l={k:'bin',op:'||',l,r:parseAnd(),line:peek().line}; } else return l; } }
+  function parseAnd(){ let l=parseCmp(); while(true){ skipNL(); if(peek().t==='AND'){ p++; l={k:'bin',op:'&&',l,r:parseCmp(),line:peek().line}; } else return l; } }
+  function parseCmp(){ let l=parseAdd(); while(true){ skipNL(); const t=peek().t;
+    if(['==','!=','<','>','<=','>='].includes(t)){ p++; l={k:'bin',op:t,l,r:parseAdd(),line:peek().line}; } else return l; } }
+  function parseAdd(){ let l=parseMul(); while(true){ const t=peek().t; if(t==='+'||t==='-'){ p++; l={k:'bin',op:t,l,r:parseMul(),line:peek().line}; } else return l; } }
+  function parseMul(){ let l=parseUnary(); while(true){ const t=peek().t; if(t==='*'||t==='/'||t==='%'||t==='^'){ p++; l={k:'bin',op:t,l,r:parseUnary(),line:peek().line}; } else return l; } }
+  function parseUnary(){ const t=peek().t;
+    if(t==='-'){ p++; return {k:'neg',e:parseUnary(),line:peek().line}; }
+    if(t==='NOT'||t==='!'){ p++; return {k:'not',e:parseUnary(),line:peek().line}; }
+    return parsePostfix(parsePrimary()); }
+  function parsePostfix(e){
+    while(true){
+      if(peek().t==='('){ p++; const args=[]; skipNL();
+        if(peek().t!==')'){ do{ skipNL(); args.push(parseExpr()); skipNL(); }while(peek().t===','&&p++); }
+        expect(')','متوقع ) بعد المعاملات'); e={k:'call',fn:e,args,line:peek().line}; }
+      else if(peek().t==='['){ p++; const idx=parseExpr(); skipNL(); expect(']','متوقع ]'); e={k:'index',obj:e,idx,line:peek().line}; }
+      else if(peek().t==='.'){ p++; const prop=expect('ID','متوقع خاصية بعد النقطة'); e={k:'index',obj:e,idx:{k:'str',v:prop.v},line:peek().line}; }
+      else return e;
+    }
+  }
+  function parsePrimary(){
+    skipNL(); const tk=next();
+    if(tk.t==='NUM') return {k:'num',v:tk.v,line:tk.line};
+    if(tk.t==='STR') return {k:'str',v:tk.v,line:tk.line};
+    if(tk.t==='TRUE') return {k:'bool',v:true,line:tk.line};
+    if(tk.t==='FALSE') return {k:'bool',v:false,line:tk.line};
+    if(tk.t==='NULL') return {k:'null',line:tk.line};
+    if(tk.t==='ID') return {k:'var',name:tk.v,line:tk.line};
+    if(tk.t==='('){ const e=parseExpr(); skipNL(); expect(')','متوقع )'); return e; }
+    if(tk.t==='['){ const items=[]; skipNL();
+      if(peek().t!==']'){ do{ skipNL(); items.push(parseExpr()); skipNL(); }while(peek().t===','&&p++); }
+      skipNL(); expect(']','متوقع ] للقائمة'); return {k:'list',items,line:tk.line}; }
+    if(tk.t==='{'){ const pairs=[]; skipNL();
+      if(peek().t!=='}'){ do{ skipNL(); const keyTok=next();
+          const key = keyTok.t==='STR'? keyTok.v : keyTok.t==='ID'? keyTok.v : (()=>{throw new BError('مفتاح القاموس لازم يكون نص أو اسم',keyTok.line)})();
+          skipNL(); expect(':','متوقع : بعد مفتاح القاموس'); pairs.push({key,e:parseExpr()}); skipNL();
+        }while(peek().t===','&&p++); }
+      skipNL(); expect('}','متوقع } للقاموس'); return {k:'dict',pairs,line:tk.line}; }
+    throw new BError('تعبير غير مفهوم قرب «'+(tk.v||tk.t)+'»',tk.line);
+  }
+  const prog=[]; skipNL();
+  while(peek().t!=='EOF'){ prog.push(parseStmt()); skipNL(); }
+  return prog;
+}
+
+/* ---------- Interpreter ---------- */
+function arNum(n){
+  if(typeof n!=='number') return n;
+  if(Number.isInteger(n)) return String(n);
+  return String(Math.round(n*1e10)/1e10);
+}
+function show(v){
+  if(v===null||v===undefined) return 'فراغ';
+  if(v===true) return 'صحيح';
+  if(v===false) return 'غلط';
+  if(typeof v==='number') return arNum(v);
+  if(typeof v==='string') return v;
+  if(Array.isArray(v)) return '['+v.map(show).join('، ')+']';
+  if(typeof v==='object') return '{ '+Object.keys(v).map(k=>k+': '+show(v[k])).join('، ')+' }';
+  if(v&&v.__fn) return '<دالة '+v.name+'>';
+  return String(v);
+}
+
+function makeEnv(parent){ return {vars:Object.create(null),parent}; }
+function envGet(env,name,line){
+  let e=env; while(e){ if(name in e.vars) return e.vars[name]; e=e.parent; }
+  throw new BError('متغير غير معروف: «'+name+'»',line);
+}
+function envSet(env,name,val){
+  let e=env; while(e){ if(name in e.vars){ e.vars[name]=val; return; } e=e.parent; }
+  env.vars[name]=val;
+}
+
+function builtins(io){
+  const B={};
+  B['طول']=x=> (typeof x==='string'||Array.isArray(x))? x.length : (x&&typeof x==='object'? Object.keys(x).length : 0);
+  B['أضف']=(l,x)=>{ if(!Array.isArray(l)) throw new BError('«أضف» تعمل على قوائم فقط'); l.push(x); return l; };
+  B['احذف']=(l,i)=>{ if(Array.isArray(l)){ return l.splice(i,1)[0]; } throw new BError('«احذف» تعمل على قوائم فقط'); };
+  B['يحتوي']=(l,x)=> Array.isArray(l)? l.includes(x) : (typeof l==='string'? l.includes(String(x)) : (x in Object(l)));
+  B['عشوائي']=(a,b)=>{ if(Array.isArray(a)) return a[Math.floor(Math.random()*a.length)];
+    if(a===undefined) return Math.random();
+    if(b===undefined) return Math.floor(Math.random()*a);
+    return a+Math.floor(Math.random()*(b-a+1)); };
+  B['قرب']=(x,d)=>{ const m=Math.pow(10,d||0); return Math.round(x*m)/m; };
+  B['جذر']=x=>Math.sqrt(x); B['مطلق']=x=>Math.abs(x);
+  B['أكبر']=(...a)=>Math.max(...a.flat()); B['أصغر']=(...a)=>Math.min(...a.flat());
+  B['نص']=x=>show(x); B['رقم']=x=>{ const n=parseFloat(normDigits(String(x))); if(isNaN(n)) throw new BError('لا يمكن تحويل «'+x+'» إلى رقم'); return n; };
+  B['جزء']=(s,a,b)=> String(s).slice(a,b);
+  B['حروف']=s=> String(s).split('');
+  B['فصل']=(s,sep)=> String(s).split(sep===undefined?' ':String(sep));
+  B['وصل']=(l,sep)=> (Array.isArray(l)?l:[]).map(show).join(sep===undefined?'':String(sep));
+  B['نوع']=x=> Array.isArray(x)?'قائمة': x===null?'فراغ': typeof x==='object'?'قاموس': typeof x==='number'?'رقم': typeof x==='string'?'نص': typeof x==='boolean'?'منطقي':'دالة';
+  B['مفاتيح']=o=> Object.keys(Object(o));
+  B['بدل']=(s,a,b)=> String(s).split(String(a)).join(String(b)); B['بدّل']=B['بدل'];
+  B['رتب']=(l,desc)=>{ if(!Array.isArray(l)) throw new BError('«رتب» تعمل على قوائم فقط');
+    const c=[...l].sort((x,y)=> typeof x==='string'? String(x).localeCompare(String(y),'ar') : x-y);
+    return (desc&&desc!==false&&desc!==0&&desc!=='')? c.reverse() : c; }; B['رتّب']=B['رتب'];
+  B['اعكس']=x=> Array.isArray(x)? [...x].reverse() : String(x).split('').reverse().join('');
+  B['مجموع']=l=>{ if(!Array.isArray(l)) throw new BError('«مجموع» تعمل على قوائم فقط'); return l.reduce((a,b)=>a+(typeof b==='number'?b:parseFloat(normDigits(String(b)))||0),0); };
+  B['اخلط']=l=>{ if(!Array.isArray(l)) throw new BError('«اخلط» تعمل على قوائم فقط');
+    const c=[...l]; for(let i=c.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=c[i]; c[i]=c[j]; c[j]=t; } return c; };
+  B['فهرس']=(l,x)=> Array.isArray(l)? l.indexOf(x) : String(l).indexOf(String(x));
+  B['كرر_نص']=(s,n)=> String(s).repeat(Math.max(0,Math.floor(Number(n)||0)));
+  B['قيم']=o=> Object.values(Object(o));
+  B['اسأل']=(q)=> io.ask(String(q===undefined?'':q));
+  B['اطبع']=(...a)=>{ io.print(a.map(show).join(' ')); return null; };
+  B['امسح']=()=>{ io.clear&&io.clear(); return null; };
+  const N=x=>{ const v=parseFloat(normDigits(String(x))); return isNaN(v)?0:v; };
+  const D=(op,args)=>{ if(io.draw) io.draw(Object.assign({op},args)); return null; };
+  B['قدم']=n=>D('fd',{n:N(n)}); B['تقدم']=B['قدم'];
+  B['ورا']=n=>D('bk',{n:N(n)}); B['ارجع_ورا']=B['ورا'];
+  B['يمين']=z=>D('rt',{z:N(z)}); B['شمال']=z=>D('lt',{z:N(z)});
+  B['لون']=c=>D('color',{c:String(c)});
+  B['سمك']=n=>D('width',{n:N(n)});
+  B['ارفع']=()=>D('up',{}); B['انزل']=()=>D('down',{});
+  B['اذهب']=(x,y)=>D('goto',{x:N(x),y:N(y)});
+  B['دائرة']=r=>D('circle',{r:N(r)});
+  B['نقطة']=n=>D('dot',{n:N(n)||6});
+  B['امسح_اللوحة']=()=>D('clear',{});
+  B['مستطيل']=(w,h)=>D('rect',{w:N(w),h:N(h)});
+  B['املأ']=()=>D('fill',{});
+  B['نص_على_اللوحة']=(t,size)=>D('text',{t:String(t),size:N(size)||22});
+  B['صوت']=(freq,ms)=>{ if(io.beep) io.beep(N(freq)||440,N(ms)||200); return null; };
+  B['نغمة']=n=>{ const NOTES={'دو':261.6,'ري':293.7,'مي':329.6,'فا':349.2,'صول':392,'لا':440,'سي':493.9,'دو_عالية':523.3};
+    const f=typeof n==='number'? n : NOTES[String(n)]; if(!f) throw new BError('نغمة غير معروفة: «'+n+'» — المتاح: دو ري مي فا صول لا سي');
+    if(io.beep) io.beep(f,300); return null; };
+  B['وقت']=()=>Date.now();
+  return B;
+}
+
+class ReturnSignal{ constructor(v){ this.v=v; } }
+class BreakSignal{} class ContinueSignal{}
+
+function run(prog,io,limits){
+  limits=limits||{}; const maxSteps=limits.maxSteps||500000; let steps=0;
+  const global=makeEnv(null); const B=builtins(io);
+  for(const k in B) global.vars[k]={__builtin:true,fn:B[k],name:k};
+
+  function evalExpr(n,env){
+    if(++steps>maxSteps) throw new BError('البرنامج طويل جدًا (تجاوز حد التنفيذ) — هل عندك حلقة لا نهائية؟',n.line);
+    switch(n.k){
+      case 'num': return n.v; case 'str': return n.v; case 'bool': return n.v; case 'null': return null;
+      case 'var': return envGet(env,n.name,n.line);
+      case 'list': return n.items.map(e=>evalExpr(e,env));
+      case 'dict': { const o={}; for(const pr of n.pairs) o[pr.key]=evalExpr(pr.e,env); return o; }
+      case 'neg': return -num(evalExpr(n.e,env),n.line);
+      case 'not': return !truthy(evalExpr(n.e,env));
+      case 'bin': {
+        if(n.op==='&&') return truthy(evalExpr(n.l,env)) ? evalExpr(n.r,env) : false;
+        if(n.op==='||') { const l=evalExpr(n.l,env); return truthy(l)? l : evalExpr(n.r,env); }
+        const l=evalExpr(n.l,env), r=evalExpr(n.r,env);
+        if(n.op==='+'){ if(typeof l==='string'||typeof r==='string') return show(l)+show(r); return num(l,n.line)+num(r,n.line); }
+        if(n.op==='-') return num(l,n.line)-num(r,n.line);
+        if(n.op==='*') return num(l,n.line)*num(r,n.line);
+        if(n.op==='/'){ const d=num(r,n.line); if(d===0) throw new BError('قسمة على صفر',n.line); return num(l,n.line)/d; }
+        if(n.op==='%') return num(l,n.line)%num(r,n.line);
+        if(n.op==='^') return Math.pow(num(l,n.line),num(r,n.line));
+        if(n.op==='==') return eq(l,r); if(n.op==='!=') return !eq(l,r);
+        if(n.op==='<') return l<r; if(n.op==='>') return l>r;
+        if(n.op==='<=') return l<=r; if(n.op==='>=') return l>=r;
+      }
+      case 'index': { const o=evalExpr(n.obj,env); const idx=evalExpr(n.idx,env);
+        if(Array.isArray(o)||typeof o==='string'){ let i=num(idx,n.line); if(i<0) i=o.length+i;
+          const v=o[i]; if(v===undefined) throw new BError('فهرس خارج النطاق: '+arNum(i),n.line); return v; }
+        if(o&&typeof o==='object'){ const v=o[String(idx)]; return v===undefined?null:v; }
+        throw new BError('لا يمكن الفهرسة في هذه القيمة',n.line); }
+      case 'call': { const fn=evalExpr(n.fn,env); const args=n.args.map(a=>evalExpr(a,env));
+        if(fn&&fn.__builtin) return fn.fn(...args);
+        if(fn&&fn.__fn){ if(args.length!==fn.params.length) throw new BError('الدالة «'+fn.name+'» تتوقع '+fn.params.length+' معاملات وليس '+args.length,n.line);
+          const local=makeEnv(fn.env); fn.params.forEach((pr,i)=>local.vars[pr]=args[i]);
+          try{ execBlock(fn.body,local); }catch(sig){ if(sig instanceof ReturnSignal) return sig.v; throw sig; }
+          return null; }
+        throw new BError('محاولة استدعاء شيء ليس دالة',n.line); }
+    }
+    throw new BError('عقدة غير معروفة',n.line);
+  }
+  function num(v,line){ if(typeof v==='number') return v; if(typeof v==='boolean') return v?1:0;
+    const n=parseFloat(normDigits(String(v))); if(!isNaN(n)) return n; throw new BError('متوقع رقم لكن وجدت «'+show(v)+'»',line); }
+  function truthy(v){ return !(v===false||v===null||v===undefined||v===0||v===''); }
+  function eq(a,b){ if(typeof a==='object'&&typeof b==='object') return a===b; return a===b; }
+
+  function execStmt(n,env){
+    if(++steps>maxSteps) throw new BError('البرنامج طويل جدًا (تجاوز حد التنفيذ)',n.line);
+    switch(n.k){
+      case 'print': io.print(show(evalExpr(n.e,env))); break;
+      case 'let': env.vars[n.name]=evalExpr(n.e,env); break;
+      case 'set': envSet(env,n.name,evalExpr(n.e,env)); break;
+      case 'setindex': { const val=evalExpr(n.e,env);
+        let target=n.target; const chain=[];
+        while(target.k==='index'){ chain.unshift(target.idx); target=target.obj; }
+        if(target.k!=='var') throw new BError('تعديل غير مدعوم',n.line);
+        let container=envGet(env,target.name,n.line);
+        if(chain.length===0){ envSet(env,target.name,val); break; }
+        for(let ci=0;ci<chain.length-1;ci++){ container=container[evalExpr(chain[ci],env)]; }
+        const lastKey=evalExpr(chain[chain.length-1],env);
+        if(Array.isArray(container)||typeof container==='object') container[lastKey]=val;
+        else throw new BError('لا يمكن التعديل في هذه القيمة',n.line);
+        break; }
+      case 'expr': evalExpr(n.e,env); break;
+      case 'if': if(truthy(evalExpr(n.cond,env))) execBlock(n.then,makeEnv(env));
+        else { let done=false; for(const el of n.elifs){ if(truthy(evalExpr(el.cond,env))){ execBlock(el.body,makeEnv(env)); done=true; break; } }
+          if(!done&&n.els) execBlock(n.els,makeEnv(env)); }
+        break;
+      case 'while': while(truthy(evalExpr(n.cond,env))){ if(++steps>maxSteps) throw new BError('حلقة لا نهائية؟ تجاوز حد التنفيذ',n.line);
+          try{ execBlock(n.body,makeEnv(env)); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } }
+        break;
+      case 'repeat': { const count=num(evalExpr(n.count,env),n.line);
+        for(let i=0;i<count;i++){ if(++steps>maxSteps) throw new BError('تكرار طويل جدًا',n.line);
+          const loop=makeEnv(env); if(n.varName) loop.vars[n.varName]=i+1; loop.vars['عداد']=i+1;
+          try{ execBlock(n.body,loop); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } } }
+        break;
+      case 'foreach': { const list=evalExpr(n.list,env);
+        const items=Array.isArray(list)?list:(typeof list==='string'?list.split(''):(list&&typeof list==='object'?Object.values(list):null));
+        if(!items) throw new BError('«لكل» تحتاج قائمة أو نص',n.line);
+        for(const item of items){ if(++steps>maxSteps) throw new BError('حلقة طويلة جدًا',n.line);
+          const loop=makeEnv(env); loop.vars[n.varName]=item;
+          try{ execBlock(n.body,loop); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } } }
+        break;
+      case 'func': env.vars[n.name]={__fn:true,name:n.name,params:n.params,body:n.body,env}; break;
+      case 'return': throw new ReturnSignal(n.e?evalExpr(n.e,env):null);
+      case 'break': throw new BreakSignal();
+      case 'continue': throw new ContinueSignal();
+    }
+  }
+  function execBlock(body,env){ for(const s of body) execStmt(s,env); }
+
+  try{ execBlock(prog,global); }catch(sig){
+    if(sig instanceof ReturnSignal) throw new BError('«ارجع» خارج دالة',0);
+    if(sig instanceof BreakSignal||sig instanceof ContinueSignal) throw new BError('«قف/كمل» خارج حلقة',0);
+    throw sig;
+  }
+}
+
+function runSource(src,io,limits){
+  try{
+    const toks=tokenize(src); const prog=parse(toks); run(prog,io,limits);
+    return {ok:true};
+  }catch(e){
+    if(e&&e.isBarmej) return {ok:false,error:e.message,line:e.line};
+    throw e;
+  }
+}
+
+const Barmej={tokenize,parse,runSource,show,KEYWORDS};
+if(typeof module!=='undefined'&&module.exports) module.exports=Barmej;
+root.Barmej=Barmej;
+})(typeof window!=='undefined'?window:globalThis);
