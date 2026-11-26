@@ -6,7 +6,7 @@ const code=$('#code'), hl=$('#highlight'), nums=$('#lineNumbers'),
       con=$('#console'), statusMsg=$('#statusMsg'), saveState=$('#saveState');
 
 /* --- syntax highlight --- */
-const KWS=Object.keys(Barmej.KEYWORDS).concat(['صنف','جديد','يرث','هذا','الأب']);
+const KWS=Object.keys(Barmej.KEYWORDS).concat(['صنف','جديد','يرث','هذا','الأب','استورد']);
 const KW_RE=new RegExp('('+KWS.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g');
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function highlight(src){
@@ -232,6 +232,7 @@ function makeIO(){
     beep:(f,m)=>beep(f,m),
     key:()=>pressedKey,
     mouse:()=>mouse,
+    module:n=>{ const p=getPrograms(); n=String(n).replace(/\.برمج$/,''); return Object.prototype.hasOwnProperty.call(p,n)?p[n]:null; },
     click:()=>{ const c=clickQ; clickQ=null; return c; }
   };
 }
@@ -696,6 +697,15 @@ $('#docsContent').innerHTML=`
 <tr><td><code>ماوس_س()</code> <code>ماوس_ص()</code></td><td>مكان المؤشر دلوقتي على اللوحة</td></tr>
 <tr><td><code>ماوس_مضغوط()</code></td><td>صح لو الزر أو الإصبع نازل</td></tr></table>
 <p>الإحداثيات نفس إحداثيات القلم: المنتصف (٠، ٠). جرّب أمثلة «اضرب الهدف» و«لوحة الرسم».</p>
+<h2>المكتبات: استورد 📚</h2>
+<p><code>استورد "اسم"</code> بتجيب دوال جاهزة لبرنامجك. المكتبات الجاهزة مكتوبة بلغة برمج نفسها:</p>
+<table><tr><td><code>"رياضيات"</code></td><td>مضروب · قاسم_مشترك · أولي · فيبوناتشي · متوسط · وسيط</td></tr>
+<tr><td><code>"نصوص"</code></td><td>عدد_الكلمات · متناظر · أطول_كلمة · تكرار_الحروف</td></tr>
+<tr><td><code>"قوائم"</code></td><td>مجموعات · تسطيح · تقاطع · اتحاد</td></tr></table>
+<pre>استورد "رياضيات"
+اطبع مضروب(٥)    # ١٢٠
+اطبع أولي(٩٧)     # صحيح</pre>
+<p><b>مكتبتك أنت:</b> احفظ برنامج في «📂 برامجي» باسم (مثلاً <code>أدواتي</code>) وبعدين في أي برنامج تاني اكتب <code>استورد "أدواتي"</code> وهتاخد كل دوالّه. (انتبه: كود البرنامج بيتنفذ كله وقت الاستيراد.)</p>
 <h2>الوقت والألعاب</h2>
 <pre>استنى(١٠٠٠)        # يوقف التنفيذ ثانية (بالمللي ثانية)
 خلي م = مفتاح()    # المفتاح المدوس عليه دلوقتي: يمين يسار فوق تحت مسافة…</pre>
