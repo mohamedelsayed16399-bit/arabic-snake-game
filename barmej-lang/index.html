@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
+<meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand">
+    <span class="logo">برمِج</span>
+    <span class="tagline">لغة برمجة عربية</span>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-panel="editor">المحرر</button>
+    <button class="tab" data-panel="lessons">الدروس</button>
+    <button class="tab" data-panel="challenges">تحديات</button>
+    <button class="tab" data-panel="docs">الدليل</button>
+    <button class="tab" data-panel="examples">أمثلة</button>
+  </nav>
+  <div class="actions">
+    <button id="shareBtn" title="انسخ رابط المشاركة">🔗 مشاركة</button>
+    <button id="themeBtn" title="بدّل المظهر">🌓</button>
+  </div>
+</header>
+
+<main id="workspace">
+  <section id="panel-editor" class="panel active">
+    <div class="editor-wrap">
+      <div class="editor-head">
+        <span class="fname">برنامجي.برمج</span>
+        <span id="saveState" class="save-state"></span>
+      </div>
+      <div class="editor-area" id="editorArea">
+        <pre id="highlight" aria-hidden="true"></pre>
+        <div id="errBar" class="err-bar hidden"></div>
+        <textarea id="code" spellcheck="false" dir="rtl"
+          placeholder="اكتب كودك هنا… مثال: اطبع &quot;أهلا بالعالم&quot;"></textarea>
+        <div id="lineNumbers"></div>
+      </div>
+      <div id="suggestBar" class="suggest-bar"></div>
+      <div class="runbar">
+        <button id="runBtn" class="run">▶ شغّل</button>
+        <button id="stopHint" class="ghost" disabled>الكود بيتنفذ على جهازك — مفيش سيرفر</button>
+      </div>
+    </div>
+    <div class="console-wrap">
+      <div id="turtlePanel" class="turtle-panel hidden">
+        <div class="console-head">
+          <span>لوحة الرسم</span>
+          <button id="clearTurtle" class="ghost">امسح اللوحة</button>
+        </div>
+        <canvas id="turtleCanvas" width="900" height="620"></canvas>
+      </div>
+      <div class="console-head">
+        <span>الخرج</span>
+        <button id="clearConsole" class="ghost">امسح</button>
+      </div>
+      <div id="console" dir="rtl"></div>
+    </div>
+  </section>
+
+  <section id="panel-lessons" class="panel">
+    <div class="lessons-layout">
+      <div id="lessonList" class="lesson-list"></div>
+      <div class="lesson-body">
+        <h2 id="lessonTitle"></h2>
+        <div id="lessonText" class="lesson-text"></div>
+        <button id="tryLesson" class="run small">جرّب الكود في المحرر</button>
+        <button id="checkLesson" class="check">✔ تحقق من الحل</button>
+        <div id="lessonResult" class="lesson-result"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-challenges" class="panel">
+    <div class="lessons-layout">
+      <div id="challengeList" class="lesson-list"></div>
+      <div class="lesson-body">
+        <h2 id="challengeTitle"></h2>
+        <div id="challengeText" class="lesson-text"></div>
+        <button id="tryChallenge" class="run small">جرّب في المحرر</button>
+        <button id="checkChallenge" class="check">✔ تحقق من الحل</button>
+        <div id="challengeResult" class="lesson-result"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-docs" class="panel">
+    <div id="docsContent" class="docs"></div>
+  </section>
+
+  <section id="panel-examples" class="panel">
+    <div id="exampleList" class="example-list"></div>
+  </section>
+</main>
+
+<footer id="statusbar">
+  <span id="statusMsg">جاهز</span>
+  <span class="credit">اتعمل بحب — يشتغل كامل على جهازك، مجانًا</span>
+</footer>
+
+<div id="toast"></div>
+
+<script src="lang.js"></script>
+<script src="lessons.js"></script>
+<script src="ide.js"></script>
+</body>
+</html>
