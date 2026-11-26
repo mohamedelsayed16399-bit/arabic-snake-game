@@ -381,6 +381,8 @@ function builtins(io){
   B['امسح_اللوحة']=()=>D('clear',{});
   B['مستطيل']=(w,h)=>D('rect',{w:N(w),h:N(h)});
   B['املأ']=()=>D('fill',{});
+  B['رمز']=(e,size,ang)=>D('emoji',{t:String(e),size:N(size)||40,ang:N(ang)||0});
+  B['خلفية']=c=>D('bg',{c:String(c)});
   B['نص_على_اللوحة']=(t,size)=>D('text',{t:String(t),size:N(size)||22});
   B['صوت']=(freq,ms)=>{ if(io.beep) io.beep(N(freq)||440,N(ms)||200); return null; };
   B['نغمة']=n=>{ const NOTES={'دو':261.6,'ري':293.7,'مي':329.6,'فا':349.2,'صول':392,'لا':440,'سي':493.9,'دو_عالية':523.3};
