@@ -735,12 +735,26 @@ filterExamples();
 $('#docsSearch').addEventListener('input',ev=>{
   const q=_normAr(ev.target.value.trim());
   const root=$('#docsContent');
-  root.querySelectorAll('h1,h2,p,pre,table').forEach(el=>{ el.style.display=''; });
-  if(!q) { root.querySelectorAll('tr').forEach(tr=>tr.style.display=''); return; }
-  root.querySelectorAll('tr').forEach(tr=>{ tr.style.display=_normAr(tr.textContent).includes(q)?'':'none'; });
-  root.querySelectorAll('h2,p,pre,table').forEach(el=>{
-    if(el.tagName==='TABLE'){ el.style.display=[...el.querySelectorAll('tr')].some(tr=>tr.style.display!=='none')?'':'none'; }
-    else el.style.display=_normAr(el.textContent).includes(q)?'':'none';
+  const kids=[...root.children];
+  kids.forEach(el=>{ el.style.display=''; });
+  root.querySelectorAll('tr').forEach(tr=>{ tr.style.display=''; });
+  if(!q) return;
+  /* قسّم الدليل لأقسام: كل h2 مع اللي بعده لحد h2 التاني، والمقدمة قسم لوحدها */
+  const sections=[]; let cur=[];
+  kids.forEach(el=>{ if(el.tagName==='H2'){ if(cur.length) sections.push(cur); cur=[el]; } else cur.push(el); });
+  if(cur.length) sections.push(cur);
+  sections.forEach(sec=>{
+    const head=sec[0].tagName==='H2'?_normAr(sec[0].textContent):'';
+    const whole=sec.some(el=>_normAr(el.textContent).includes(q));
+    if(!whole){ sec.forEach(el=>{ el.style.display='none'; }); return; }
+    if(head.includes(q)) return; /* العنوان نفسه مطابق: اعرض القسم كله */
+    sec.forEach(el=>{
+      if(el.tagName==='TABLE'){
+        const trs=[...el.querySelectorAll('tr')]; let any=false;
+        trs.forEach(tr=>{ const m=_normAr(tr.textContent).includes(q); tr.style.display=m?'':'none'; if(m) any=true; });
+        el.style.display=any?'':'none';
+      }
+    });
   });
 });
 
