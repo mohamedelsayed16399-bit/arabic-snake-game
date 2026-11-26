@@ -668,7 +668,32 @@ function createStepper(src,io,limits){
   }
 }
 
-const Barmej={LIBS,tokenize,parse,run,runSource,runSourceAsync,createStepper,makeRunner,show,KEYWORDS};
+/* ---------- تنسيق الكود: مسافات بادئة حسب الأقواس ---------- */
+function formatCode(src,unit){
+  unit=unit||'  ';
+  const lines=String(src).replace(/\r/g,'').split('\n'); const out=[]; let depth=0; let blank=0;
+  for(const raw of lines){
+    const t=raw.trim();
+    if(t===''){ blank++; if(blank<=1&&out.length) out.push(''); continue; } blank=0;
+    // scan outside strings/comments
+    let opens=0,closes=0,lead=0,seenNon=false,q=null;
+    for(let i=0;i<t.length;i++){ const c=t[i];
+      if(q){ if(c==='\\') i++; else if(c===q) q=null; continue; }
+      if(c==='"'||c==="'"){ q=c; seenNon=true; continue; }
+      if(c==='#') break;
+      if(c==='{'||c==='['||c==='('){ opens++; seenNon=true; }
+      else if(c==='}'||c===']'||c===')'){ closes++; if(!seenNon) lead++; }
+      else if(!/\s/.test(c)) seenNon=true;
+    }
+    const d=Math.max(0,depth-lead);
+    out.push(unit.repeat(d)+t);
+    depth=Math.max(0,depth+opens-closes);
+  }
+  while(out.length&&out[out.length-1]==='') out.pop();
+  return out.join('\n')+'\n';
+}
+
+const Barmej={LIBS,format:formatCode,tokenize,parse,run,runSource,runSourceAsync,createStepper,makeRunner,show,KEYWORDS};
 if(typeof module!=='undefined'&&module.exports) module.exports=Barmej;
 root.Barmej=Barmej;
 })(typeof window!=='undefined'?window:globalThis);
