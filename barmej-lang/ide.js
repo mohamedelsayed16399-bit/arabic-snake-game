@@ -919,7 +919,7 @@ renderAchBtn();
 (function(){
   const m=$('#welcomeModal');
   let seen=null; try{ seen=localStorage.getItem('barmej-welcomed'); }catch(e){}
-  if(!seen&&!/[#&]app\b/.test(location.hash)) m.classList.remove('hidden');
+  if(!seen&&!/[#&](app\b|code=)/.test(location.hash)) m.classList.remove('hidden');
   function dismiss(){ m.classList.add('hidden'); try{ localStorage.setItem('barmej-welcomed','1'); }catch(e){} }
   $('#welcomeClose').addEventListener('click',dismiss);
   $('#welcomeLessons').addEventListener('click',()=>{ dismiss(); document.querySelector('.tab[data-panel="lessons"]').click(); });
