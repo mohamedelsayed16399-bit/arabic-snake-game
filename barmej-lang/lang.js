@@ -98,6 +98,7 @@ function parse(toks){
       if(peek().t===',' ){ p++; skipNL(); if(peek().t==='ID'){ varName=next().v; } }
       node={k:'repeat',count,varName,body:parseBlock(),line:tk.line}; }
     else if(tk.t==='FOREACH'){ p++; const v=expect('ID','متوقع اسم بعد «لكل»'); skipNL(); expect('IN','متوقع «في» بعد الاسم'); node={k:'foreach',varName:v.v,list:parseExpr(),body:parseBlock(),line:tk.line}; }
+    else if(tk.t==='ID'&&tk.v==='استورد'&&toks[p+1].t==='STR'){ p++; node={k:'import',name:next().v,line:tk.line}; }
     else if(tk.t==='FUNC'&&toks[p+1].t==='('){ node={k:'expr',e:parseExpr(),line:tk.line}; }
     else if(tk.t==='FUNC'){ p++; const n=expect('ID','متوقع اسم الدالة'); skipNL(); expect('(','متوقع ( بعد اسم الدالة');
       const params=[]; skipNL(); if(peek().t!==')'){ do{ skipNL(); params.push(expect('ID','متوقع اسم معامل').v); skipNL(); }while(peek().t===','&&p++); }
@@ -180,6 +181,97 @@ function parse(toks){
   while(peek().t!=='EOF'){ prog.push(parseStmt()); skipNL(); }
   return prog;
 }
+
+
+/* ---------- مكتبات جاهزة (مكتوبة بلغة برمج نفسها!) ---------- */
+const LIBS={
+'رياضيات':`دالة مضروب(ن) {
+  لو ن <= ١ { ارجع ١ }
+  ارجع ن * مضروب(ن - ١)
+}
+دالة قاسم_مشترك(أ، ب) {
+  طالما ب != ٠ {
+    خلي ت = ب
+    ب = أ % ب
+    أ = ت
+  }
+  ارجع أ
+}
+دالة أولي(ن) {
+  لو ن < ٢ { ارجع غلط }
+  خلي د = ٢
+  طالما د * د <= ن {
+    لو ن % د == ٠ { ارجع غلط }
+    د = د + ١
+  }
+  ارجع صح
+}
+دالة فيبوناتشي(ن) {
+  خلي أ = ٠
+  خلي ب = ١
+  كرر ن {
+    خلي ت = أ + ب
+    أ = ب
+    ب = ت
+  }
+  ارجع أ
+}
+دالة متوسط(ق) { ارجع مجموع(ق) / طول(ق) }
+دالة وسيط(ق) {
+  خلي ر = رتب(ق)
+  خلي ن = طول(ر)
+  لو ن % ٢ == ١ { ارجع ر[(ن - ١) / ٢] }
+  ارجع (ر[ن / ٢ - ١] + ر[ن / ٢]) / ٢
+}`,
+'نصوص':`دالة عدد_الكلمات(ن) { ارجع طول(فصل(ن، " ")) }
+دالة متناظر(ن) { ارجع اعكس(ن) == ن }
+دالة أطول_كلمة(ن) {
+  خلي أ = ""
+  لكل ك في فصل(ن، " ") {
+    لو طول(ك) > طول(أ) { أ = ك }
+  }
+  ارجع أ
+}
+دالة تكرار_الحروف(ن) {
+  خلي ع = {}
+  لكل ح في حروف(ن) {
+    لو ح != " " {
+      ع[ح] = عدد_مرات(ن، ح)
+    }
+  }
+  ارجع ع
+}`,
+'قوائم':`دالة مجموعات(ق، ن) {
+  خلي خارج = []
+  خلي م = []
+  لكل س في ق {
+    أضف(م، س)
+    لو طول(م) == ن {
+      أضف(خارج، م)
+      م = []
+    }
+  }
+  لو طول(م) > ٠ { أضف(خارج، م) }
+  ارجع خارج
+}
+دالة تسطيح(ق) {
+  خلي خارج = []
+  لكل س في ق {
+    لو نوع(س) == "قائمة" {
+      لكل ص في تسطيح(س) { أضف(خارج، ص) }
+    } وإلا { أضف(خارج، س) }
+  }
+  ارجع خارج
+}
+دالة تقاطع(أ، ب) { ارجع صفّي(فريد(أ)، دالة(س): يحتوي(ب، س)) }
+دالة اتحاد(أ، ب) {
+  خلي خ = فريد(أ)
+  لكل س في ب {
+    لو مش يحتوي(خ، س) { أضف(خ، س) }
+  }
+  ارجع خ
+}`
+};
 
 /* ---------- Interpreter ---------- */
 function arNum(n){
@@ -414,6 +506,13 @@ function makeRunner(prog,io,limits){
   function* execStmt(n,env){
     if(++steps>maxSteps) throw new BError('البرنامج طويل جدًا (تجاوز حد التنفيذ)',n.line);
     switch(n.k){
+      case 'import': { if(loaded.has(n.name)) break; loaded.add(n.name);
+        let src=LIBS[n.name]; if(src==null&&io.module) src=io.module(n.name);
+        if(src==null) throw new BError('مكتبة «'+n.name+'» مش موجودة. المكتبات الجاهزة: '+Object.keys(LIBS).join('، ')+' (أو اسم برنامج محفوظ عندك)',n.line);
+        let prog2; try{ prog2=parse(tokenize(src)); }catch(e){ if(e&&e.isBarmej) throw new BError('في «'+n.name+'» سطر '+e.line+': '+e.message,n.line); throw e; }
+        zeroLines(prog2);
+        try{ yield* execBlock(prog2,global); }catch(e){ if(e&&e.isBarmej&&!e.inLib){ const ne=new BError('في «'+n.name+'»: '+e.message,n.line); ne.inLib=true; throw ne; } throw e; }
+        break; }
       case 'print': io.print(show(yield* evalExpr(n.e,env))); break;
       case 'let': env.vars[n.name]=yield* evalExpr(n.e,env); break;
       case 'set': envSet(env,n.name,yield* evalExpr(n.e,env)); break;
@@ -461,7 +560,9 @@ function makeRunner(prog,io,limits){
       case 'continue': throw new ContinueSignal();
     }
   }
-  function* execBlock(body,env){ for(const s of body){ yield {line:s.line,env}; yield* execStmt(s,env); } }
+  function* execBlock(body,env){ for(const s of body){ if(s.line) yield {line:s.line,env}; yield* execStmt(s,env); } }
+  const loaded=new Set();
+  const zeroLines=o=>{ if(Array.isArray(o)) o.forEach(zeroLines); else if(o&&typeof o==='object'){ if('line' in o) o.line=0; for(const k in o) if(o[k]&&typeof o[k]==='object') zeroLines(o[k]); } };
   function* topLevel(){
     try{ yield* execBlock(prog,global); }
     catch(sig){
@@ -567,7 +668,7 @@ function createStepper(src,io,limits){
   }
 }
 
-const Barmej={tokenize,parse,run,runSource,runSourceAsync,createStepper,makeRunner,show,KEYWORDS};
+const Barmej={LIBS,tokenize,parse,run,runSource,runSourceAsync,createStepper,makeRunner,show,KEYWORDS};
 if(typeof module!=='undefined'&&module.exports) module.exports=Barmej;
 root.Barmej=Barmej;
 })(typeof window!=='undefined'?window:globalThis);
