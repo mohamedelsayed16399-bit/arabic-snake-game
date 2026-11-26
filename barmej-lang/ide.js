@@ -449,6 +449,23 @@ $('#appLinkBtn').addEventListener('click',()=>{ try{ achCheck({shared:true}); }c
   (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('اتنسخ رابط التطبيق 📱 — بيفتح برنامجك لوحده وبيشتغل فورًا'))
   .catch(()=>{ location.hash=url.slice(url.indexOf('#')); toast('الرابط في شريط العنوان — انسخه'); });
 });
+$('#exportBtn').addEventListener('click',async()=>{
+  try{
+    toast('بجهّز الملف… ⏳');
+    const get=async u=>{ const r=await fetch(u); if(!r.ok) throw new Error(u); return r.text(); };
+    const [html,css,lang,les,ide]=await Promise.all(['index.html','style.css','lang.js','lessons.js','ide.js'].map(get));
+    const esc=s=>s.replace(/<\/script/gi,'<\\/script');
+    const hash='#code='+encodeURIComponent(btoa(unescape(encodeURIComponent(code.value))))+'&run&app';
+    let out=html.replace(/<link rel="stylesheet"[^>]*>/,()=>'<style>'+css+'</style>');
+    out=out.replace(/<script src="lang\.js[^>]*><\/script>/,()=>'<script>if(!location.hash)location.hash='+JSON.stringify(hash)+'<\/script>\n<script>'+esc(lang)+'<\/script>');
+    out=out.replace(/<script src="lessons\.js[^>]*><\/script>/,()=>'<script>'+esc(les)+'<\/script>');
+    out=out.replace(/<script src="ide\.js[^>]*><\/script>/,()=>'<script>'+esc(ide)+'<\/script>');
+    const name=(currentProgram||'برنامجي').replace(/[^\u0600-\u06FFa-zA-Z0-9_-]+/g,'_');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([out],{type:'text/html'})); a.download=name+'.html';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    toast('نزل «'+name+'.html» 📦 — افتحه في أي متصفح، شغال أوفلاين وبدون إنترنت');
+  }catch(e){ toast('معرفتش أجهّز الملف (لازم تفتح الصفحة من الموقع مش من ملف)'); }
+});
 function enterAppMode(){ document.body.classList.add('app-mode'); document.title=(code.value.match(/^#\s*(.+)/)||[0,'برمِج'])[1].slice(0,40)+' — برمِج'; }
 $('#appRerun').addEventListener('click',()=>runProgram());
 $('#appEdit').addEventListener('click',()=>{ document.body.classList.remove('app-mode'); try{ history.replaceState(null,'',location.pathname); }catch(e){} });
