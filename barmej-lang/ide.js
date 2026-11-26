@@ -893,6 +893,39 @@ $('#docsContent').innerHTML=`
 
 
 
+
+/* --- guided tour --- */
+(function(){
+  const STEPS=[
+    ['#code','📝 هنا بتكتب كودك بالعربي. بيكمّل الأقواس لوحده وبينسّق (✨) لما تحب.','editor'],
+    ['#runBtn','▶ دوس «شغّل» والنتيجة بتظهر على الشمال. وفيه «خطوة بخطوة» لو عايز تتابع المتغيرات.','editor'],
+    ['#histBtn','🕘 كل تشغيل بيتسجل كنسخة، فتقدر ترجع لأي نسخة قديمة.','editor'],
+    ['.tab[data-panel="lessons"]','🎓 ٢٣ درس تفاعلي: بتقرا وتحل وبيتحقق من حلك لوحده.','editor'],
+    ['.tab[data-panel="challenges"]','🧩 تحديات، وفوقها ⭐ تحدي اليوم بسلسلة أيام متتالية.','editor'],
+    ['.tab[data-panel="examples"]','🎮 ٤٥ مثال: ألعاب ومنصات وموسيقى ورسم. دوّر وضيف مفضلتك ⭐.','editor'],
+    ['#spriteBtn','🎨 ارسم شخصيتك بالبكسل وحطها في الكود بضغطة.','editor'],
+    ['#pianoBtn','🎹 لحّن على البيانو وانزّل اللحن كسطر كود.','editor'],
+    ['#appLinkBtn','📱 رابط تطبيق بيفتح لعبتك لوحدها، و📦 ملف HTML بيشتغل أوفلاين. شاركها مع أصحابك!','editor']
+  ];
+  const ov=$('#tourOverlay'), card=$('#tourCard'); let i=0, hiEl=null;
+  function clearHi(){ if(hiEl){ hiEl.classList.remove('tour-hi'); hiEl=null; } }
+  function show(){ clearHi(); const s=STEPS[i];
+    if(s[2]==='editor'&&!document.querySelector('#panel-editor.active')) document.querySelector('.tab[data-panel="editor"]').click();
+    const el=document.querySelector(s[0]); if(el){ el.classList.add('tour-hi'); hiEl=el; try{ el.scrollIntoView({block:'center',inline:'center'}); }catch(e){} }
+    $('#tourText').textContent=s[1]; $('#tourStep').textContent=(i+1)+' / '+STEPS.length;
+    $('#tourPrev').style.visibility=i?'visible':'hidden'; $('#tourNext').textContent=i===STEPS.length-1?'تمام 👍':'التالي';
+    const r=el?el.getBoundingClientRect():{left:0,top:0,width:0,height:0,bottom:60};
+    const top=Math.min(window.innerHeight-170,Math.max(10,r.bottom+14));
+    card.style.top=top+'px'; card.style.left=Math.max(10,Math.min(window.innerWidth-card.offsetWidth-10,r.left+r.width/2-card.offsetWidth/2))+'px'; }
+  function start(){ i=0; ov.classList.remove('hidden'); show(); }
+  function end(){ ov.classList.add('hidden'); clearHi(); try{ localStorage.setItem('barmej-toured','1'); }catch(e){} }
+  $('#tourNext').addEventListener('click',()=>{ if(i>=STEPS.length-1) end(); else { i++; show(); } });
+  $('#tourPrev').addEventListener('click',()=>{ if(i>0){ i--; show(); } });
+  $('#tourSkip').addEventListener('click',end);
+  $('#tourBtn').addEventListener('click',start);
+  const wt=$('#welcomeTour'); if(wt) wt.addEventListener('click',()=>{ $('#welcomeModal').classList.add('hidden'); try{ localStorage.setItem('barmej-welcomed','1'); }catch(e){} start(); });
+  window.addEventListener('keydown',e=>{ if(ov.classList.contains('hidden')) return; if(e.key==='Escape') end(); if(e.key==='ArrowLeft') $('#tourNext').click(); });
+})();
 /* --- version history --- */
 (function(){
   const list=$('#histList');
