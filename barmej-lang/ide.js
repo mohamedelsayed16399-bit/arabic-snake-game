@@ -615,7 +615,19 @@ $('#checkLesson').addEventListener('click',()=>{
 /* --- challenges --- */
 const challengeList=$('#challengeList'); let currentChallenge=0;
 const doneChallenges=new Set(JSON.parse(localStorage.getItem('barmej-challenges-done')||'[]'));
+/* --- daily challenge --- */
+function dayKey(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dailyState(){ try{ const s=JSON.parse(localStorage.getItem('barmej-daily')||'{}'); return {last:s.last||'',streak:s.streak||0,best:s.best||0}; }catch(e){ return {last:'',streak:0,best:0}; } }
+function dailyIndex(){ const d=new Date(); const n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000); return n%BARMEJ_CHALLENGES.length; }
+function dailyStreakNow(){ const s=dailyState(), t=dayKey(), y=dayKey(new Date(Date.now()-864e5)); return (s.last===t||s.last===y)? s.streak : 0; }
+function recordDaily(){ const s=dailyState(), t=dayKey(); if(s.last===t) return false;
+  const y=dayKey(new Date(Date.now()-864e5)); s.streak=(s.last===y)? s.streak+1 : 1; s.best=Math.max(s.best,s.streak); s.last=t;
+  try{ localStorage.setItem('barmej-daily',JSON.stringify(s)); }catch(e){} return true; }
+function renderDaily(){ const el=$('#dailyBanner'); if(!el) return; const i=dailyIndex(), s=dailyState(), done=s.last===dayKey(), st=dailyStreakNow();
+  el.innerHTML='<div class="daily-top"><b>⭐ تحدي اليوم</b><span class="daily-streak">🔥 '+st+' يوم متتالي</span></div><div class="daily-title">'+(i+1)+'. '+BARMEJ_CHALLENGES[i].title+'</div><button class="run small" id="dailyGo">'+(done?'✔ اتحل النهارده — اعمله تاني':'▶ ابدأ تحدي اليوم')+'</button>';
+  $('#dailyGo').addEventListener('click',()=>{ currentChallenge=i; renderChallenge(); }); }
 function renderChallengeList(){
+  renderDaily();
   challengeList.innerHTML='';
   BARMEJ_CHALLENGES.forEach((l,i)=>{
     const d=document.createElement('div');
@@ -647,7 +659,7 @@ $('#checkChallenge').addEventListener('click',()=>{
   const problem=l.check(out,ops);
   if(problem){ res.className='lesson-result bad'; res.textContent='لسه مش مظبوط: '+problem; }
   else{ res.className='lesson-result ok'; res.textContent='تحدي محلول! 🏆';
-    doneChallenges.add(l.id); try{ setTimeout(()=>achCheck(),0); }catch(e){}
+    doneChallenges.add(l.id); let dailyNew=false; if(currentChallenge===dailyIndex()) dailyNew=recordDaily(); if(dailyNew) res.textContent='تحدي اليوم اتحل! ⭐🔥 سلسلتك: '+dailyStreakNow()+' يوم'; try{ setTimeout(()=>achCheck({streak:dailyStreakNow()}),0); }catch(e){}
     try{localStorage.setItem('barmej-challenges-done',JSON.stringify([...doneChallenges]));}catch(e){}
     renderChallengeList(); }
 });
@@ -897,6 +909,8 @@ const BADGES=[
  {id:'draw',icon:'🎨',t:'رسّام',d:'ارسم على اللوحة',ok:c=>c.ran&&/(قدم|اذهب|دائرة|نقطة|مستطيل)\s*\(/.test(c.code)},
  {id:'snd',icon:'🎵',t:'موسيقار',d:'شغّل صوت أو نغمة',ok:c=>c.ran&&/(نغمة|صوت)\s*\(/.test(c.code)},
  {id:'step',icon:'👣',t:'محقق',d:'جرّب التنفيذ خطوة بخطوة',ok:c=>c.step},
+ {id:'daily1',icon:'⭐',t:'تحدي اليوم',d:'حل تحدي اليوم',ok:c=>c.streak>=1},
+ {id:'streak3',icon:'🔥',t:'سلسلة نار',d:'حل تحدي اليوم ٣ أيام ورا بعض',ok:c=>c.streak>=3},
  {id:'share',icon:'🔗',t:'ناشر',d:'انسخ رابط مشاركة',ok:c=>c.shared},
  {id:'theme',icon:'🌓',t:'ذواق',d:'بدّل المظهر',ok:c=>c.theme}
 ];
@@ -906,7 +920,7 @@ function achLevel(xp){ let k=0; for(let j=0;j<LEVELS.length;j++) if(xp>=LEVELS[j
 function renderAchBtn(){ const s=achState(), xp=achXP(s), k=achLevel(xp); const b=$('#achBtn'); if(b) b.textContent='🏆 '+(k+1); }
 function achCheck(extra){
   const s=achState(); if(extra&&extra.ran) s.runs++;
-  const ctx=Object.assign({runs:s.runs,lessons:doneLessons.size,challenges:doneChallenges.size,code:''},extra||{});
+  const ctx=Object.assign({streak:dailyStreakNow(),runs:s.runs,lessons:doneLessons.size,challenges:doneChallenges.size,code:''},extra||{});
   const newly=[]; for(const b of BADGES){ if(!s.badges[b.id]&&b.ok(ctx)){ s.badges[b.id]=Date.now(); newly.push(b); } }
   achSave(s);
   if(newly.length) toast('🏅 إنجاز جديد: '+newly.map(b=>b.icon+' '+b.t).join('، '));
