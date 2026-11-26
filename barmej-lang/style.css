@@ -229,3 +229,4 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .daily-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
 .daily-streak{ color:#fbbf24; font-weight:700; font-size:13px; }
 .daily-title{ margin-bottom:8px; color:var(--text); }
+@media (max-width:760px){ .daily-banner{ flex:none; min-width:220px; margin:0 6px 0 0 } }
