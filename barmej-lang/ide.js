@@ -264,7 +264,7 @@ async function runProgram(){
   if(myRun!==runSeq) { return; }
   $('#errBar').classList.add('hidden');
   const ms=Math.round(performance.now()-t0);
-  if(r.ok){ println('✔ انتهى التنفيذ في '+ms+' م.ث','sys'); statusMsg.textContent='نجح التنفيذ'; }
+  if(r.ok){ println('✔ انتهى التنفيذ في '+ms+' م.ث','sys'); statusMsg.textContent='نجح التنفيذ'; try{ achCheck({ran:true,code:code.value}); }catch(e){} }
   else{
     println('✖ خطأ: '+r.error,'err');
     if(r.line){ println('في السطر '+r.line,'err-line'); showErrLine(r.line); }
@@ -313,7 +313,7 @@ function doStep(){
   showStepLine(s.line); renderVars(s.vars);
   statusMsg.textContent='وضع الخطوة — السطر '+s.line;
 }
-$('#stepBtn').addEventListener('click',()=>{
+$('#stepBtn').addEventListener('click',()=>{ try{ achCheck({step:true}); }catch(e){}
   runSeq++;
   resetRunUI();
   const r=Barmej.createStepper(code.value,makeIO());
@@ -397,7 +397,7 @@ function autosave(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{
 },600); }
 
 /* --- share --- */
-$('#shareBtn').addEventListener('click',()=>{
+$('#shareBtn').addEventListener('click',()=>{ try{ achCheck({shared:true}); }catch(e){}
   const hash='#code='+encodeURIComponent(btoa(unescape(encodeURIComponent(code.value))));
   const url=location.origin+location.pathname+hash;
   (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('اتنسخ رابط المشاركة! أي حد يفتحه هيلاقي كودك'))
@@ -414,7 +414,7 @@ function loadFromHash(){
 }
 
 /* --- theme --- */
-$('#themeBtn').addEventListener('click',()=>{
+$('#themeBtn').addEventListener('click',()=>{ try{ achCheck({theme:true}); }catch(e){}
   document.body.classList.toggle('light');
   try{ localStorage.setItem('barmej-theme',document.body.classList.contains('light')?'light':'dark'); }catch(e){}
 });
@@ -541,7 +541,7 @@ $('#checkLesson').addEventListener('click',()=>{
   else{ res.className='lesson-result ok'; res.textContent='ممتاز! الحل صح 🎉';
     doneLessons.add(l.id);
     try{localStorage.setItem('barmej-lessons-done',JSON.stringify([...doneLessons]));}catch(e){}
-    renderLessonList();
+    renderLessonList(); try{ achCheck(); }catch(e){}
     if(currentLesson<BARMEJ_LESSONS.length-1) setTimeout(()=>{ currentLesson++; renderLesson(); },1400);
   }
 });
@@ -581,7 +581,7 @@ $('#checkChallenge').addEventListener('click',()=>{
   const problem=l.check(out,ops);
   if(problem){ res.className='lesson-result bad'; res.textContent='لسه مش مظبوط: '+problem; }
   else{ res.className='lesson-result ok'; res.textContent='تحدي محلول! 🏆';
-    doneChallenges.add(l.id);
+    doneChallenges.add(l.id); try{ setTimeout(()=>achCheck(),0); }catch(e){}
     try{localStorage.setItem('barmej-challenges-done',JSON.stringify([...doneChallenges]));}catch(e){}
     renderChallengeList(); }
 });
@@ -780,6 +780,82 @@ $('#docsContent').innerHTML=`
 <h2>اختصارات</h2>
 <p><code>Ctrl + Enter</code> لتشغيل البرنامج من الكيبورد. الكود بيتحفظ تلقائيًا في متصفحك، وزر «مشاركة» بيعمل رابط فيه الكود.</p>
 `;
+
+/* --- achievements: badges, XP, levels, certificate --- */
+const ACH_KEY='barmej-ach';
+function achState(){ try{ const s=JSON.parse(localStorage.getItem(ACH_KEY)||'{}'); s.badges=s.badges||{}; s.runs=s.runs||0; return s; }catch(e){ return {badges:{},runs:0}; } }
+function achSave(s){ try{ localStorage.setItem(ACH_KEY,JSON.stringify(s)); }catch(e){} }
+const BADGES=[
+ {id:'run1',icon:'🚀',t:'أول تشغيل',d:'شغّل أي برنامج بنجاح',ok:c=>c.ran},
+ {id:'run10',icon:'🔁',t:'مواظب',d:'شغّل ١٠ برامج',ok:c=>c.runs>=10},
+ {id:'run50',icon:'⚙️',t:'ماكينة',d:'شغّل ٥٠ برنامج',ok:c=>c.runs>=50},
+ {id:'les1',icon:'📘',t:'طالب جديد',d:'خلّص درس واحد',ok:c=>c.lessons>=1},
+ {id:'les10',icon:'📚',t:'دارس',d:'خلّص ١٠ دروس',ok:c=>c.lessons>=10},
+ {id:'lesall',icon:'🎓',t:'خريج برمِج',d:'خلّص كل الدروس',ok:c=>c.lessons>=BARMEJ_LESSONS.length},
+ {id:'ch1',icon:'🧩',t:'حلّال ألغاز',d:'حل تحدي واحد',ok:c=>c.challenges>=1},
+ {id:'chall',icon:'🏆',t:'بطل التحديات',d:'حل كل التحديات',ok:c=>c.challenges>=BARMEJ_CHALLENGES.length},
+ {id:'cls',icon:'🧱',t:'بنّاء الأصناف',d:'استخدم صنف في برنامج شغّال',ok:c=>c.ran&&/(^|\n)\s*صنف\s+\S+/.test(c.code)},
+ {id:'lam',icon:'⚡',t:'دالة بلا اسم',d:'اكتب دالة بدون اسم',ok:c=>c.ran&&/دالة\s*\(/.test(c.code)},
+ {id:'hof',icon:'🧩',t:'فنان الدوال',d:'استخدم خريطة أو صفّي أو اختزل',ok:c=>c.ran&&/(خريطة|صفّي|اختزل)\s*\(/.test(c.code)},
+ {id:'imp',icon:'📦',t:'مستورد',d:'استورد مكتبة',ok:c=>c.ran&&/استورد\s+"/.test(c.code)},
+ {id:'try',icon:'🛡️',t:'مسيطر على الأخطاء',d:'استخدم جرّب ولو_خطأ',ok:c=>c.ran&&/جرّب|جرب/.test(c.code)&&/لو_خطأ/.test(c.code)},
+ {id:'mouse',icon:'🖱️',t:'تفاعلي',d:'اعمل برنامج بيستجيب للماوس أو اللمس',ok:c=>c.ran&&/نقرة|ماوس_/.test(c.code)},
+ {id:'draw',icon:'🎨',t:'رسّام',d:'ارسم على اللوحة',ok:c=>c.ran&&/(قدم|اذهب|دائرة|نقطة|مستطيل)\s*\(/.test(c.code)},
+ {id:'snd',icon:'🎵',t:'موسيقار',d:'شغّل صوت أو نغمة',ok:c=>c.ran&&/(نغمة|صوت)\s*\(/.test(c.code)},
+ {id:'step',icon:'👣',t:'محقق',d:'جرّب التنفيذ خطوة بخطوة',ok:c=>c.step},
+ {id:'share',icon:'🔗',t:'ناشر',d:'انسخ رابط مشاركة',ok:c=>c.shared},
+ {id:'theme',icon:'🌓',t:'ذواق',d:'بدّل المظهر',ok:c=>c.theme}
+];
+const LEVELS=[[0,'مبتدئ 🌱'],[40,'متعلم 📗'],[100,'مبرمج 💻'],[180,'محترف 🔥'],[280,'خبير 🚀'],[400,'أسطورة 👑']];
+function achXP(s){ return doneLessons.size*10+doneChallenges.size*15+Object.keys(s.badges).length*5; }
+function achLevel(xp){ let k=0; for(let j=0;j<LEVELS.length;j++) if(xp>=LEVELS[j][0]) k=j; return k; }
+function renderAchBtn(){ const s=achState(), xp=achXP(s), k=achLevel(xp); const b=$('#achBtn'); if(b) b.textContent='🏆 '+(k+1); }
+function achCheck(extra){
+  const s=achState(); if(extra&&extra.ran) s.runs++;
+  const ctx=Object.assign({runs:s.runs,lessons:doneLessons.size,challenges:doneChallenges.size,code:''},extra||{});
+  const newly=[]; for(const b of BADGES){ if(!s.badges[b.id]&&b.ok(ctx)){ s.badges[b.id]=Date.now(); newly.push(b); } }
+  achSave(s);
+  if(newly.length) toast('🏅 إنجاز جديد: '+newly.map(b=>b.icon+' '+b.t).join('، '));
+  renderAchBtn();
+}
+function renderAchModal(){
+  const s=achState(), xp=achXP(s), k=achLevel(xp), cur=LEVELS[k][0], nxt=LEVELS[k+1]?LEVELS[k+1][0]:null;
+  const pct=nxt?Math.round((xp-cur)/(nxt-cur)*100):100;
+  const earned=Object.keys(s.badges).length;
+  let h='<h2>🏆 إنجازاتك</h2><div class="ach-level">'+LEVELS[k][1]+' <small>— '+xp+' نقطة</small></div>'
+   +'<div class="ach-bar"><div style="width:'+pct+'%"></div></div>'
+   +'<p class="ach-sub">'+(nxt?'باقي '+(nxt-xp)+' نقطة للمستوى '+LEVELS[k+1][1]:'وصلت لأعلى مستوى! 👑')+' · الأوسمة '+earned+'/'+BADGES.length+'</p><div class="ach-grid">';
+  for(const b of BADGES){ const on=!!s.badges[b.id]; h+='<div class="ach-card'+(on?' on':'')+'"><div class="ach-ic">'+(on?b.icon:'🔒')+'</div><b>'+b.t+'</b><small>'+b.d+'</small></div>'; }
+  h+='</div><div class="ach-foot"><input id="certName" class="cert-name" placeholder="اسمك للشهادة" maxlength="30"><button id="certBtn" class="run small">🎓 شهادتي</button><button id="achClose" class="ghost">إغلاق</button></div>'
+   +'<p class="ach-sub">الشهادة بتتفتح لما تخلّص كل الدروس. النقاط: درس ١٠ · تحدي ١٥ · وسام ٥</p>';
+  $('#achBox').innerHTML=h;
+  $('#achClose').addEventListener('click',()=>$('#achModal').classList.add('hidden'));
+  try{ $('#certName').value=localStorage.getItem('barmej-certname')||''; }catch(e){}
+  $('#certBtn').addEventListener('click',()=>{
+    if(doneLessons.size<BARMEJ_LESSONS.length){ toast('لسه '+(BARMEJ_LESSONS.length-doneLessons.size)+' دروس وتفتح الشهادة 🎓'); return; }
+    const nm=($('#certName').value||'').trim()||'مبرمج برمِج'; try{ localStorage.setItem('barmej-certname',nm); }catch(e){}
+    makeCertificate(nm,xp,LEVELS[k][1]);
+  });
+}
+function makeCertificate(name,xp,lvl){
+  const c=document.createElement('canvas'); c.width=1200; c.height=800; const g=c.getContext('2d');
+  g.fillStyle='#0b1220'; g.fillRect(0,0,1200,800);
+  g.strokeStyle='#2dd4a7'; g.lineWidth=10; g.strokeRect(30,30,1140,740);
+  g.strokeStyle='#f5c542'; g.lineWidth=3; g.strokeRect(52,52,1096,696);
+  g.direction='rtl'; g.textAlign='center'; g.fillStyle='#2dd4a7'; g.font='bold 84px Tahoma, Arial, sans-serif'; g.fillText('شهادة إتمام',600,190);
+  g.fillStyle='#cbd5e1'; g.font='34px Tahoma, Arial, sans-serif'; g.fillText('تشهد منصة «برمِج» لتعلّم البرمجة بالعربي بأن',600,290);
+  g.fillStyle='#f5c542'; g.font='bold 78px Tahoma, Arial, sans-serif'; g.fillText(name,600,410);
+  g.fillStyle='#cbd5e1'; g.font='34px Tahoma, Arial, sans-serif'; g.fillText('أكمل بنجاح جميع الدروس التفاعلية ('+doneLessons.size+' درسًا)',600,490);
+  g.fillText('وحل '+doneChallenges.size+' تحديًا، وحصل على '+Object.keys(achState().badges).length+' وسامًا',600,545);
+  g.fillStyle='#2dd4a7'; g.font='bold 40px Tahoma, Arial, sans-serif'; g.fillText('المستوى: '+lvl+' · '+xp+' نقطة',600,640);
+  g.fillStyle='#64748b'; g.font='26px Tahoma, Arial, sans-serif'; g.fillText(new Date().toLocaleDateString('ar-EG'),600,705);
+  const a=document.createElement('a'); a.download='شهادة-برمج.png'; a.href=c.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
+  toast('اتنزلت شهادتك 🎓');
+}
+$('#achBtn').addEventListener('click',()=>{ renderAchModal(); $('#achModal').classList.remove('hidden'); });
+$('#achModal').addEventListener('click',e=>{ if(e.target.id==='achModal') $('#achModal').classList.add('hidden'); });
+window.__barmejAch={check:achCheck,state:achState,cert:makeCertificate};
+renderAchBtn();
 
 /* --- welcome --- */
 (function(){
