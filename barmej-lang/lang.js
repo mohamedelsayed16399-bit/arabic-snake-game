@@ -385,6 +385,9 @@ function builtins(io){
   B['بكسلات']=(rows,size)=>{ if(!Array.isArray(rows)) throw new BError('بكسلات: أول حاجة لازم تكون قائمة صفوف نصية، زي ["1.1"، ".1."]'); return D('pixels',{rows:rows.map(r=>String(r)),size:N(size)||10}); };
   B['خريطة_بلاط']=(rows,size)=>{ if(!Array.isArray(rows)) throw new BError('خريطة_بلاط: أول حاجة لازم تكون قائمة صفوف نصية، # = جدار'); return D('tiles',{rows:rows.map(r=>String(r)),size:N(size)||40}); };
   B['بلاطة_عند']=(rows,size,x,y)=>{ if(!Array.isArray(rows)) throw new BError('بلاطة_عند: أول حاجة لازم تكون قائمة صفوف'); const s=N(size)||40, w=Math.max(...rows.map(r=>String(r).length)), i=Math.floor((N(x)+w*s/2)/s), j=Math.floor((N(y)+rows.length*s/2)/s); if(j<0||j>=rows.length) return '#'; const r=String(rows[j]); if(i<0||i>=w) return '#'; return r[i]||'.'; };
+  const _mem=(typeof globalThis!=='undefined'&&(globalThis.__barmejMem=globalThis.__barmejMem||{}))||{};
+  B['احفظ']=(k,v)=>{ const key='barmej-data:'+String(k); let s; try{ s=JSON.stringify(v===undefined?null:v); }catch(e){ throw new BError('احفظ: القيمة دي مينفعش تتحفظ (ينفع أرقام ونصوص وقوائم)'); } try{ localStorage.setItem(key,s); }catch(e){ _mem[key]=s; } return v; };
+  B['استرجع']=(k,def)=>{ const key='barmej-data:'+String(k); let s=null; try{ s=localStorage.getItem(key); }catch(e){ s=_mem[key]===undefined?null:_mem[key]; } if(s===null) return def===undefined?null:def; try{ return JSON.parse(s); }catch(e){ return def===undefined?null:def; } };
   B['خلفية']=c=>D('bg',{c:String(c)});
   B['نص_على_اللوحة']=(t,size)=>D('text',{t:String(t),size:N(size)||22});
   B['صوت']=(freq,ms)=>{ if(io.beep) io.beep(N(freq)||440,N(ms)||200); return null; };
