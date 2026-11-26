@@ -382,6 +382,7 @@ function builtins(io){
   B['مستطيل']=(w,h)=>D('rect',{w:N(w),h:N(h)});
   B['املأ']=()=>D('fill',{});
   B['رمز']=(e,size,ang)=>D('emoji',{t:String(e),size:N(size)||40,ang:N(ang)||0});
+  B['بكسلات']=(rows,size)=>{ if(!Array.isArray(rows)) throw new BError('بكسلات: أول حاجة لازم تكون قائمة صفوف نصية، زي ["1.1"، ".1."]'); return D('pixels',{rows:rows.map(r=>String(r)),size:N(size)||10}); };
   B['خلفية']=c=>D('bg',{c:String(c)});
   B['نص_على_اللوحة']=(t,size)=>D('text',{t:String(t),size:N(size)||22});
   B['صوت']=(freq,ms)=>{ if(io.beep) io.beep(N(freq)||440,N(ms)||200); return null; };
