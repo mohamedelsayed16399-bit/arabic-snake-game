@@ -623,12 +623,12 @@ function dailyStreakNow(){ const s=dailyState(), t=dayKey(), y=dayKey(new Date(D
 function recordDaily(){ const s=dailyState(), t=dayKey(); if(s.last===t) return false;
   const y=dayKey(new Date(Date.now()-864e5)); s.streak=(s.last===y)? s.streak+1 : 1; s.best=Math.max(s.best,s.streak); s.last=t;
   try{ localStorage.setItem('barmej-daily',JSON.stringify(s)); }catch(e){} return true; }
-function renderDaily(){ const el=$('#dailyBanner'); if(!el) return; const i=dailyIndex(), s=dailyState(), done=s.last===dayKey(), st=dailyStreakNow();
+function renderDaily(){ const el=document.createElement('div'); el.id='dailyBanner'; el.className='daily-banner'; const i=dailyIndex(), s=dailyState(), done=s.last===dayKey(), st=dailyStreakNow();
   el.innerHTML='<div class="daily-top"><b>⭐ تحدي اليوم</b><span class="daily-streak">🔥 '+st+' يوم متتالي</span></div><div class="daily-title">'+(i+1)+'. '+BARMEJ_CHALLENGES[i].title+'</div><button class="run small" id="dailyGo">'+(done?'✔ اتحل النهارده — اعمله تاني':'▶ ابدأ تحدي اليوم')+'</button>';
-  $('#dailyGo').addEventListener('click',()=>{ currentChallenge=i; renderChallenge(); }); }
+  el.querySelector('#dailyGo').addEventListener('click',()=>{ currentChallenge=i; renderChallenge(); }); challengeList.appendChild(el); }
 function renderChallengeList(){
-  renderDaily();
   challengeList.innerHTML='';
+  renderDaily();
   BARMEJ_CHALLENGES.forEach((l,i)=>{
     const d=document.createElement('div');
     d.className='lesson-item'+(i===currentChallenge?' active':'');
