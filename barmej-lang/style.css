@@ -185,3 +185,10 @@ body.light #turtleCanvas{background:#fdfdfd}
 #docsSearch:focus{outline:none;border-color:#3ddc97}
 #panel-docs{flex-direction:column}
 #docsSearch{flex:0 0 auto;align-self:center;max-width:860px}
+.lesson-text pre,.docs pre{unicode-bidi:plaintext;text-align:start}
+@media (max-width:760px){
+  #topbar{gap:6px 10px;padding:6px 10px}
+  .tabs{order:3;flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;gap:2px}
+  .tab{white-space:nowrap;padding:6px 12px;font-size:13px;flex:0 0 auto}
+  .actions{margin-inline-start:auto}
+}
