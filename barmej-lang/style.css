@@ -192,3 +192,19 @@ body.light #turtleCanvas{background:#fdfdfd}
   .tab{white-space:nowrap;padding:6px 12px;font-size:13px;flex:0 0 auto}
   .actions{margin-inline-start:auto}
 }
+
+/* --- achievements --- */
+#achBtn{ font-weight:700; }
+.ach-modal{ max-width:560px; max-height:88vh; overflow:auto; }
+.ach-level{ font-size:22px; font-weight:800; color:#f5c542; margin-bottom:8px; }
+.ach-level small{ color:var(--muted); font-size:14px; font-weight:500; }
+.ach-bar{ height:10px; background:var(--line); border-radius:6px; overflow:hidden; margin-bottom:6px; }
+.ach-bar div{ height:100%; background:linear-gradient(90deg,#2dd4a7,#f5c542); }
+.ach-sub{ font-size:13px; color:var(--muted); margin:6px 0 10px; }
+.ach-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(118px,1fr)); gap:8px; margin-bottom:12px; }
+.ach-card{ border:1px solid var(--line); border-radius:12px; padding:10px; text-align:center; opacity:.55; display:flex; flex-direction:column; gap:3px; }
+.ach-card.on{ opacity:1; border-color:#2dd4a7; background:rgba(45,212,167,.08); }
+.ach-card small{ color:var(--muted); font-size:12px; line-height:1.4; }
+.ach-ic{ font-size:28px; }
+.ach-foot{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.cert-name{ flex:1; min-width:120px; background:var(--bg2); color:inherit; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font:inherit; }
