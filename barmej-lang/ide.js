@@ -311,7 +311,18 @@ async function runProgram(){
     statusMsg.textContent='فيه خطأ — السطر '+(r.line||'?');
   }
 }
-$('#runBtn').addEventListener('click',runProgram);
+/* على الموبايل: لو البرنامج لعبة (رسم + ماوس/مفتاح) نفتحه بوضع اللعبة عشان اللوحة تبقى كبيرة */
+function phoneGame(){
+  try{
+    if(!window.matchMedia('(max-width:760px)').matches || document.body.classList.contains('app-mode')) return;
+    const c=code.value;
+    if(/ماوس_|مفتاح\(|نقرة/.test(c) && /خلفية|مستطيل|رمز\(/.test(c)){
+      enterAppMode();
+      toast('🎮 وضع اللعبة — دوس «تعديل» عشان ترجع للكود');
+    }
+  }catch(e){}
+}
+$('#runBtn').addEventListener('click',()=>{ phoneGame(); runProgram(); });
 $('#clearConsole').addEventListener('click',clearConsole);
 
 /* --- step-by-step mode --- */
