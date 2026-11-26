@@ -279,3 +279,8 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .snip-item{ padding:9px 10px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; cursor:pointer; }
 .snip-item:hover{ border-color:#2dd4a7; }
 .snip-item pre{ margin:6px 0 0; color:var(--muted); font-size:12px; max-height:64px; overflow:hidden; white-space:pre; direction:rtl; text-align:right; }
+
+.map-modal{ max-width:520px; }
+.map-grid{ display:grid; gap:1px; background:var(--line); border:1px solid var(--line); margin:6px auto 10px; width:min(100%,480px); aspect-ratio:16/11; touch-action:none; direction:ltr; }
+.mcell{ background:var(--bg2); cursor:crosshair; }
+@media (max-width:600px){ #mapBtn{ padding:6px 8px; } }
