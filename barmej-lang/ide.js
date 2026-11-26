@@ -455,17 +455,22 @@ function autosave(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{
 },600); }
 
 /* --- share --- */
-$('#shareBtn').addEventListener('click',()=>{ try{ achCheck({shared:true}); }catch(e){}
-  const hash='#code='+encodeURIComponent(btoa(unescape(encodeURIComponent(code.value))));
-  const url=location.origin+location.pathname+hash;
-  (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('اتنسخ رابط المشاركة! أي حد يفتحه هيلاقي كودك'))
-  .catch(()=>{ location.hash=hash; toast('الرابط في شريط العنوان — انسخه'); });
-});
-$('#appLinkBtn').addEventListener('click',()=>{ try{ achCheck({shared:true}); }catch(e){}
-  const url=location.origin+location.pathname+'#code='+encodeURIComponent(btoa(unescape(encodeURIComponent(code.value))))+'&run&app';
-  (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('اتنسخ رابط التطبيق 📱 — بيفتح برنامجك لوحده وبيشتغل فورًا'))
-  .catch(()=>{ location.hash=url.slice(url.indexOf('#')); toast('الرابط في شريط العنوان — انسخه'); });
-});
+const b64u={enc:u8=>{ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); },
+  dec:t=>{ t=t.replace(/-/g,'+').replace(/_/g,'/'); while(t.length%4) t+='='; const s=atob(t), u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }};
+async function zPipe(u8,Ctor){ const st=new Ctor('deflate-raw'); const w=st.writable.getWriter(); w.write(u8); w.close(); return new Uint8Array(await new Response(st.readable).arrayBuffer()); }
+async function makeHash(suffix){
+  const plain='#code='+encodeURIComponent(btoa(unescape(encodeURIComponent(code.value))))+(suffix||'');
+  try{ if(typeof CompressionStream==='undefined') return plain;
+    const z='#z='+b64u.enc(await zPipe(new TextEncoder().encode(code.value),CompressionStream))+(suffix||'');
+    return z.length<plain.length?z:plain; }catch(e){ return plain; }
+}
+async function copyLink(suffix,okMsg){ try{ achCheck({shared:true}); }catch(e){}
+  const hash=await makeHash(suffix); const url=location.origin+location.pathname+hash;
+  try{ if(!navigator.clipboard) throw 0; await navigator.clipboard.writeText(url); toast(okMsg); }
+  catch(e){ location.hash=hash; toast('الرابط في شريط العنوان — انسخه'); } }
+$('#shareBtn').addEventListener('click',()=>copyLink('','اتنسخ رابط المشاركة! أي حد يفتحه هيلاقي كودك'));
+$('#appLinkBtn').addEventListener('click',()=>copyLink('&run&app','اتنسخ رابط التطبيق 📱 — بيفتح برنامجك لوحده وبيشتغل فورًا'));
+window.__barmejMakeHash=makeHash;
 $('#exportBtn').addEventListener('click',async()=>{
   try{
     toast('بجهّز الملف… ⏳');
@@ -486,7 +491,13 @@ $('#exportBtn').addEventListener('click',async()=>{
 function enterAppMode(){ document.body.classList.add('app-mode'); document.title=(code.value.match(/^#\s*(.+)/)||[0,'برمِج'])[1].slice(0,40)+' — برمِج'; }
 $('#appRerun').addEventListener('click',()=>runProgram());
 $('#appEdit').addEventListener('click',()=>{ document.body.classList.remove('app-mode'); try{ history.replaceState(null,'',location.pathname); }catch(e){} });
+let zPending=null;
 function loadFromHash(){
+  const z=location.hash.match(/#z=([^&]*)/);
+  if(z&&typeof DecompressionStream!=='undefined'){
+    zPending=zPipe(b64u.dec(z[1]),DecompressionStream).then(u8=>{ code.value=new TextDecoder().decode(u8); renderHL(); toast('اتحمل كود مشترك ✔'); }).catch(()=>{ toast('الرابط ده مش سليم'); });
+    return true;
+  }
   const m=location.hash.match(/#code=([^&]*)/);
   if(m){
     try{ code.value=decodeURIComponent(escape(atob(decodeURIComponent(m[1]))));
@@ -1115,7 +1126,7 @@ renderAchBtn();
 (function(){
   const m=$('#welcomeModal');
   let seen=null; try{ seen=localStorage.getItem('barmej-welcomed'); }catch(e){}
-  if(!seen&&!/[#&](app\b|code=)/.test(location.hash)) m.classList.remove('hidden');
+  if(!seen&&!/[#&](app\b|code=|z=)/.test(location.hash)) m.classList.remove('hidden');
   function dismiss(){ m.classList.add('hidden'); try{ localStorage.setItem('barmej-welcomed','1'); }catch(e){} }
   $('#welcomeClose').addEventListener('click',dismiss);
   $('#welcomeLessons').addEventListener('click',()=>{ dismiss(); document.querySelector('.tab[data-panel="lessons"]').click(); });
@@ -1131,6 +1142,7 @@ if(!loadFromHash()){
 renderHL(); renderLesson(); renderChallenge();
 const tabM=location.hash.match(/[#&]tab=(\w+)/);
 if(tabM){ const tb=document.querySelector('.tab[data-panel="'+tabM[1]+'"]'); if(tb) tb.click(); }
-if(/[#&]app\b/.test(location.hash)&&/#code=/.test(location.hash)) enterAppMode();
-if(/[#&]run/.test(location.hash)) setTimeout(runProgram,150);
+const _hasC=/#(code|z)=/.test(location.hash);
+if(/[#&]app\b/.test(location.hash)&&_hasC){ if(zPending) zPending.then(enterAppMode); else enterAppMode(); }
+if(/[#&]run/.test(location.hash)){ if(zPending) zPending.then(()=>setTimeout(runProgram,100)); else setTimeout(runProgram,150); }
 })();
