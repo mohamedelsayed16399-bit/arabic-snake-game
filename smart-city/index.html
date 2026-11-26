@@ -68,7 +68,7 @@ select{background:#1b2a49;color:#fff;border:1px solid #2a3b60;border-radius:8px;
  </div>
  <div id="main">
   <div id="cv-wrap"><canvas id="cv"></canvas><div id="zoomb" style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:4"><button class="b" id="zin" style="font-size:20px;padding:4px 12px">＋</button><button class="b" id="zout" style="font-size:20px;padding:4px 12px">－</button></div><div id="banner"></div><div id="toast"></div>
-   <div id="modal" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🔬 أبحاث المدينة الذكية</h3><div id="resList"></div><button class="b" id="resClose">إغلاق</button></div></div><div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
+   <div id="modal" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🔬 أبحاث المدينة الذكية</h3><div id="resList"></div><h3 style="margin:8px 0">📜 سياسات المحافظ (تكلفة بالثانية)</h3><div id="polList"></div><button class="b" id="resClose">إغلاق</button></div></div><div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
    <div id="start"><h1>🏙 المحافظ</h1><p>انت محافظ مدينة ذكية. ابني الطرق والمناطق السكنية والتجارية والصناعية، وفّر كهرباء ومياه، وحافظ على الأمان والصحة. المواطنين بيتصرفوا حسب الظروف: لو الكهرباء قطعت أو المرور اتزحم هيتضايقوا وممكن يطردوك!</p><p>💡 اختار أداة من تحت واضغط أو اسحب على الخريطة. اضغط على أي مبنى (أداة 🔍) لتشوف حالته وتطوره أو ترسل الطوارئ.</p><button class="b g" id="bGo" style="font-size:18px;padding:10px 26px">ابدأ الحكم</button></div>
   </div>
   <div id="side"><div id="mission"></div><h4>🔍 معلومات</h4><div id="info">اضغط على مبنى</div><h4>📈 السكان والميزانية</h4><canvas id="chart" width="260" height="60" style="width:100%;height:60px;flex:none"></canvas><h4>📰 أخبار المدينة</h4><div id="feed"></div></div>
@@ -105,7 +105,7 @@ const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 const $=id=>document.getElementById(id);
 function newCells(){const a=[];for(let i=0;i<W*H;i++)a.push({t:0,lvl:1,pop:0,h:50,fire:0,crime:0,sick:0,acc:false});return a}
 function fresh(){
- S={money:20000,tick:0,month:0,tax:10,pr:1,wr:1,cong:0,appr:60,badMonths:0,heat:0,drought:0,fest:0,boom:0,pop:0,missions:0,over:false,log:[],inc:0,jobs:0,resPop:0,sup:0,dem:0,wsup:0,wdem:0,avgH:60,income:0,expense:0,res:{grid:0,lights:0,cams:0,alarm:0}};
+ S={money:20000,tick:0,month:0,tax:10,pr:1,wr:1,cong:0,appr:60,badMonths:0,heat:0,drought:0,fest:0,boom:0,pop:0,missions:0,over:false,log:[],inc:0,jobs:0,resPop:0,sup:0,dem:0,wsup:0,wdem:0,avgH:60,income:0,expense:0,res:{grid:0,lights:0,cams:0,alarm:0},pol:{clean:0,flex:0,patrol:0,fest:0}};
  cells=newCells();
  const set=(x,y,t)=>{cells[y*W+x].t=t};
  const R=(x1,y1,x2,y2)=>{for(let x=x1;x<=x2;x++)for(let y=y1;y<=y2;y++)set(x,y,1)};
@@ -134,7 +134,7 @@ function step(){
  if(S.over)return;
  S.tick++;
  let sup=0,dem=0,wsup=0,wdem=0;
- S.res=S.res||{grid:0,lights:0,cams:0,alarm:0};const RS=S.res;
+ S.res=S.res||{grid:0,lights:0,cams:0,alarm:0};S.pol=S.pol||{clean:0,flex:0,patrol:0,fest:0};const RS=S.res,PL=S.pol;
  const heat=(S.heat>0?1.4:1)*(RS.grid?0.85:1),dro=S.drought>0?0.6:1;
  let resPop=0,jobs=0,pop=0,upkeep=0;
  for(const c of cells){
@@ -153,7 +153,7 @@ function step(){
   if(isZone(c.t)&&c.pop>0&&c.acc){const rs=[];
    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const X=x+dx,Y=y+dy;if(inb(X,Y)&&cells[idx(X,Y)].t===1)rs.push(idx(X,Y))}
    for(const r of rs)LOAD[r]+=c.pop*0.35/rs.length*2}}
- for(let i=0;i<W*H;i++){if(COV[13][i])LOAD[i]*=0.55;if(RS.lights)LOAD[i]*=0.75}
+ for(let i=0;i<W*H;i++){if(COV[13][i])LOAD[i]*=0.55;if(RS.lights)LOAD[i]*=0.75;if(PL.flex)LOAD[i]*=0.88}
  let tl=0,rc=0;
  for(let i=0;i<W*H;i++)if(cells[i].t===1){rc++;tl+=Math.min(1.5,LOAD[i]/9)}
  S.cong=rc?Math.min(1,tl/rc):0;
@@ -169,7 +169,7 @@ function step(){
   if(c.t===2)h-=Math.min(14,pollN[i]*4);
   if(COV[14][i])h+=8;
   h-=S.cong*14;h-=c.crime?20:0;h-=c.sick?10:0;h-=c.fire?25:0;h-=Math.max(0,S.tax-12)*1.6;
-  if(S.fest>0)h+=10;
+  if(S.fest>0)h+=10;if(PL.clean)h+=4;
   c.h=Math.max(0,Math.min(100,h));
   if(c.t===2&&c.pop>0){hs+=c.h*c.pop;hn+=c.pop}
   const dm=c.t===2?resDem:jobDem;
@@ -185,7 +185,7 @@ function step(){
   if(c.pop>0){
    const hot=S.heat>0?2:1;
    if(!c.fire&&Math.random()<0.0007*(c.t===4?2.5:1)*hot*(RS.alarm?0.6:1))newInc(c,'fire',x,y);
-   if(!c.crime&&Math.random()<0.0006*(1+(100-c.h)/45)*(RS.cams?0.7:1))newInc(c,'crime',x,y);
+   if(!c.crime&&Math.random()<0.0006*(1+(100-c.h)/45)*(RS.cams?0.7:1)*(PL.patrol?0.7:1))newInc(c,'crime',x,y);
    if(!c.sick&&Math.random()<0.0005*(c.t===2?1:0.4))newInc(c,'sick',x,y);
   }
   if(c.fire){
@@ -198,8 +198,8 @@ function step(){
  }
  for(const c of cells){if(c.t===0){c.fire=c.crime=c.sick=0}}
  S.avgH=hn?hs/hn:60;
- S.income=inc;S.expense=upkeep*0.8;
- S.money+=inc-upkeep*0.8;
+ S.income=inc;const pc=(PL.clean?4:0)+(PL.flex?2:0)+(PL.patrol?5:0)+(PL.fest?6:0);S.expense=upkeep*0.8+pc;
+ S.money+=inc-upkeep*0.8-pc;
  let ic=0;for(const c of cells)if(c.fire||c.crime||c.sick)ic++;S.inc=ic;
  S.appr=Math.round(Math.max(0,Math.min(100,S.avgH-(S.money<0?15:0)-S.cong*8)));
  if(S.heat>0)S.heat--;if(S.drought>0)S.drought--;if(S.fest>0)S.fest--;if(S.boom>0)S.boom--;
@@ -208,6 +208,7 @@ function step(){
  if(S.tick%3===0){S.hist=S.hist||{p:[],m:[]};S.hist.p.push(pop);S.hist.m.push(S.money);if(S.hist.p.length>80){S.hist.p.shift();S.hist.m.shift()}drawChart()}
  if(S.tick%6===0&&pop>0)citizenSay();
  if(S.tick%80===0&&pop>20&&Math.random()<0.8)randomEvent();
+ if(PL.fest&&S.tick%50===0){S.fest=Math.max(S.fest,8)}
  if(S.tick%30===0)monthly();
  checkMissions();
  ui();
@@ -269,7 +270,7 @@ function checkMissions(){
 }
 function ui(){
  $('sMoney').textContent=Math.floor(S.money);$('sMoney').parentNode.className='stat '+(S.money<0?'bad':'');
- $('sPop').textContent=S.pop;
+ const rk=S.pop<100?'قرية':S.pop<300?'بلدة':S.pop<800?'مدينة':S.pop<2000?'مدينة كبرى':'عاصمة';$('sPop').textContent=S.pop+' ('+rk+')';
  const y=2026+Math.floor(S.month/12),mo=S.month%12+1;$('sDate').textContent=mo+'/'+y;
  $('sAppr').textContent=S.appr;$('sAppr').className=S.appr<35?'bad':S.appr>65?'good':'';
  $('sPow').textContent=Math.round(S.sup)+'/'+Math.round(S.dem);$('sPow').className=S.pr<0.95?'bad':'';
@@ -342,7 +343,10 @@ cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientR
 $('zin').onclick=()=>zoomAt(cv.width/2,cv.height/2,ts*1.25);$('zout').onclick=()=>zoomAt(cv.width/2,cv.height/2,ts/1.25);
 const RESEARCH=[['grid','🔌 الشبكة الذكية','استهلاك الكهرباء -15%',3000],['lights','🚦 إشارات مرور ذكية','الازدحام -25%',2500],['cams','📹 كاميرات ذكية','الجرائم أقل وأسرع في الحل',3500],['alarm','📡 إنذار مبكر','حرائق -40% وخسائر الزلزال أقل',3000]];
 function renderRes(){$('resList').innerHTML=RESEARCH.map(r=>'<div style="margin:6px 0;padding:6px;background:#1b2a49;border-radius:8px">'+r[1]+' <small>— '+r[2]+'</small><br>'+(S.res[r[0]]?'<b class=good>✔ مفعّل</b>':'<button class="b g" data-r="'+r[0]+'">تفعيل ('+r[3]+')</button>')+'</div>').join('')}
-$('bRes').onclick=()=>{renderRes();$('modal').style.display='flex'};
+const POLS=[['clean','🧹 حملة نظافة','رضا +4 (تكلفة 4/ث)'],['flex','🕒 ساعات عمل مرنة','زحمة -12% (2/ث)'],['patrol','🚓 دوريات إضافية','جرائم -30% (5/ث)'],['fest','🎪 مهرجانات دورية','مهرجان كل فترة يرفع الرضا (6/ث)']];
+function renderPol(){$('polList').innerHTML=POLS.map(p=>'<div style="margin:5px 0;padding:6px;background:#1b2a49;border-radius:8px">'+p[1]+' <small>— '+p[2]+'</small><br><button class="b '+(S.pol[p[0]]?'r':'g')+'" data-p="'+p[0]+'">'+(S.pol[p[0]]?'إيقاف':'تفعيل')+'</button></div>').join('')}
+$('polList').onclick=e=>{const k=e.target.dataset&&e.target.dataset.p;if(!k)return;S.pol[k]=S.pol[k]?0:1;log((S.pol[k]?'📜 تفعيل سياسة: ':'📜 إيقاف سياسة: ')+POLS.find(x=>x[0]===k)[1]);renderPol();ui()};
+$('bRes').onclick=()=>{renderRes();renderPol();$('modal').style.display='flex'};
 $('resClose').onclick=()=>$('modal').style.display='none';
 $('resList').onclick=e=>{const k=e.target.dataset&&e.target.dataset.r;if(!k)return;const r=RESEARCH.find(x=>x[0]===k);if(S.money<r[3])return toast('الفلوس مش كفاية');S.money-=r[3];S.res[k]=1;log('🔬 تم تفعيل: '+r[1]);beep(880,0.15);renderRes();ui()};
 let AC=null,snd=true;
@@ -369,6 +373,7 @@ function draw(t){
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const i=idx(x,y),c=cells[i],X=ox+x*ts,Y=oy+y*ts;
   ctx.fillStyle=(x+y)%2?'#1c3a26':'#193522';ctx.fillRect(X,Y,ts,ts);
+  if(c.t===0&&((x*7+y*13)%11===0)){ctx.fillStyle='#2e6b3a';ctx.beginPath();ctx.arc(X+ts*0.5,Y+ts*0.5,ts*0.22,0,6.3);ctx.fill();ctx.fillStyle='#3f8a4a';ctx.beginPath();ctx.arc(X+ts*0.45,Y+ts*0.45,ts*0.12,0,6.3);ctx.fill()}
   if(c.t===1){
    const l=Math.min(1,LOAD[i]/9);ctx.fillStyle=l>0.5?'rgb('+(70+l*160|0)+','+(70-l*40|0)+',60)':'#3b414d';ctx.fillRect(X,Y,ts,ts);
    ctx.fillStyle='#ffffff55';
