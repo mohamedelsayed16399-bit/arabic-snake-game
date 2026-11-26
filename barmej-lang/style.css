@@ -236,8 +236,8 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
   .brand{ flex:0 0 auto }
   .tabs{ order:3; width:100%; overflow-x:auto; flex-wrap:nowrap }
   .tabs .tab{ white-space:nowrap; padding:6px 10px }
-  .actions{ margin-inline-start:auto; display:flex; gap:4px; flex-wrap:nowrap }
-  .actions button{ padding:6px 8px; min-width:36px }
+  .actions{ margin-inline-start:auto; display:flex; gap:3px; flex-wrap:wrap; justify-content:flex-end; max-width:100% }
+  .actions button{ padding:5px 4px; min-width:32px; font-size:14px }
   .actions .lbl{ display:none }
 }
 
@@ -283,4 +283,3 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .map-modal{ max-width:520px; }
 .map-grid{ display:grid; gap:1px; background:var(--line); border:1px solid var(--line); margin:6px auto 10px; width:min(100%,480px); aspect-ratio:16/11; touch-action:none; direction:ltr; }
 .mcell{ background:var(--bg2); cursor:crosshair; }
-@media (max-width:600px){ #mapBtn{ padding:6px 8px; } }
