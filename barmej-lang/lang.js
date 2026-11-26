@@ -98,6 +98,7 @@ function parse(toks){
       if(peek().t===',' ){ p++; skipNL(); if(peek().t==='ID'){ varName=next().v; } }
       node={k:'repeat',count,varName,body:parseBlock(),line:tk.line}; }
     else if(tk.t==='FOREACH'){ p++; const v=expect('ID','متوقع اسم بعد «لكل»'); skipNL(); expect('IN','متوقع «في» بعد الاسم'); node={k:'foreach',varName:v.v,list:parseExpr(),body:parseBlock(),line:tk.line}; }
+    else if(tk.t==='FUNC'&&toks[p+1].t==='('){ node={k:'expr',e:parseExpr(),line:tk.line}; }
     else if(tk.t==='FUNC'){ p++; const n=expect('ID','متوقع اسم الدالة'); skipNL(); expect('(','متوقع ( بعد اسم الدالة');
       const params=[]; skipNL(); if(peek().t!==')'){ do{ skipNL(); params.push(expect('ID','متوقع اسم معامل').v); skipNL(); }while(peek().t===','&&p++); }
       expect(')','متوقع )'); node={k:'func',name:n.v,params,body:parseBlock(),line:tk.line}; }
@@ -154,6 +155,11 @@ function parse(toks){
     if(tk.t==='TRUE') return {k:'bool',v:true,line:tk.line};
     if(tk.t==='FALSE') return {k:'bool',v:false,line:tk.line};
     if(tk.t==='NULL') return {k:'null',line:tk.line};
+    if(tk.t==='FUNC'){ expect('(','متوقع ( بعد «دالة»'); const params=[]; skipNL();
+      if(peek().t!==')'){ do{ skipNL(); params.push(expect('ID','متوقع اسم معامل').v); skipNL(); }while(peek().t===','&&p++); }
+      expect(')','متوقع )'); let body;
+      if(peek().t===':'){ p++; const e=parseExpr(); body=[{k:'return',e,line:tk.line}]; } else body=parseBlock();
+      return {k:'lambda',params,body,line:tk.line}; }
     if(tk.t==='ID'&&tk.v==='جديد'&&peek().t==='ID'){ const n=expect('ID','متوقع اسم الصنف بعد «جديد»'); const args=[];
       if(peek().t==='('){ p++; skipNL(); if(peek().t!==')'){ do{ skipNL(); args.push(parseExpr()); skipNL(); }while(peek().t===','&&p++); } expect(')','متوقع ) بعد المعاملات'); }
       return {k:'new',name:n.v,args,line:tk.line}; }
@@ -311,6 +317,24 @@ function makeRunner(prog,io,limits){
   const global=makeEnv(null); const B=builtins(io);
   for(const k in B) global.vars[k]={__builtin:true,fn:B[k],name:k};
   global.vars['باي']=Math.PI;
+  function* callV(f,args,line){
+    if(f&&f.__fn){ if(args.length>f.params.length) args=args.slice(0,f.params.length);
+      const local=makeEnv(f.env); f.params.forEach((pr,i)=>local.vars[pr]=i<args.length?args[i]:null);
+      try{ yield* execBlock(f.body,local); }catch(sig){ if(sig instanceof ReturnSignal) return sig.v; throw sig; }
+      return null; }
+    if(f&&f.__builtin) return f.fn(...args);
+    throw new BError('المفروض هنا تدي دالة',line); }
+  const needList=(l,nm,line)=>{ if(!Array.isArray(l)) throw new BError('«'+nm+'» أول معامل فيها لازم يكون قائمة',line); };
+  const hof=(name,fn)=>{ global.vars[name]={__builtin:true,__hof:true,name,hof:fn}; };
+  hof('خريطة',function*(a,line){ needList(a[0],'خريطة',line); const o=[]; for(let i=0;i<a[0].length;i++) o.push(yield* callV(a[1],[a[0][i],i+1],line)); return o; });
+  hof('صفّي',function*(a,line){ needList(a[0],'صفّي',line); const o=[]; for(let i=0;i<a[0].length;i++) if(truthy(yield* callV(a[1],[a[0][i],i+1],line))) o.push(a[0][i]); return o; });
+  hof('اختزل',function*(a,line){ needList(a[0],'اختزل',line); let acc=a[2],st=0; if(a.length<3){ if(!a[0].length) throw new BError('«اختزل» على قائمة فاضية محتاجة قيمة بداية',line); acc=a[0][0]; st=1; }
+    for(let i=st;i<a[0].length;i++) acc=yield* callV(a[1],[acc,a[0][i]],line); return acc; });
+  hof('جد',function*(a,line){ needList(a[0],'جد',line); for(const x of a[0]) if(truthy(yield* callV(a[1],[x],line))) return x; return null; });
+  hof('أي',function*(a,line){ needList(a[0],'أي',line); for(const x of a[0]) if(truthy(yield* callV(a[1],[x],line))) return true; return false; });
+  hof('كل',function*(a,line){ needList(a[0],'كل',line); for(const x of a[0]) if(!truthy(yield* callV(a[1],[x],line))) return false; return true; });
+  hof('رتب_حسب',function*(a,line){ needList(a[0],'رتب_حسب',line); const ks=[]; for(const x of a[0]) ks.push({x,k:yield* callV(a[1],[x],line)});
+    ks.sort((p,q)=>p.k<q.k?-1:p.k>q.k?1:0); if(a[2]===true||a[2]==='تنازلي') ks.reverse(); return ks.map(p=>p.x); });
 
   function num(v,line){ if(typeof v==='number') return v; if(typeof v==='boolean') return v?1:0;
     const n=parseFloat(normDigits(String(v))); if(!isNaN(n)) return n; throw new BError('متوقع رقم لكن وجدت «'+show(v)+'»',line); }
@@ -345,6 +369,7 @@ function makeRunner(prog,io,limits){
           const v=o[i]; if(v===undefined) throw new BError('فهرس خارج النطاق: '+arNum(i)+' — الطول هو '+o.length+' فآخر فهرس صحيح هو '+(o.length-1),n.line); return v; }
         if(o&&typeof o==='object'){ const v=o[String(idx)]; return v===undefined?null:v; }
         throw new BError('لا يمكن الفهرسة في هذه القيمة',n.line); }
+      case 'lambda': return {__fn:true,name:'دالة',params:n.params,body:n.body,env};
       case 'new': { const cls=envGet(env,n.name,n.line);
         if(!cls||!cls.__class) throw new BError('«'+n.name+'» مش صنف',n.line);
         const args=[]; for(const a of n.args) args.push(yield* evalExpr(a,env));
@@ -367,6 +392,7 @@ function makeRunner(prog,io,limits){
         return inst; }
       case 'call': { const fn=yield* evalExpr(n.fn,env);
         const args=[]; for(const a of n.args) args.push(yield* evalExpr(a,env));
+        if(fn&&fn.__hof) return yield* fn.hof(args,n.line);
         if(fn&&fn.__builtin){ const res=fn.fn(...args);
           if(res&&typeof res==='object'&&res.__sleep!==undefined){ yield {sleep:res.__sleep}; steps=0; return null; }
           if(res&&typeof res==='object'&&res.__ask!==undefined){ const ans=yield {ask:res.__ask}; steps=0; return ans==null?'':String(ans); }
