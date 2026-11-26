@@ -120,6 +120,8 @@ function turtleHandle(o){
     case 'rect': T.lastRect={x:T.x-o.w/2,y:T.y-o.h/2,w:o.w,h:o.h};
       tctx.strokeStyle=T.color; tctx.lineWidth=T.w; tctx.strokeRect(T.lastRect.x,T.lastRect.y,o.w,o.h); break;
     case 'fill': if(T.lastRect){ tctx.fillStyle=T.color; tctx.fillRect(T.lastRect.x,T.lastRect.y,T.lastRect.w,T.lastRect.h); } break;
+    case 'emoji': tctx.save(); tctx.translate(T.x,T.y); tctx.rotate(rad(o.ang||0)); tctx.font=(o.size||40)+'px "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif'; tctx.textAlign='center'; tctx.textBaseline='middle'; tctx.fillText(o.t,0,0); tctx.restore(); break;
+    case 'bg': tctx.save(); tctx.fillStyle=AR_COLORS[o.c]||o.c; tctx.fillRect(0,0,tc.width,tc.height); tctx.restore(); break;
     case 'text': tctx.fillStyle=T.color; tctx.font='bold '+(o.size||22)+'px Tahoma,Arial'; tctx.textAlign='center'; tctx.direction='rtl'; tctx.fillText(o.t,T.x,T.y); break;
   }
 }
@@ -368,7 +370,7 @@ $('#finishSteps').addEventListener('click',()=>{
 $('#stopSteps').addEventListener('click',()=>stopStepMode('⏹ اتوقف وضع الخطوة'));
 
 /* --- autocomplete chips --- */
-const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب','مسافة','زاوية','تصادم','داخل','ماوس_س','ماوس_ص','ماوس_مضغوط','نقرة'];
+const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','رمز','خلفية','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب','مسافة','زاوية','تصادم','داخل','ماوس_س','ماوس_ص','ماوس_مضغوط','نقرة'];
 const ALL_WORDS=[...KWS,...BUILTINS];
 const suggestBar=$('#suggestBar');
 function currentWord(){
@@ -740,6 +742,8 @@ $('#docsContent').innerHTML=`
 <h2>الماوس واللمس 🖱️</h2>
 <p>برنامجك يقدر يتفاعل مع الضغط على اللوحة (بالماوس أو بالإصبع على الموبايل):</p>
 <table><tr><td><code>نقرة()</code></td><td>لو في ضغطة جديدة بترجّع [س، ص] (مرة واحدة لكل ضغطة)، وإلا فراغ</td></tr>
+<tr><td><code>رمز("🚀"، حجم، زاوية)</code></td><td>يرسم إيموجي (شخصية/سبرايت) مكان القلم، وممكن تلفّه بزاوية</td></tr>
+<tr><td><code>خلفية("لون")</code></td><td>يملا اللوحة كلها بلون (أول سطر في كل إطار لعبة)</td></tr>
 <tr><td><code>مسافة(س١،ص١،س٢،ص٢)</code></td><td>المسافة بين نقطتين</td></tr>
 <tr><td><code>تصادم(س١،ص١،نق١،س٢،ص٢،نق٢)</code></td><td>صح لو دايرتين لمسوا بعض</td></tr>
 <tr><td><code>داخل(س،ص،مس،مص،عرض،طول)</code></td><td>صح لو النقطة جوه المستطيل</td></tr>
