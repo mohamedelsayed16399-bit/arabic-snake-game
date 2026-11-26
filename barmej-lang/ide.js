@@ -37,11 +37,12 @@ function highlight(src){
   }
   return out.join('\n');
 }
+const breakpoints=new Set();
 function renderHL(){
   hl.innerHTML=highlight(code.value)+'\n';
   const n=code.value.split('\n').length;
-  let s=''; for(let i=1;i<=n;i++) s+=i+'\n';
-  nums.textContent=s;
+  let s=''; for(let i=1;i<=n;i++) s+='<span class="ln'+(breakpoints.has(i)?' bp':'')+'" data-l="'+i+'">'+i+'</span>'+(i<n?'\n':'');
+  nums.innerHTML=s;
   hl.scrollTop=code.scrollTop; hl.scrollLeft=code.scrollLeft;
 }
 code.addEventListener('input',()=>{ renderHL(); autosave(); $('#errBar').classList.add('hidden'); });
@@ -321,19 +322,20 @@ function showStepLine(line){
   bar.style.top=(12+(line-1)*lh-code.scrollTop)+'px';
   bar.classList.add('step-mode'); bar.classList.remove('hidden');
 }
+let prevVars={};
 function renderVars(vars){
-  const b=$('#varsBody'); b.innerHTML='';
+  const b=$('#varsBody'); b.innerHTML=''; const old=prevVars; prevVars=Object.assign({},vars);
   const ks=Object.keys(vars);
   if(!ks.length){ b.innerHTML='<div class="var-row" style="color:var(--muted)">مفيش متغيرات لسه</div>'; return; }
   ks.forEach(k=>{
     const d=document.createElement('div'); d.className='var-row';
     const n=document.createElement('span'); n.className='var-name'; n.textContent=k;
-    const v=document.createElement('span'); v.className='var-val'; v.textContent=vars[k];
+    const v=document.createElement('span'); v.className='var-val'; v.textContent=vars[k]; if(old[k]!==undefined&&old[k]!==vars[k]) d.classList.add('changed'); else if(old[k]===undefined&&Object.keys(old).length) d.classList.add('changed');
     d.appendChild(n); d.appendChild(v); b.appendChild(d);
   });
 }
 function stopStepMode(msg){
-  stepper=null;
+  stepper=null; prevVars={};
   $('#stepBar').classList.add('hidden');
   const bar=$('#errBar'); bar.classList.add('hidden'); bar.classList.remove('step-mode');
   if(msg) println(msg,'sys');
@@ -367,6 +369,13 @@ $('#stepBtn').addEventListener('click',()=>{ try{ achCheck({step:true}); }catch(
   doStep();
 });
 $('#nextStep').addEventListener('click',doStep);
+nums.addEventListener('click',e=>{ const l=+(e.target.dataset&&e.target.dataset.l); if(!l) return; if(breakpoints.has(l)) breakpoints.delete(l); else breakpoints.add(l); renderHL(); toast(breakpoints.has(l)?'🔴 نقطة توقف عند السطر '+l:'اتشالت نقطة التوقف'); });
+$('#toBreak').addEventListener('click',()=>{ if(!stepper) return; if(!breakpoints.size){ toast('اضغط على رقم سطر عشان تحط 🔴 نقطة توقف'); return; }
+  let s, start=null, n=0;
+  try{ do{ s=stepper.step(); n++; if(start===null&&!s.done) start=s.line; }while(!s.done&&n<20000&&!(breakpoints.has(s.line)&&n>1)); }
+  catch(e){ println('✖ خطأ: '+(e.message||e),'err'); if(e.line){ println('في السطر '+e.line,'err-line'); showErrLine(e.line); } stopStepMode(); return; }
+  if(s.done){ stopStepMode('✔ خلص البرنامج'); statusMsg.textContent='نجح التنفيذ'; return; }
+  showStepLine(s.line); renderVars(s.vars); statusMsg.textContent=(breakpoints.has(s.line)?'🔴 وقفت عند نقطة التوقف — السطر ':'وضع الخطوة — السطر ')+s.line; });
 $('#finishSteps').addEventListener('click',()=>{
   if(!stepper) return;
   try{ stepper.runSync(); stopStepMode('✔ خلص البرنامج'); statusMsg.textContent='نجح التنفيذ'; }
