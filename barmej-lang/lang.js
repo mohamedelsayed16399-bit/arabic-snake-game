@@ -15,6 +15,7 @@ const KEYWORDS = {
   'فراغ':'NULL','لاشيء':'NULL',
   'و':'AND','أو':'OR','او':'OR','مش':'NOT','ليس':'NOT',
   'قف':'BREAK','كمل':'CONTINUE','استمر':'CONTINUE',
+  'جرّب':'TRY','جرب':'TRY','لو_خطأ':'CATCH',
   'نهاية':'END'
 };
 
@@ -103,6 +104,9 @@ function parse(toks){
     else if(tk.t==='RETURN'){ p++; skipNL(); node={k:'return',e:(peek().t==='NL'||peek().t==='}'||peek().t==='EOF')?null:parseExpr(),line:tk.line}; }
     else if(tk.t==='BREAK'){ p++; node={k:'break',line:tk.line}; }
     else if(tk.t==='CONTINUE'){ p++; node={k:'continue',line:tk.line}; }
+    else if(tk.t==='TRY'){ p++; const body=parseBlock(); skipNL(); expect('CATCH','متوقع «لو_خطأ» بعد كتلة جرّب');
+      skipNL(); let varName=null; if(peek().t==='ID') varName=next().v;
+      node={k:'try',body,varName,catchBody:parseBlock(),line:tk.line}; }
     else {
       const save=p; let candidate=null; let ok=false;
       try{ const base={k:'var',name:peek().v,line:peek().line}; p++;
@@ -379,6 +383,11 @@ function makeRunner(prog,io,limits){
           try{ yield* execBlock(n.body,loop); }catch(s){ if(s instanceof BreakSignal) break; if(s instanceof ContinueSignal) continue; throw s; } } }
         break;
       case 'func': env.vars[n.name]={__fn:true,name:n.name,params:n.params,body:n.body,env}; break;
+      case 'try': { try{ yield* execBlock(n.body,makeEnv(env)); }
+        catch(e){ if(e instanceof ReturnSignal || e instanceof BreakSignal || e instanceof ContinueSignal) throw e;
+          const cenv=makeEnv(env); if(n.varName) cenv.vars[n.varName]= (e && e.message)? e.message : String(e);
+          yield* execBlock(n.catchBody,cenv); } }
+        break;
       case 'return': throw new ReturnSignal(n.e?(yield* evalExpr(n.e,env)):null);
       case 'break': throw new BreakSignal();
       case 'continue': throw new ContinueSignal();
