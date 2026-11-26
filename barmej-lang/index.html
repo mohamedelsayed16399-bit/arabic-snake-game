@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <header id="topbar">
@@ -21,6 +21,7 @@
     <button class="tab" data-panel="examples">أمثلة</button>
   </nav>
   <div class="actions">
+    <button id="muteBtn" title="الصوت">🔊</button>
     <button id="shareBtn" title="انسخ رابط المشاركة">🔗 مشاركة</button>
     <button id="themeBtn" title="بدّل المظهر">🌓</button>
   </div>
@@ -32,8 +33,13 @@
       <div class="editor-head">
         <span class="fname" id="fileName">برنامجي.برمج</span>
         <span>
+          <button id="fontDown" class="ghost" title="صغّر الخط">أ−</button>
+          <button id="fontUp" class="ghost" title="كبّر الخط">أ+</button>
           <button id="programsBtn" class="ghost">📂 برامجي</button>
           <button id="newProgramBtn" class="ghost">＋ جديد</button>
+          <button id="downloadBtn" class="ghost" title="نزّل البرنامج كملف">⬇️</button>
+          <button id="importBtn" class="ghost" title="افتح ملف برنامج">⬆️</button>
+          <input type="file" id="importFile" accept=".txt,.برمج" style="display:none">
         </span>
         <span id="saveState" class="save-state"></span>
       </div>
@@ -47,7 +53,12 @@
       <div id="suggestBar" class="suggest-bar"></div>
       <div class="runbar">
         <button id="runBtn" class="run">▶ شغّل</button>
-        <button id="stopHint" class="ghost" disabled>الكود بيتنفذ على جهازك — مفيش سيرفر</button>
+        <button id="stepBtn" class="ghost">👣 خطوة بخطوة</button>
+        <span id="stepBar" class="stepbar hidden">
+          <button id="nextStep" class="run small">⏭ الخطوة التالية</button>
+          <button id="finishSteps" class="ghost">⏩ كمّل للآخر</button>
+          <button id="stopSteps" class="ghost">✕ إيقاف</button>
+        </span>
       </div>
     </div>
     <div class="console-wrap">
@@ -55,11 +66,31 @@
         <div class="console-head">
           <span>لوحة الرسم</span>
           <div>
+            <select id="drawSpeed" class="ghost" title="سرعة الرسم">
+              <option value="0">⚡ رسم فوري</option>
+              <option value="15">🐢 رسم متحرك</option>
+              <option value="50">🐌 رسم بطيء</option>
+            </select>
+            <button id="padBtn" class="ghost" title="أسهم اللمس">🎮</button>
+            <button id="fullscreenBtn" class="ghost" title="ملء الشاشة">🖥️</button>
+            <button id="freehandBtn" class="ghost">✏️ رسم حر</button>
             <button id="saveTurtle" class="ghost">💾 حفظ كصورة</button>
             <button id="clearTurtle" class="ghost">امسح اللوحة</button>
           </div>
         </div>
-        <canvas id="turtleCanvas" width="900" height="620"></canvas>
+        <div class="canvas-holder">
+          <canvas id="turtleCanvas" width="900" height="620"></canvas>
+          <div id="touchPad" class="touch-pad hidden">
+            <button data-k="فوق" class="tp up">▲</button>
+            <button data-k="يمين" class="tp right">▶</button>
+            <button data-k="يسار" class="tp left">◀</button>
+            <button data-k="تحت" class="tp down">▼</button>
+          </div>
+        </div>
+      </div>
+      <div id="varsPanel" class="vars-panel hidden">
+        <div class="console-head"><span>المتغيرات دلوقتي</span></div>
+        <div id="varsBody"></div>
       </div>
       <div class="console-head">
         <span>الخرج</span>
@@ -96,6 +127,7 @@
   </section>
 
   <section id="panel-docs" class="panel">
+    <input id="docsSearch" type="search" placeholder="دوّر في الدليل… مثل: قوائم، رسم، صوت" />
     <div id="docsContent" class="docs"></div>
   </section>
 
@@ -116,10 +148,26 @@
   </div>
   <div id="programsList"></div>
 </div>
+<div id="welcomeModal" class="modal-back hidden">
+  <div class="modal">
+    <h2>أهلاً بيك في برمِج 👋</h2>
+    <p>دي لغة برمجة عربية كاملة ومعاها كل اللي تحتاجه عشان تتعلم وتبني:</p>
+    <ul>
+      <li>📝 <b>المحرر</b> — اكتب كود عربي ودوس «شغّل»</li>
+      <li>👣 <b>خطوة بخطوة</b> — نفّذ سطر سطر وراقب المتغيرات</li>
+      <li>🎓 <b>١٢ درس تفاعلي</b> — من الصفر لحد الرسم والألعاب</li>
+      <li>🐍 <b>٢٠ مثال جاهز</b> — منهم لعبة ثعبان كاملة!</li>
+    </ul>
+    <div class="modal-actions">
+      <button id="welcomeLessons" class="run">ابدأ الدروس 🎓</button>
+      <button id="welcomeClose" class="ghost">ادخل المحرر</button>
+    </div>
+  </div>
+</div>
 <div id="toast"></div>
 
-<script src="lang.js?v=5"></script>
-<script src="lessons.js?v=5"></script>
-<script src="ide.js?v=5"></script>
+<script src="lang.js?v=8"></script>
+<script src="lessons.js?v=8"></script>
+<script src="ide.js?v=8"></script>
 </body>
 </html>
