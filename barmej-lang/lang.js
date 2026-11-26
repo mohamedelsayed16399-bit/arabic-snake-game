@@ -383,6 +383,8 @@ function builtins(io){
   B['املأ']=()=>D('fill',{});
   B['رمز']=(e,size,ang)=>D('emoji',{t:String(e),size:N(size)||40,ang:N(ang)||0});
   B['بكسلات']=(rows,size)=>{ if(!Array.isArray(rows)) throw new BError('بكسلات: أول حاجة لازم تكون قائمة صفوف نصية، زي ["1.1"، ".1."]'); return D('pixels',{rows:rows.map(r=>String(r)),size:N(size)||10}); };
+  B['خريطة_بلاط']=(rows,size)=>{ if(!Array.isArray(rows)) throw new BError('خريطة_بلاط: أول حاجة لازم تكون قائمة صفوف نصية، # = جدار'); return D('tiles',{rows:rows.map(r=>String(r)),size:N(size)||40}); };
+  B['بلاطة_عند']=(rows,size,x,y)=>{ if(!Array.isArray(rows)) throw new BError('بلاطة_عند: أول حاجة لازم تكون قائمة صفوف'); const s=N(size)||40, w=Math.max(...rows.map(r=>String(r).length)), i=Math.floor((N(x)+w*s/2)/s), j=Math.floor((N(y)+rows.length*s/2)/s); if(j<0||j>=rows.length) return '#'; const r=String(rows[j]); if(i<0||i>=w) return '#'; return r[i]||'.'; };
   B['خلفية']=c=>D('bg',{c:String(c)});
   B['نص_على_اللوحة']=(t,size)=>D('text',{t:String(t),size:N(size)||22});
   B['صوت']=(freq,ms)=>{ if(io.beep) io.beep(N(freq)||440,N(ms)||200); return null; };
