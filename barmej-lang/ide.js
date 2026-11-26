@@ -172,6 +172,13 @@ tc.addEventListener('pointermove',ev=>{ if(!freehand||!drawing) return;
   tctx.beginPath(); tctx.moveTo(lastX,lastY); tctx.lineTo(p.x,p.y); tctx.stroke();
   lastX=p.x; lastY=p.y; });
 tc.addEventListener('pointerup',()=>{ drawing=false; });
+/* --- mouse/touch for programs: ماوس_س ماوس_ص ماوس_مضغوط نقرة --- */
+const mouse={x:0,y:0,down:false}; let clickQ=null;
+tc.addEventListener('pointerdown',ev=>{ const p=canvasPos(ev); mouse.x=p.x; mouse.y=p.y; mouse.down=true; clickQ={x:p.x,y:p.y}; });
+tc.addEventListener('pointermove',ev=>{ const p=canvasPos(ev); mouse.x=p.x; mouse.y=p.y; });
+tc.addEventListener('pointerup',()=>{ mouse.down=false; });
+tc.addEventListener('pointercancel',()=>{ mouse.down=false; });
+tc.style.touchAction='none';
 
 /* --- console --- */
 function println(txt,cls){ const d=document.createElement('div'); d.className=cls||'out'; d.textContent=txt; con.appendChild(d); con.scrollTop=con.scrollHeight; }
@@ -223,7 +230,9 @@ function makeIO(){
     chooseAsync:(q,opts)=>chooseInline(q,opts),
     draw:o=>{ turtleHandle(o); return drawDelay>0? {__sleep:drawDelay} : null; },
     beep:(f,m)=>beep(f,m),
-    key:()=>pressedKey
+    key:()=>pressedKey,
+    mouse:()=>mouse,
+    click:()=>{ const c=clickQ; clickQ=null; return c; }
   };
 }
 function resetRunUI(){
@@ -329,7 +338,7 @@ $('#finishSteps').addEventListener('click',()=>{
 $('#stopSteps').addEventListener('click',()=>stopStepMode('⏹ اتوقف وضع الخطوة'));
 
 /* --- autocomplete chips --- */
-const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب'];
+const BUILTINS=['طول','أضف','احذف','يحتوي','عشوائي','قرب','جذر','مطلق','أكبر','أصغر','نص','رقم','نوع','جزء','حروف','فصل','وصل','مفاتيح','قيم','اسأل','امسح','قدم','ورا','يمين','شمال','لون','سمك','ارفع','انزل','اذهب','دائرة','نقطة','امسح_اللوحة','مستطيل','املأ','نص_على_اللوحة','صوت','نغمة','وقت','بدّل','رتّب','اعكس','مجموع','اخلط','فهرس','كرر_نص','استنى','مفتاح','مدى','قطع','جيب','جتا','ظا','باي','اختار','ساعات','دقائق','ثواني','أول','آخر','فريد','عدد_مرات','خريطة','صفّي','اختزل','جد','أي','كل','رتب_حسب','ماوس_س','ماوس_ص','ماوس_مضغوط','نقرة'];
 const ALL_WORDS=[...KWS,...BUILTINS];
 const suggestBar=$('#suggestBar');
 function currentWord(){
@@ -680,6 +689,12 @@ $('#docsContent').innerHTML=`
 <tr><td><code>رتب_حسب(ق، د، "تنازلي")</code></td><td>ترتيب حسب القيمة اللي د بترجّعها</td></tr></table>
 <pre>خلي ع = دالة(ن) { ارجع دالة(م): م + ن }
 اطبع ع(١٠)(٥)   # ١٥</pre>
+<h2>الماوس واللمس 🖱️</h2>
+<p>برنامجك يقدر يتفاعل مع الضغط على اللوحة (بالماوس أو بالإصبع على الموبايل):</p>
+<table><tr><td><code>نقرة()</code></td><td>لو في ضغطة جديدة بترجّع [س، ص] (مرة واحدة لكل ضغطة)، وإلا فراغ</td></tr>
+<tr><td><code>ماوس_س()</code> <code>ماوس_ص()</code></td><td>مكان المؤشر دلوقتي على اللوحة</td></tr>
+<tr><td><code>ماوس_مضغوط()</code></td><td>صح لو الزر أو الإصبع نازل</td></tr></table>
+<p>الإحداثيات نفس إحداثيات القلم: المنتصف (٠، ٠). جرّب أمثلة «اضرب الهدف» و«لوحة الرسم».</p>
 <h2>الوقت والألعاب</h2>
 <pre>استنى(١٠٠٠)        # يوقف التنفيذ ثانية (بالمللي ثانية)
 خلي م = مفتاح()    # المفتاح المدوس عليه دلوقتي: يمين يسار فوق تحت مسافة…</pre>
