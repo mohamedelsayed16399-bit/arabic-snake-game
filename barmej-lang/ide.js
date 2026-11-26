@@ -440,6 +440,14 @@ $('#shareBtn').addEventListener('click',()=>{ try{ achCheck({shared:true}); }cat
   (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('اتنسخ رابط المشاركة! أي حد يفتحه هيلاقي كودك'))
   .catch(()=>{ location.hash=hash; toast('الرابط في شريط العنوان — انسخه'); });
 });
+$('#appLinkBtn').addEventListener('click',()=>{ try{ achCheck({shared:true}); }catch(e){}
+  const url=location.origin+location.pathname+'#code='+encodeURIComponent(btoa(unescape(encodeURIComponent(code.value))))+'&run&app';
+  (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('اتنسخ رابط التطبيق 📱 — بيفتح برنامجك لوحده وبيشتغل فورًا'))
+  .catch(()=>{ location.hash=url.slice(url.indexOf('#')); toast('الرابط في شريط العنوان — انسخه'); });
+});
+function enterAppMode(){ document.body.classList.add('app-mode'); document.title=(code.value.match(/^#\s*(.+)/)||[0,'برمِج'])[1].slice(0,40)+' — برمِج'; }
+$('#appRerun').addEventListener('click',()=>runProgram());
+$('#appEdit').addEventListener('click',()=>{ document.body.classList.remove('app-mode'); try{ history.replaceState(null,'',location.pathname); }catch(e){} });
 function loadFromHash(){
   const m=location.hash.match(/#code=([^&]*)/);
   if(m){
@@ -815,6 +823,7 @@ $('#docsContent').innerHTML=`
 // تعليق تاني</pre>
 
 <h2>اختصارات</h2>
+<p><b>📱 رابط تطبيق:</b> زر «📱 تطبيق» فوق بينسخ رابط بيفتح برنامجك لوحده بدون المحرر وبيشغّله فورًا. ابعته لأي حد، وهو يلعب لعبتك على موبايله من غير ما يشوف الكود (وفيه زر «✏️ افتح الكود» لو عايز يشوفه).</p>
 <p><code>Ctrl + Shift + F</code> (أو زر «✨ نسّق») بينسّق الكود ويظبط المسافات. وبمجرد ما تكتب <code>{</code> أو <code>(</code> أو <code>"</code> المحرر بيقفلها لوحده، و<code>Enter</code> بيكمل المسافة تلقائيًا.</p>
 <p><code>Ctrl + Enter</code> لتشغيل البرنامج من الكيبورد. الكود بيتحفظ تلقائيًا في متصفحك، وزر «مشاركة» بيعمل رابط فيه الكود.</p>
 `;
@@ -899,7 +908,7 @@ renderAchBtn();
 (function(){
   const m=$('#welcomeModal');
   let seen=null; try{ seen=localStorage.getItem('barmej-welcomed'); }catch(e){}
-  if(!seen) m.classList.remove('hidden');
+  if(!seen&&!/[#&]app\b/.test(location.hash)) m.classList.remove('hidden');
   function dismiss(){ m.classList.add('hidden'); try{ localStorage.setItem('barmej-welcomed','1'); }catch(e){} }
   $('#welcomeClose').addEventListener('click',dismiss);
   $('#welcomeLessons').addEventListener('click',()=>{ dismiss(); document.querySelector('.tab[data-panel="lessons"]').click(); });
@@ -915,5 +924,6 @@ if(!loadFromHash()){
 renderHL(); renderLesson(); renderChallenge();
 const tabM=location.hash.match(/[#&]tab=(\w+)/);
 if(tabM){ const tb=document.querySelector('.tab[data-panel="'+tabM[1]+'"]'); if(tb) tb.click(); }
+if(/[#&]app\b/.test(location.hash)&&/#code=/.test(location.hash)) enterAppMode();
 if(/[#&]run/.test(location.hash)) setTimeout(runProgram,150);
 })();
