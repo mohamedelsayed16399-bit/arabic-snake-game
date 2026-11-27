@@ -439,7 +439,7 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .bk-save input{background:#050b17;color:#e2e8f0;border:1px solid #2a3a5c;border-radius:8px;padding:6px 8px;font-family:inherit}.bk-save select{background:#0b1426;color:#e2e8f0;border:1px solid #2a3a5c;border-radius:8px;padding:6px;font-family:inherit}
 
 /* 🏆 تحديات: شريط تقدم وفلاتر */
-.ch-bar{padding:6px 4px 10px;border-bottom:1px solid #243454;margin-bottom:6px}
-.ch-prog{height:8px;background:#16223b;border-radius:6px;overflow:hidden}.ch-fill{height:100%;background:linear-gradient(90deg,#34d399,#38bdf8)}
-.ch-sub{font-size:12px;opacity:.75;margin:4px 0}.ch-bar input{width:100%;box-sizing:border-box;margin:4px 0}.ch-f{display:flex;gap:6px;flex-wrap:wrap}
+.chl-bar{padding:6px 4px 10px;border-bottom:1px solid #243454;margin-bottom:6px}
+.chl-prog{height:8px;background:#16223b;border-radius:6px;overflow:hidden}.chl-fill{height:100%;background:linear-gradient(90deg,#34d399,#38bdf8)}
+.chl-sub{font-size:12px;opacity:.75;margin:4px 0}.chl-bar input{width:100%;box-sizing:border-box;margin:4px 0}.chl-f{display:flex;gap:6px;flex-wrap:wrap}
 .ch-sol{background:#050b17;border-radius:8px;padding:10px;direction:rtl;text-align:right;white-space:pre-wrap;margin-top:10px;border:1px dashed #34d399}.ch-sol.hidden{display:none}
