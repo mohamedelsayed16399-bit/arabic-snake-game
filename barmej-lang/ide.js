@@ -511,6 +511,16 @@ function lintRun(){ const r=BarmejLint.lint(code.value); const B=$('#lintBody');
   if(!r.issues.length) html+='<p class="lint-ok">✅ مفيش ولا ملاحظة. كودك نضيف! جرّب تشغّله 😎</p>';
   else{ html+='<div class="lint-list">'; r.issues.forEach(i=>{ html+='<button class="lint-item lint-'+i.sev+'" data-line="'+i.line+'"><span class="lint-ln">س'+i.line+'</span><span class="lint-ic">'+ic[i.sev]+'</span><span class="lint-tx"><b>'+nm[i.sev]+':</b> '+i.msg.replace(/&/g,'&amp;').replace(/</g,'&lt;')+(i.tip?'<small>'+i.tip.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</small>':'')+'</span></button>'; }); html+='</div>'; }
   B.innerHTML=html; B.querySelectorAll('.lint-item').forEach(b=>b.addEventListener('click',()=>lintGo(+b.dataset.line))); $('#lintModal').classList.remove('hidden'); }
+/* --- اشرح الكود --- */
+function explainRun(){ const r=BarmejExplain.explain(code.value); const B=$('#explainBody'); const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  let html='<h2>🧠 شرح الكود بالعربي البسيط</h2>';
+  if(r.error){ html+='<p class="lint-ok">⛔ الكود فيه خطأ في الكتابة، صلّحه الأول:<br><b>'+esc(r.error)+'</b></p>'; }
+  else if(!r.rows.length){ html+='<p class="lint-ok">المحرر فاضي — اكتب كود وارجع هنا 🙂</p>'; }
+  else { const s=r.stats; html+='<div class="lint-sub" style="margin-bottom:10px">📦 '+s.vars+' متغير · 🧩 '+s.funcs+' دالة · 🔁 '+s.loops+' حلقة · 🔀 '+s.conds+' شرط · 🖨️ '+s.prints+' طباعة · دوس على أي سطر عشان تروحله</div><div class="lint-list">';
+    r.rows.forEach(x=>{ html+='<button class="lint-item ex-row" data-line="'+x.line+'" style="margin-right:'+(x.depth*18)+'px"><span class="lint-ln">س'+x.line+'</span><span class="lint-ic">'+x.icon+'</span><span class="lint-tx">'+esc(x.text)+'</span></button>'; }); html+='</div>'; }
+  B.innerHTML=html; B.querySelectorAll('.ex-row').forEach(b=>b.addEventListener('click',()=>{ $('#explainModal').classList.add('hidden'); lintGo(+b.dataset.line); })); $('#explainModal').classList.remove('hidden'); }
+$('#explainBtn').addEventListener('click',explainRun); $('#explainAgain').addEventListener('click',explainRun); $('#explainClose').addEventListener('click',()=>$('#explainModal').classList.add('hidden'));
+$('#explainModal').addEventListener('click',e=>{ if(e.target.id==='explainModal') $('#explainModal').classList.add('hidden'); });
 $('#lintBtn').addEventListener('click',lintRun); $('#lintAgain').addEventListener('click',lintRun); $('#lintClose').addEventListener('click',()=>$('#lintModal').classList.add('hidden'));
 $('#lintModal').addEventListener('click',e=>{ if(e.target.id==='lintModal') $('#lintModal').classList.add('hidden'); });
 document.addEventListener('keydown',e=>{ if(e.shiftKey&&(e.ctrlKey||e.metaKey)&&(e.key==='F'||e.key==='f')&&document.activeElement===code){ e.preventDefault(); $('#formatBtn').click(); } });
