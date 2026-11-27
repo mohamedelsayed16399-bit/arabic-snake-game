@@ -390,3 +390,5 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .lint-item:hover{border-color:var(--accent2)}.lint-item small{display:block;color:var(--muted);font-size:12px}
 .lint-err{border-right:4px solid #f87171}.lint-warn{border-right:4px solid #fbbf24}.lint-info{border-right:4px solid #60a5fa}
 .lint-ln{font-size:11px;color:var(--muted);min-width:34px;font-family:monospace}.lint-tx{flex:1}
+.test-cases{width:100%;min-height:110px;background:#0b1220;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font:14px/1.7 monospace;direction:rtl;resize:vertical;box-sizing:border-box}
+.test-bar{height:10px;border-radius:6px;background:#1e293b;overflow:hidden;margin-top:12px}.test-bar div{height:100%}
