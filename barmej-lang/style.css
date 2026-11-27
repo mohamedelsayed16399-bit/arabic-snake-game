@@ -435,3 +435,4 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .bk-empty{padding:18px;text-align:center;opacity:.7}.bk-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .bk-code-h{font-size:13px;opacity:.7}.bk-code{background:#050b17;border-radius:8px;padding:10px;direction:rtl;text-align:right;white-space:pre-wrap;min-height:40px;margin:4px 0}
 @media(max-width:640px){.bk-main{flex-direction:column}.bk-pal{width:auto;flex-direction:row;flex-wrap:wrap;position:static;max-height:none}.bk-ph{width:100%}}
+#panel-blocks.active{display:block}
