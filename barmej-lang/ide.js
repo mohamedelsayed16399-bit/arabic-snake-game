@@ -771,8 +771,8 @@ function renderChallengeList(){
   challengeList.innerHTML='';
   renderDaily();
   const tot=BARMEJ_CHALLENGES.length, dn=BARMEJ_CHALLENGES.filter(l=>doneChallenges.has(l.id)).length;
-  const bar=document.createElement('div'); bar.className='ch-bar';
-  bar.innerHTML='<div class="ch-prog"><div class="ch-fill" style="width:'+Math.round(dn*100/tot)+'%"></div></div><div class="ch-sub">'+dn+' من '+tot+' اتحلوا</div><input id="chSearch" type="search" placeholder="🔎 دوّر في التحديات" dir="rtl" value="'+chQ.replace(/"/g,'')+'"><div class="ch-f">'+[['all','الكل'],['todo','لسه'],['done','محلول']].map(x=>'<button class="chip'+(chFilter===x[0]?' on':'')+'" data-f="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
+  const bar=document.createElement('div'); bar.className='chl-bar';
+  bar.innerHTML='<div class="chl-prog"><div class="chl-fill" style="width:'+Math.round(dn*100/tot)+'%"></div></div><div class="chl-sub">'+dn+' من '+tot+' اتحلوا</div><input id="chSearch" type="search" placeholder="🔎 دوّر في التحديات" dir="rtl" value="'+chQ.replace(/"/g,'')+'"><div class="chl-f">'+[['all','الكل'],['todo','لسه'],['done','محلول']].map(x=>'<button class="chip'+(chFilter===x[0]?' on':'')+'" data-f="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
   challengeList.appendChild(bar);
   bar.querySelectorAll('[data-f]').forEach(b=>b.addEventListener('click',()=>{ chFilter=b.dataset.f; renderChallengeList(); }));
   const si=bar.querySelector('#chSearch'); si.addEventListener('input',()=>{ chQ=si.value; const p=si.selectionStart; renderChallengeList(); const n=$('#chSearch'); n.focus(); try{ n.setSelectionRange(p,p); }catch(e){} });
