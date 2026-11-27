@@ -368,7 +368,7 @@ document.addEventListener('dragover',e=>{const r=e.target.closest&&e.target.clos
 document.addEventListener('dragleave',e=>{e.target.classList&&e.target.classList.remove('over')});
 document.addEventListener('drop',e=>{const r=e.target.closest&&e.target.closest('.row[data-dir]');if(!r)return;e.preventDefault();r.classList.remove('over');const nm=e.dataTransfer.getData('text/plain'),w=window.__dragW;if(!nm||!w)return;const from=w.cwd,to=join(from,r.dataset.nm);if(nm===r.dataset.nm)return;const a=node(from),b=node(to);if(!a||!b||b.t!=='d')return;b.c[uniq(b,nm)]=a.c[nm];delete a.c[nm];save();toast('اتنقل '+nm+' ✓');w.redraw&&w.redraw();renderDesk()});
 /* about */
-app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 3.9'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
+app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 4.0'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
 STORE.push({id:'about',n:'عن النظام',i:'ℹ️',d:'معلومات النظام والاختصارات'});S.inst=[...new Set([...S.inst,'about'])];
 
 /* ROUND 7 */
@@ -814,7 +814,7 @@ which:a=>C[a[0]]?a[0]+': أمر مدمج':AL[a[0]]?a[0]+': alias':APPS[a[0]]?a[0
 ps:()=>'PID  التطبيق\n'+wins.map((x,i)=>String(i+1).padStart(3)+'  '+x.id+' ('+x.app.name+')').join('\n'),kill:a=>{const x=wins[+a[0]-1];if(!x)throw new Error('PID غلط');x.close();return 'اتقفل'},
 apps:()=>allApps().join(' '),open:a=>{if(APPS[a[0]]){openApp(a[0]);return 'فتحت '+a[0]}const n=node(abs(a[0]));if(n){openPath(abs(a[0]));return 'فتحت'}throw new Error('مفيش تطبيق أو ملف بالاسم ده')},edit:a=>{openApp('editor',abs(a[0]));return ''},
 js:a=>runJS('return ('+a.join(' ')+')'),run:a=>runJS(rd(a[0])),calc:a=>{if(!/^[\d+\-*/().%\s^]+$/.test(a.join(' ')))throw new Error('تعبير غلط');return String(Function('"use strict";return ('+a.join(' ').replace(/\^/g,'**')+')')())},seq:a=>{const[x,y]=a.length>1?[+a[0],+a[1]]:[1,+a[0]];const o=[];for(let i=x;i<=y&&o.length<1000;i++)o.push(i);return o.join('\n')},
-theme:a=>{S.light=a[0]==='light';theme();save();return 'تم'},reboot:()=>location.reload(),neofetch:()=>'  ◢◣   user@webos\n ◢██◣  OS: Web OS '+(document.querySelector('.about-v')?'':'3.9')+'\n◢████◣ Apps: '+allApps().length+'\n       Windows: '+wins.length+'\n       Files: '+(sz(S.fs)/1024).toFixed(1)+' KB\n       Browser: '+navigator.userAgent.slice(0,40)};
+theme:a=>{S.light=a[0]==='light';theme();save();return 'تم'},reboot:()=>location.reload(),neofetch:()=>'  ◢◣   user@webos\n ◢██◣  OS: Web OS '+(document.querySelector('.about-v')?'':'4.0')+'\n◢████◣ Apps: '+allApps().length+'\n       Windows: '+wins.length+'\n       Files: '+(sz(S.fs)/1024).toFixed(1)+' KB\n       Browser: '+navigator.userAgent.slice(0,40)};
 const AS={curl:async a=>{const r=await fetch(a[0]);return(await r.text()).slice(0,4000)},sleep:a=>new Promise(r=>setTimeout(()=>r(''),(+a[0]||1)*1000))};
 const tok=s=>{const r=[];const re=/"([^"]*)"|'([^']*)'|(\S+)/g;let m;while((m=re.exec(s)))r.push((m[1]??m[2]??m[3]).replace(/\$(\w+)/g,(x,k)=>ENV[k]??''));return r};
 const runLine=async(ln)=>{const redir=ln.match(/^(.*?)\s*(>>|>)\s*(\S+)\s*$/);let body=ln,rf=null,app=false;if(redir&&!/^\s*(js|calc)\b/.test(ln)){body=redir[1];rf=redir[3];app=redir[2]==='>>'}let data='';for(const seg of body.split(/\s*\|\s*/)){let a=tok(seg);if(!a.length)continue;if(AL[a[0]])a=tok(AL[a[0]]).concat(a.slice(1));const c=a.shift();if(AS[c])data=await AS[c](a,data);else if(C[c])data=await C[c](a,data);else if(c.endsWith('.js')&&node(abs(c)))data=runJS(rd(c));else throw new Error(c+': أمر مش موجود. اكتب help')}if(rf){const p=abs(rf),old=app&&node(p)?String(node(p).d):'';writeF(p,old+(old&&!old.endsWith('\n')?'\n':'')+data+'\n');renderDesk();return ''}return data};
@@ -913,6 +913,35 @@ lk.onclick=()=>{if(!sel)return toast('اختر فكرة أولاً');linkMode=!l
 del.onclick=()=>{if(!sel)return;if(M.n.length<2)return toast('لازم تبقى فكرة واحدة');els[sel].remove();delete els[sel];M.n=M.n.filter(n=>n.id!==sel);M.l=M.l.filter(([a,b])=>a!==sel&&b!==sel);sel=null;persist();lines();mark()};
 ex.onclick=()=>{const kids=id=>M.l.filter(([a,b])=>a===id||b===id).map(([a,b])=>a===id?b:a);const seen=new Set(),o=[];const walk=(id,d)=>{if(seen.has(id))return;seen.add(id);const n=M.n.find(x=>x.id===id);o.push('  '.repeat(d)+'- '+n.t);kids(id).forEach(k=>walk(k,d+1))};M.n.forEach(n=>walk(n.id,0));writeF('/المستندات/خريطة.md',o.join('\n'));toast('حُفظ /المستندات/خريطة.md')};
 setTimeout(()=>{lines();mark()},50)},{w:700,h:480});
+
+/* CHESS */
+const CHESS=(()=>{const V={p:100,n:320,b:330,r:500,q:900,k:20000};const init=()=>'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'.split('/').map(r=>[...r].flatMap(c=>/\d/.test(c)?Array(+c).fill(''):[c]));
+const own=(c,w)=>c&&(w?c===c.toUpperCase():c===c.toLowerCase());
+const gen=(B,w)=>{const m=[];for(let y=0;y<8;y++)for(let x=0;x<8;x++){const c=B[y][x];if(!own(c,w))continue;const t=c.toLowerCase(),add=(nx,ny)=>{if(nx<0||ny<0||nx>7||ny>7)return false;const d=B[ny][nx];if(d&&own(d,w))return false;m.push([x,y,nx,ny]);return !d};
+if(t==='p'){const dir=w?-1:1,st=w?6:1;if(!B[y+dir]?.[x]){m.push([x,y,x,y+dir]);if(y===st&&!B[y+2*dir][x])m.push([x,y,x,y+2*dir])}[-1,1].forEach(dx=>{const d=B[y+dir]?.[x+dx];if(d&&!own(d,w))m.push([x,y,x+dx,y+dir])})}
+else if(t==='n')[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]].forEach(([a,b])=>add(x+a,y+b));
+else if(t==='k')[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>add(x+a,y+b));
+else{const ds=[];if(t!=='b')ds.push([1,0],[-1,0],[0,1],[0,-1]);if(t!=='r')ds.push([1,1],[1,-1],[-1,1],[-1,-1]);ds.forEach(([a,b])=>{let nx=x+a,ny=y+b;while(add(nx,ny)){nx+=a;ny+=b}})}}return m};
+const apply=(B,m)=>{const N=B.map(r=>r.slice()),c=N[m[1]][m[0]];N[m[1]][m[0]]='';N[m[3]][m[2]]=(c==='P'&&m[3]===0)?'Q':(c==='p'&&m[3]===7)?'q':c;return N};
+const inCheck=(B,w)=>{let kx,ky;for(let y=0;y<8;y++)for(let x=0;x<8;x++)if(B[y][x]===(w?'K':'k')){kx=x;ky=y}return gen(B,!w).some(m=>m[2]===kx&&m[3]===ky)};
+const legal=(B,w)=>gen(B,w).filter(m=>!inCheck(apply(B,m),w));
+const ev=B=>{let s=0;for(let y=0;y<8;y++)for(let x=0;x<8;x++){const c=B[y][x];if(!c)continue;const t=c.toLowerCase();let v=V[t];if(t==='p')v+=(c==='P'?6-y:y-1)*8;if(t==='n'||t==='b')v+=(3.5-Math.abs(3.5-x)-Math.abs(3.5-y))*6;s+=c===c.toUpperCase()?v:-v}return s};
+const search=(B,d,a,b,w)=>{if(d===0)return ev(B);const ms=legal(B,w);if(!ms.length)return inCheck(B,w)?(w?-1e6-d:1e6+d):0;ms.sort((p,q)=>(B[q[3]][q[2]]?V[B[q[3]][q[2]].toLowerCase()]:0)-(B[p[3]][p[2]]?V[B[p[3]][p[2]].toLowerCase()]:0));
+if(w){let best=-1e9;for(const m of ms){best=Math.max(best,search(apply(B,m),d-1,a,b,false));a=Math.max(a,best);if(a>=b)break}return best}else{let best=1e9;for(const m of ms){best=Math.min(best,search(apply(B,m),d-1,a,b,true));b=Math.min(b,best);if(a>=b)break}return best}};
+const best=(B,w,d)=>{const ms=legal(B,w);let bm=null,bv=w?-1e9:1e9;ms.sort(()=>Math.random()-.5);for(const m of ms){const v=search(apply(B,m),d-1,-1e9,1e9,!w);if(w?v>bv:v<bv){bv=v;bm=m}}return bm};
+return{init,legal,apply,inCheck,best,gen}})();
+app('chess','الشطرنج','♟️',w=>{const b=w.body;b.style.cssText+=';padding:8px;gap:8px;align-items:center;overflow:auto';
+const U={K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+let B=CHESS.init(),turn=true,sel=null,over=false,last=null,depth=3;
+const top=el('div','');top.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center';const st=el('b','','دورك (الأبيض)'),nw=el('button','btn','♻️ لعبة جديدة'),lv=document.createElement('select');[['سهل',1],['متوسط',3],['صعب',4]].forEach(([t,v])=>{const o=el('option','',t);o.value=v;if(v===3)o.selected=true;lv.append(o)});lv.onchange=()=>depth=+lv.value;top.append(st,lv,nw);
+const bd=el('div','');bd.style.cssText='display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:min(100%,420px);aspect-ratio:1;border:3px solid #475569;direction:ltr';b.append(top,bd);
+const draw=()=>{bd.innerHTML='';const lg=sel?CHESS.legal(B,true).filter(m=>m[0]===sel[0]&&m[1]===sel[1]):[];for(let y=0;y<8;y++)for(let x=0;x<8;x++){const c=el('div','',U[B[y][x]]||'');c.dataset.sq=x+','+y;let bg=(x+y)%2?'#b58863':'#f0d9b5';if(last&&((last[0]===x&&last[1]===y)||(last[2]===x&&last[3]===y)))bg=(x+y)%2?'#c9a227':'#f7ec74';if(sel&&sel[0]===x&&sel[1]===y)bg='#7fc97f';c.style.cssText=`background:${bg};display:flex;align-items:center;justify-content:center;font-size:min(7vw,42px);cursor:pointer;position:relative;color:${B[y][x]&&B[y][x]===B[y][x].toUpperCase()?'#fff':'#000'};text-shadow:${B[y][x]&&B[y][x]===B[y][x].toUpperCase()?'0 0 2px #000,0 0 2px #000,0 0 3px #000':'none'}`;
+if(lg.some(m=>m[2]===x&&m[3]===y)){const d=el('i','');d.style.cssText='position:absolute;width:30%;height:30%;border-radius:50%;background:#16a34a99;pointer-events:none';c.append(d)}c.onclick=()=>click(x,y);bd.append(c)}};
+const status=()=>{const ms=CHESS.legal(B,turn);const ck=CHESS.inCheck(B,turn);if(!ms.length){over=true;st.textContent=ck?(turn?'كش مات! الكمبيوتر فاز 😔':'كش مات! أنت فزت 🎉'):'تعادل (ستالميت)';return}st.textContent=(turn?'دورك (الأبيض)':'الكمبيوتر يفكر...')+(ck?' ⚠️ كش':'')};
+const click=(x,y)=>{if(over||!turn)return;const c=B[y][x];if(c&&c===c.toUpperCase()){sel=[x,y];draw();return}if(sel){const m=CHESS.legal(B,true).find(m=>m[0]===sel[0]&&m[1]===sel[1]&&m[2]===x&&m[3]===y);if(m){B=CHESS.apply(B,m);last=m;sel=null;turn=false;draw();status();if(!over)setTimeout(ai,60)}}};
+const ai=()=>{const m=CHESS.best(B,false,depth);if(!m){status();return}B=CHESS.apply(B,m);last=m;turn=true;draw();status()};
+nw.onclick=()=>{B=CHESS.init();turn=true;sel=null;over=false;last=null;draw();status()};
+window._chess={get B(){return B},click,get turn(){return turn},get over(){return over}};draw()},{w:470,h:560});
 
 /* BOOT */
 theme();renderDesk();clock();
