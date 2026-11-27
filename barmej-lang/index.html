@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=252">
+<link rel="stylesheet" href="style.css?v=253">
 </head>
 <body>
 <header id="topbar">
@@ -19,6 +19,7 @@
     <button class="tab" data-panel="challenges">تحديات</button>
     <button class="tab" data-panel="projects">🏗️ مشاريع</button>
     <button class="tab" data-panel="path">🎓 المسار</button>
+    <button class="tab" data-panel="profile">📊 إنجازي</button>
     <button class="tab" data-panel="gallery">🖼️ معرضي</button>
     <button class="tab" data-panel="docs">الدليل</button>
     <button class="tab" data-panel="examples">أمثلة</button>
@@ -161,6 +162,10 @@
     <div id="pathBody" class="lesson-body" style="margin:0 auto"></div>
   </section>
 
+  <section id="panel-profile" class="panel">
+    <div id="profBody" class="lesson-body" style="margin:0 auto;max-width:860px"></div>
+  </section>
+
   <section id="panel-gallery" class="panel">
     <div id="galBody" class="lesson-body" style="margin:0 auto;max-width:980px"></div>
   </section>
@@ -250,12 +255,13 @@
 <div id="chBar" class="ch-bar hidden"><b class="ch-t"></b><span id="chInfo" class="ch-info"></span><button id="chCheck" class="run small">✔ تحقق</button><button id="chHint" class="ghost small">💡</button><button id="chBarClose" class="ghost small">✕</button><div id="chRes" class="ch-res"></div></div>
 <div id="toast"></div>
 
-<script src="lang.js?v=252"></script>
-<script src="lessons.js?v=252"></script>
-<script src="examples2.js?v=252"></script>
-<script src="lint.js?v=252"></script>
-<script src="explain.js?v=252"></script>
-<script src="tester.js?v=252"></script>
-<script src="ide.js?v=252"></script>
+<script src="lang.js?v=253"></script>
+<script src="lessons.js?v=253"></script>
+<script src="examples2.js?v=253"></script>
+<script src="lint.js?v=253"></script>
+<script src="explain.js?v=253"></script>
+<script src="tester.js?v=253"></script>
+<script src="ide.js?v=253"></script>
+<script src="profile.js?v=253"></script>
 </body>
 </html>
