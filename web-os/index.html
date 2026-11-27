@@ -368,7 +368,7 @@ document.addEventListener('dragover',e=>{const r=e.target.closest&&e.target.clos
 document.addEventListener('dragleave',e=>{e.target.classList&&e.target.classList.remove('over')});
 document.addEventListener('drop',e=>{const r=e.target.closest&&e.target.closest('.row[data-dir]');if(!r)return;e.preventDefault();r.classList.remove('over');const nm=e.dataTransfer.getData('text/plain'),w=window.__dragW;if(!nm||!w)return;const from=w.cwd,to=join(from,r.dataset.nm);if(nm===r.dataset.nm)return;const a=node(from),b=node(to);if(!a||!b||b.t!=='d')return;b.c[uniq(b,nm)]=a.c[nm];delete a.c[nm];save();toast('اتنقل '+nm+' ✓');w.redraw&&w.redraw();renderDesk()});
 /* about */
-app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 4.7'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
+app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 4.8'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
 STORE.push({id:'about',n:'عن النظام',i:'ℹ️',d:'معلومات النظام والاختصارات'});S.inst=[...new Set([...S.inst,'about'])];
 
 /* ROUND 7 */
@@ -814,7 +814,7 @@ which:a=>C[a[0]]?a[0]+': أمر مدمج':AL[a[0]]?a[0]+': alias':APPS[a[0]]?a[0
 ps:()=>'PID  التطبيق\n'+wins.map((x,i)=>String(i+1).padStart(3)+'  '+x.id+' ('+x.app.name+')').join('\n'),kill:a=>{const x=wins[+a[0]-1];if(!x)throw new Error('PID غلط');x.close();return 'اتقفل'},
 apps:()=>allApps().join(' '),open:a=>{if(APPS[a[0]]){openApp(a[0]);return 'فتحت '+a[0]}const n=node(abs(a[0]));if(n){openPath(abs(a[0]));return 'فتحت'}throw new Error('مفيش تطبيق أو ملف بالاسم ده')},edit:a=>{openApp('editor',abs(a[0]));return ''},
 js:a=>runJS('return ('+a.join(' ')+')'),run:a=>runJS(rd(a[0])),calc:a=>{if(!/^[\d+\-*/().%\s^]+$/.test(a.join(' ')))throw new Error('تعبير غلط');return String(Function('"use strict";return ('+a.join(' ').replace(/\^/g,'**')+')')())},seq:a=>{const[x,y]=a.length>1?[+a[0],+a[1]]:[1,+a[0]];const o=[];for(let i=x;i<=y&&o.length<1000;i++)o.push(i);return o.join('\n')},
-theme:a=>{S.light=a[0]==='light';theme();save();return 'تم'},reboot:()=>location.reload(),neofetch:()=>'  ◢◣   user@webos\n ◢██◣  OS: Web OS '+(document.querySelector('.about-v')?'':'4.7')+'\n◢████◣ Apps: '+allApps().length+'\n       Windows: '+wins.length+'\n       Files: '+(sz(S.fs)/1024).toFixed(1)+' KB\n       Browser: '+navigator.userAgent.slice(0,40)};
+theme:a=>{S.light=a[0]==='light';theme();save();return 'تم'},reboot:()=>location.reload(),neofetch:()=>'  ◢◣   user@webos\n ◢██◣  OS: Web OS '+(document.querySelector('.about-v')?'':'4.8')+'\n◢████◣ Apps: '+allApps().length+'\n       Windows: '+wins.length+'\n       Files: '+(sz(S.fs)/1024).toFixed(1)+' KB\n       Browser: '+navigator.userAgent.slice(0,40)};
 const AS={curl:async a=>{const r=await fetch(a[0]);return(await r.text()).slice(0,4000)},sleep:a=>new Promise(r=>setTimeout(()=>r(''),(+a[0]||1)*1000))};
 const tok=s=>{const r=[];const re=/"([^"]*)"|'([^']*)'|(\S+)/g;let m;while((m=re.exec(s)))r.push((m[1]??m[2]??m[3]).replace(/\$(\w+)/g,(x,k)=>ENV[k]??''));return r};
 const runLine=async(ln)=>{const redir=ln.match(/^(.*?)\s*(>>|>)\s*(\S+)\s*$/);let body=ln,rf=null,app=false;if(redir&&!/^\s*(js|calc)\b/.test(ln)){body=redir[1];rf=redir[3];app=redir[2]==='>>'}let data='';for(const seg of body.split(/\s*\|\s*/)){let a=tok(seg);if(!a.length)continue;if(AL[a[0]])a=tok(AL[a[0]]).concat(a.slice(1));const c=a.shift();if(AS[c])data=await AS[c](a,data);else if(C[c])data=await C[c](a,data);else if(c.endsWith('.js')&&node(abs(c)))data=runJS(rd(c));else throw new Error(c+': أمر مش موجود. اكتب help')}if(rf){const p=abs(rf),old=app&&node(p)?String(node(p).d):'';writeF(p,old+(old&&!old.endsWith('\n')?'\n':'')+data+'\n');renderDesk();return ''}return data};
@@ -1093,6 +1093,36 @@ let dr=null;cv.onpointerdown=e=>{dr={x:e.clientX,y:e.clientY,cx:V.cx,cy:V.cy};cv
 cv.onwheel=e=>{e.preventDefault();V.s=Math.max(2,Math.min(2000,V.s*(e.deltaY<0?1.15:1/1.15)));draw()};
 zi.onclick=()=>{V.s=Math.min(2000,V.s*1.3);draw()};zo.onclick=()=>{V.s=Math.max(2,V.s/1.3);draw()};rs.onclick=()=>{V={cx:0,cy:0,s:40};draw()};
 const ro=new ResizeObserver(()=>draw());ro.observe(wr);window._gr={compile,get V(){return V},draw,cv};setTimeout(draw,60)},{w:640,h:520});
+
+/* TOOLBOX */
+app('toolbox','صندوق الأدوات','🧰',w=>{const b=w.body;b.style.cssText+=';padding:8px;gap:8px;overflow:auto';
+const T={
+'عدّاد النص':{in:1,run:s=>{const ws=s.trim()?s.trim().split(/\s+/).length:0;return 'حروف: '+[...s].length+'\nحروف بدون مسافات: '+[...s.replace(/\s/g,'')].length+'\nكلمات: '+ws+'\nأسطر: '+(s?s.split('\n').length:0)+'\nزمن القراءة: '+Math.max(1,Math.round(ws/180))+' دقيقة'}},
+'Base64 ترميز':{in:1,run:s=>{try{return btoa(String.fromCharCode(...new TextEncoder().encode(s)))}catch(e){return 'خطأ'}}},
+'Base64 فك':{in:1,run:s=>{try{return new TextDecoder().decode(Uint8Array.from(atob(s.trim()),c=>c.charCodeAt(0)))}catch(e){return 'نص غير صالح'}}},
+'ترميز URL':{in:1,run:s=>encodeURIComponent(s)},
+'فك URL':{in:1,run:s=>{try{return decodeURIComponent(s)}catch(e){return 'غير صالح'}}},
+'تنسيق JSON':{in:1,run:s=>{try{return JSON.stringify(JSON.parse(s),null,2)}catch(e){return 'JSON غير صالح: '+e.message}}},
+'تصغير JSON':{in:1,run:s=>{try{return JSON.stringify(JSON.parse(s))}catch(e){return 'JSON غير صالح: '+e.message}}},
+'SHA-256':{in:1,async:1,run:async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,'0')).join('')},
+'أحرف كبيرة':{in:1,run:s=>s.toUpperCase()},'أحرف صغيرة':{in:1,run:s=>s.toLowerCase()},
+'عكس النص':{in:1,run:s=>[...s].reverse().join('')},
+'ترتيب الأسطر':{in:1,run:s=>s.split('\n').sort((a,c)=>a.localeCompare(c,'ar')).join('\n')},
+'إزالة التكرار':{in:1,run:s=>[...new Set(s.split('\n'))].join('\n')},
+'أرقام عربية ↔ هندية':{in:1,run:s=>/[0-9]/.test(s)?s.replace(/[0-9]/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]):s.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))},
+'كلمة مرور عشوائية':{in:0,run:()=>{const a=new Uint32Array(16);crypto.getRandomValues(a);const cs='abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*';return [...a].map(x=>cs[x%cs.length]).join('')}},
+'UUID':{in:0,run:()=>crypto.randomUUID?crypto.randomUUID():'غير مدعوم'},
+'ألوان HEX → RGB':{in:1,run:s=>{const m=s.trim().replace('#','').match(/^([0-9a-f]{3}|[0-9a-f]{6})$/i);if(!m)return 'اكتب مثل #38bdf8';let h=m[1];if(h.length===3)h=[...h].map(c=>c+c).join('');const n=parseInt(h,16);return 'rgb('+(n>>16)+', '+(n>>8&255)+', '+(n&255)+')'}},
+'تاريخ ← Unix':{in:1,run:s=>{const d=new Date(s);return isNaN(d)?(/^\d{9,13}$/.test(s.trim())?new Date(+s.trim()*(s.trim().length<=10?1000:1)).toISOString():'اكتب تاريخ مثل 2026-11-27'):String(Math.floor(d/1000))}}};
+const sel=document.createElement('select');sel.className='inp';Object.keys(T).forEach(k=>{const o=el('option','',k);o.value=k;sel.append(o)});
+const inp=document.createElement('textarea');inp.className='inp';inp.style.cssText='height:120px;resize:vertical;direction:auto';inp.placeholder='اكتب أو الصق النص هنا';
+const out=document.createElement('textarea');out.className='inp';out.readOnly=true;out.style.cssText='height:140px;resize:vertical;direction:auto';
+const bar=el('div','bar'),go=el('button','btn','▶ تنفيذ'),cp=el('button','btn','📋 نسخ'),sw=el('button','btn','⇅ النتيجة ← مدخل'),sv=el('button','btn','💾 حفظ كملف');bar.append(go,cp,sw,sv);
+const run=async()=>{const t=T[sel.value];inp.style.display=t.in?'':'none';try{out.value=String(await t.run(inp.value))}catch(e){out.value='خطأ: '+e.message}};
+go.onclick=run;sel.onchange=()=>{inp.style.display=T[sel.value].in?'':'none';if(!T[sel.value].in)run();else out.value=''};inp.oninput=()=>{if(['عدّاد النص'].includes(sel.value))run()};
+cp.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(out.value).then(()=>toast('تم النسخ'),()=>{out.select();document.execCommand('copy');toast('تم النسخ')})};
+sw.onclick=()=>{inp.value=out.value;out.value=''};sv.onclick=()=>{writeF('/المستندات/نتيجة-الأدوات.txt',out.value);toast('حُفظ /المستندات/نتيجة-الأدوات.txt')};
+b.append(sel,inp,bar,out);window._tb={T,sel,inp,out,run};go.click()},{w:520,h:520});
 
 /* BOOT */
 theme();renderDesk();clock();
