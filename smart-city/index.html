@@ -74,12 +74,12 @@ select{background:#1b2a49;color:#fff;border:1px solid #2a3b60;border-radius:8px;
    <button class="b" id="bPause">⏸</button><button class="b" id="b1">×1</button><button class="b" id="b2">×2</button><button class="b" id="b4">×4</button>
    <select id="layer"><option value="0">🗺 عادي</option><option value="1">🚗 الازدحام</option><option value="2">😊 السعادة</option><option value="3">🛡 الخدمات</option><option value="4">⚡ الكهرباء</option><option value="5">🔧 الشبكات</option></select>
    <span class="stat">ضريبة <b id="taxV">10</b>% <input id="tax" type="range" min="2" max="25" value="10" style="width:70px;vertical-align:middle"></span>
-   <button class="b g" id="bRes">🔬 أبحاث</button><button class="b o" id="bSnd">🔊</button><button class="b o" id="bSave">💾</button><button class="b r" id="bReset">🗑</button>
+   <button class="b g" id="bRes">🔬 أبحاث</button><button class="b" id="bScore">🏆</button><button class="b r" id="bFlood" style="display:none">🧱 دفاع فيضان 400</button><button class="b o" id="bSnd">🔊</button><button class="b o" id="bSave">💾</button><button class="b r" id="bReset">🗑</button>
   </div>
  </div>
  <div id="main">
   <div id="cv-wrap"><canvas id="cv"></canvas><div id="zoomb" style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:4"><button class="b" id="zin" style="font-size:20px;padding:4px 12px">＋</button><button class="b" id="zout" style="font-size:20px;padding:4px 12px">－</button></div><div id="hint" style="position:absolute;left:8px;bottom:8px;background:#0b3d2ecc;border:1px solid #2f9e6b;border-radius:12px;padding:5px 10px;font-size:12.5px;z-index:4;max-width:70%;display:none"></div><div id="banner"></div><div id="toast"></div>
-   <div id="modal" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🔬 أبحاث المدينة الذكية</h3><div id="resList"></div><h3 style="margin:8px 0">📜 سياسات المحافظ (تكلفة بالثانية)</h3><div id="polList"></div><button class="b" id="resClose">إغلاق</button></div></div><div id="slots" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">💾 خانات الحفظ</h3><div id="slotList"></div><button class="b" id="slotClose">إغلاق</button></div></div><div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
+   <div id="modal" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🔬 أبحاث المدينة الذكية</h3><div id="resList"></div><h3 style="margin:8px 0">📜 سياسات المحافظ (تكلفة بالثانية)</h3><div id="polList"></div><button class="b" id="resClose">إغلاق</button></div></div><div id="slots" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">💾 خانات الحفظ</h3><div id="slotList"></div><button class="b" id="slotClose">إغلاق</button></div></div><div id="board" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🏆 لوحة الشرف</h3><div id="boardList"></div><button class="b" id="boardClose">إغلاق</button></div></div><div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
    <div id="start"><h1>🏙 المحافظ</h1><p>انت محافظ مدينة ذكية. ابني الطرق والمناطق السكنية والتجارية والصناعية، وفّر كهرباء ومياه، وحافظ على الأمان والصحة. المواطنين بيتصرفوا حسب الظروف: لو الكهرباء قطعت أو المرور اتزحم هيتضايقوا وممكن يطردوك!</p><p>💡 اختار أداة من تحت واضغط أو اسحب على الخريطة. اضغط على أي مبنى (أداة 🔍) لتشوف حالته وتطوره أو ترسل الطوارئ.</p><button class="b g" id="bGo" style="font-size:18px;padding:10px 26px">ابدأ الحكم</button><div style="margin-top:6px;font-size:13px">أو اختار تحدي:</div><div><button class="b o" data-sc="1">🚗 مدينة مزدحمة</button><button class="b o" data-sc="2">⚡ أزمة طاقة</button><button class="b o" data-sc="3">💸 ميزانية شحيحة</button></div></div>
   </div>
   <div id="side"><div id="mission"></div><h4>🔍 معلومات</h4><div id="info">اضغط على مبنى</div><h4>📈 السكان والميزانية</h4><canvas id="chart" width="260" height="60" style="width:100%;height:60px;flex:none"></canvas><h4>📰 أخبار المدينة</h4><div id="feed"></div></div>
@@ -145,7 +145,7 @@ function coverage(){
 let COV=null,LOAD=new Float32Array(W*H);
 function step(){
  if(S.over)return;
- S.tick++;
+ S.tick++;floodStep();
  let sup=0,dem=0,wsup=0,wdem=0;
  S.res=S.res||{grid:0,lights:0,cams:0,alarm:0};S.pol=S.pol||{clean:0,flex:0,patrol:0,fest:0};const RS=S.res,PL=S.pol;
  const heat=(S.heat>0?1.4:1)*(RS.grid?0.85:1),dro=S.drought>0?0.6:1;
@@ -257,18 +257,31 @@ function randomEvent(){
  else if(r<0.45){S.drought=25;log('🏜 جفاف: إنتاج المياه قل!');}
  else if(r<0.65){S.fest=20;log('🎉 مهرجان! الناس سعيدة وبتصرف');S.money+=500}
  else if(r<0.85){S.boom=25;log('📈 ازدهار اقتصادي: الدخل زاد');}
+ else if(r<0.88){startFlood()}
  else if(r<0.93){const z=cells.map((c,i)=>[c,i]).filter(a=>isZone(a[0].t)&&a[0].pop>0);if(z.length){const[c,i]=z[Math.floor(Math.random()*z.length)];newInc(c,'fire',i%W,Math.floor(i/W));log('⛈ عاصفة ضربت المدينة!')}}
  else{const z=cells.filter(c=>c.t>1&&isZone(c.t));const n=S.res.alarm?1:3;log(S.res.alarm?'🌍 زلزال! الإنذار المبكر قلل الخسائر':'🌍 زلزال ضرب المدينة!');beep(90,0.6);for(let k=0;k<n&&z.length;k++){const c=z[Math.floor(Math.random()*z.length)];c.pop=Math.floor(c.pop/2);c.fire=c.fire||1}}
 }
 function story(){const ds=DIST.map((n,i)=>[n,distStats(i)]).filter(a=>a[1].p>0);if(!ds.length)return;const[n,st]=ds[Math.floor(Math.random()*ds.length)];
  const m=st.inc>0?'أهالي حي '+n+' قلقانين من الحوادث ('+st.inc+')':st.h<45?'حي '+n+' متضايق: رضا '+Math.round(st.h)+'% وبيطالبوا بخدمات':st.h>75?'حي '+n+' مزدهر والناس بتتكلم عن إنجازاتك':'حي '+n+' هادي: '+st.p+' ساكن';log('🏘 '+m)}
+let flood=null;
+function startFlood(){const zs=[];for(let i=0;i<W*H;i++)if(isZone(cells[i].t)&&cells[i].pop>0)zs.push(i);if(!zs.length)return;const i=zs[Math.floor(Math.random()*zs.length)];flood={x:i%W,y:Math.floor(i/W),r:1,left:12,safe:false};
+ log('🌊 فيضان! اضغط على زر 🧱 دفاع الفيضان قبل ما يوصل (تكلفة 400) أو هتخسر مباني');beep(140,0.5);$('bFlood').style.display='inline-block';banner('🌊 فيضان قادم! ('+flood.left+' ثانية)')}
+function floodStep(){if(!flood)return;flood.left--;if(flood.safe){log('🧱 الدفاعات صدّت الفيضان!');S.money+=300;endFlood();return}
+ banner('🌊 فيضان قادم! ('+Math.max(0,flood.left)+' ثانية)');
+ if(flood.left<=0){let lost=0;for(let k=0;k<W*H;k++){const c=cells[k],dx=k%W-flood.x,dy=Math.floor(k/W)-flood.y;if(dx*dx+dy*dy<=9&&c.t>1){if(isZone(c.t)){c.pop=Math.floor(c.pop*0.3);lost++}else if(Math.random()<0.4){c.t=0;lost++}}}log('🌊 الفيضان ضرب المنطقة ('+flood.x+','+flood.y+') وتضرر '+lost+' مبنى');endFlood()}}
+function endFlood(){flood=null;$('bFlood').style.display='none';banner('')}
+$('bFlood').onclick=()=>{if(!flood)return;if(S.money<400)return toast('الفلوس مش كفاية');S.money-=400;flood.safe=true;toast('🧱 تم تركيب دفاعات الفيضان')};
 function monthly(){
  S.month++;story();log('🧾 تقرير الشهر '+S.month+': دخل '+(S.income*30).toFixed(0)+' / مصروف '+(S.expense*30).toFixed(0)+' / صافي '+((S.income-S.expense)*30).toFixed(0));
  if(S.appr<25){S.badMonths++;log('⚠ الرضا منخفض جدًا ('+S.appr+'%). '+(3-S.badMonths)+' شهور قبل الإقالة!')}else S.badMonths=Math.max(0,S.badMonths-1);
  if(S.badMonths>=3||S.money<-5000)gameOver(S.money<-5000?'💸 المدينة أفلست!':'🗳 المواطنين أقالوك!');
  save();
 }
-function gameOver(why){S.over=true;$('overT').innerHTML=why+'<br><small>وصل عدد السكان '+S.pop+' بعد '+S.month+' شهر</small>';$('over').style.display='flex';try{localStorage.removeItem('smartcity_v1')}catch(e){}}
+function score(){return Math.round(S.pop*3+S.appr*10+Math.max(0,S.money)/50+S.month*20+Object.keys(S.ach||{}).length*150+S.missions*200)}
+function addScore(){try{const b=JSON.parse(localStorage.getItem('smartcity_board')||'[]');b.push({s:score(),p:S.pop,m:S.month,d:new Date().toLocaleDateString('ar-EG')});b.sort((x,y)=>y.s-x.s);localStorage.setItem('smartcity_board',JSON.stringify(b.slice(0,5)))}catch(_){}}
+function renderBoard(){let b=[];try{b=JSON.parse(localStorage.getItem('smartcity_board')||'[]')}catch(_){}$('boardList').innerHTML='<div style="margin:4px 0">نقاط مدينتك الحالية: <b class=good>'+score()+'</b></div>'+(b.length?b.map((r,i)=>'<div style="padding:4px;background:#1b2a49;border-radius:8px;margin:3px 0">'+(i+1)+'. '+r.s+' نقطة · سكان '+r.p+' · '+r.m+' شهر · '+r.d+'</div>').join(''):'<small>مفيش نتايج لسه: النتيجة بتتسجل لما تنتهي حكمك</small>')}
+$('bScore').onclick=()=>{renderBoard();$('board').style.display='flex'};$('boardClose').onclick=()=>$('board').style.display='none';
+function gameOver(why){addScore();S.over=true;$('overT').innerHTML=why+'<br><small>وصل عدد السكان '+S.pop+' بعد '+S.month+' شهر · نقاطك '+score()+'</small>';$('over').style.display='flex';try{localStorage.removeItem('smartcity_v1')}catch(e){}}
 const MISSIONS=[
  ['وصّل السكان لـ 50',()=>S.pop>=50,800],
  ['ابني 3 محطات شمسية',()=>cells.filter(c=>c.t===6).length>=3,1200],
@@ -459,6 +472,7 @@ function draw(t){
  for(const w of walkers){const p=Math.min(1,w.p),px=ox+(w.x+(w.tx-w.x)*p+0.5)*ts,py=oy+(w.y+(w.ty-w.y)*p+0.5)*ts;ctx.fillStyle=w.col;ctx.fillRect(px-ts*0.1,py-ts*0.07,ts*0.2,ts*0.14)}
  if(layer===5){ctx.lineWidth=Math.max(1,ts*0.06);for(let i=0;i<W*H;i++){const p=cells[i];if(p.t!==5&&p.t!==6&&p.t!==7&&p.t!==15)continue;const px=ox+(i%W+0.5)*ts,py=oy+(Math.floor(i/W)+0.5)*ts;const wat=p.t===7;for(let j=0;j<W*H;j++){const z=cells[j];if(!isZone(z.t)||z.pop<=0)continue;const dx=(j%W)-(i%W),dy=Math.floor(j/W)-Math.floor(i/W);if(dx*dx+dy*dy>110)continue;const r=wat?S.wr:S.pr;ctx.strokeStyle=wat?'rgba(80,170,255,'+(0.15+0.4*r)+')':'rgba(255,210,70,'+(0.15+0.4*r)+')';ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(ox+(j%W+0.5)*ts,oy+(Math.floor(j/W)+0.5)*ts);ctx.stroke()}}}
  if(ts>34*dpr){ctx.font='bold '+ts*0.55+'px Tahoma';ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.22)';for(let d=0;d<6;d++){ctx.fillText('حي '+DIST[d],ox+((d%3)*16+8)*ts,oy+((Math.floor(d/3))*16+8)*ts)}}
+ if(flood){const fx=ox+(flood.x+0.5)*ts,fy=oy+(flood.y+0.5)*ts;ctx.fillStyle='rgba(40,120,255,0.25)';ctx.beginPath();ctx.arc(fx,fy,ts*3*(1-flood.left/12),0,6.3);ctx.fill();ctx.strokeStyle='#4da3ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(fx,fy,ts*3,0,6.3);ctx.stroke()}
  for(const b of buses){const p=Math.min(1,b.p),px=ox+(b.x+(b.tx-b.x)*p+0.5)*ts,py=oy+(b.y+(b.ty-b.y)*p+0.5)*ts;ctx.fillStyle='#ffc107';ctx.fillRect(px-ts*0.22,py-ts*0.13,ts*0.44,ts*0.26);ctx.fillStyle='#222';ctx.fillRect(px-ts*0.16,py-ts*0.07,ts*0.1,ts*0.08);ctx.fillRect(px+ts*0.04,py-ts*0.07,ts*0.1,ts*0.08)}
  if(sel){ctx.strokeStyle='#ffd24a';ctx.lineWidth=2;ctx.strokeRect(ox+sel[0]*ts,oy+sel[1]*ts,ts,ts)}
  const dn=Math.max(0,-Math.sin(S.tick/20));ctx.fillStyle='rgba(5,10,40,'+(dn*0.45)+')';ctx.fillRect(ox,oy,ts*W,ts*H);
@@ -495,7 +509,7 @@ try{const j=JSON.parse(localStorage.getItem('smartcity_v1')||'null');if(j&&j.S&&
 COV=coverage();
 $('tax').value=S.tax;$('taxV').textContent=S.tax;
 resize();ui();checkMissions();loop();requestAnimationFrame(frame);
-window.__city={cam:()=>[ts,ox,oy],get S(){return S},get cells(){return cells},step,apply,setTool:t=>{tool=t},scenario};
+window.__city={cam:()=>[ts,ox,oy],get S(){return S},get cells(){return cells},step,apply,setTool:t=>{tool=t},scenario,startFlood,flood:()=>flood,score};
 })();
 </script>
 </body>
