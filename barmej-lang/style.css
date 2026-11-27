@@ -296,3 +296,19 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 
 .backup-row{ display:flex; gap:8px; flex-wrap:wrap; padding:12px; border-top:1px solid var(--line); margin-top:auto; }
 #restoreFile{ display:none; }
+
+/* --- phone: compact one-row headers so the editor and output get the height --- */
+@media (max-width:600px){
+  .actions{ flex-wrap:nowrap; overflow-x:auto; max-width:calc(100% - 90px); scrollbar-width:none }
+  .actions::-webkit-scrollbar{ display:none }
+  .actions button{ flex:0 0 auto }
+  .editor-head{ flex-wrap:nowrap; gap:6px; padding:4px 8px; overflow-x:auto; scrollbar-width:none }
+  .editor-head::-webkit-scrollbar{ display:none }
+  .editor-head .fname{ display:none }
+  .editor-head > span{ display:flex; gap:4px; flex-wrap:nowrap }
+  .editor-head button{ white-space:nowrap; flex:0 0 auto; padding:5px 9px }
+  .console-head{ padding:4px 8px; gap:6px }
+  .console-head > div{ display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; max-width:78% }
+  .console-head button, .console-head select{ white-space:nowrap; flex:0 0 auto; padding:5px 9px }
+  .runbar{ padding:6px 8px }
+}
