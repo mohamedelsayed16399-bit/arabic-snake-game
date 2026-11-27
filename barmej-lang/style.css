@@ -355,3 +355,11 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .proj-out{margin-top:10px;padding:10px;border-radius:8px;background:#0b1220;color:#a7f3d0;white-space:pre-wrap;min-height:20px;max-height:220px;overflow:auto;direction:rtl}
 .proj-canvas{display:block;margin-top:10px;width:100%;max-width:450px;border-radius:10px;border:1px solid var(--line)}
 .proj-canvas.hidden{display:none}
+.path-card{border:1px solid var(--line);background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:12px}
+.path-card.passed{border-color:var(--accent)}.path-card.locked{opacity:.55}
+.path-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px}.path-top span{color:var(--muted);font-size:14px}
+.path-sub{color:var(--muted);font-size:13px;margin-bottom:8px}
+.exam{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}.exam-q{margin-bottom:16px}.exam-t{font-weight:700;margin-bottom:6px}
+.exam-code{background:#0b1220;border:1px solid var(--line);border-radius:8px;padding:10px;direction:rtl;text-align:right;font:14px/1.7 monospace;margin:6px 0;white-space:pre-wrap}
+.exam-opt{display:block;padding:8px 12px;border:1px solid var(--line);border-radius:8px;margin:4px 0;cursor:pointer}
+.exam-opt.on{border-color:var(--accent2)}.exam-opt.right{border-color:var(--accent);background:rgba(45,212,167,.15)}.exam-opt.wrong{border-color:var(--err);background:rgba(255,107,122,.12)}
