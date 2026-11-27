@@ -73,7 +73,7 @@ select{background:#1b2a49;color:#fff;border:1px solid #2a3b60;border-radius:8px;
  </div>
  <div id="main">
   <div id="cv-wrap"><canvas id="cv"></canvas><div id="zoomb" style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:4"><button class="b" id="zin" style="font-size:20px;padding:4px 12px">＋</button><button class="b" id="zout" style="font-size:20px;padding:4px 12px">－</button></div><div id="banner"></div><div id="toast"></div>
-   <div id="modal" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🔬 أبحاث المدينة الذكية</h3><div id="resList"></div><h3 style="margin:8px 0">📜 سياسات المحافظ (تكلفة بالثانية)</h3><div id="polList"></div><button class="b" id="resClose">إغلاق</button></div></div><div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
+   <div id="modal" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🔬 أبحاث المدينة الذكية</h3><div id="resList"></div><h3 style="margin:8px 0">📜 سياسات المحافظ (تكلفة بالثانية)</h3><div id="polList"></div><button class="b" id="resClose">إغلاق</button></div></div><div id="slots" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">💾 خانات الحفظ</h3><div id="slotList"></div><button class="b" id="slotClose">إغلاق</button></div></div><div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
    <div id="start"><h1>🏙 المحافظ</h1><p>انت محافظ مدينة ذكية. ابني الطرق والمناطق السكنية والتجارية والصناعية، وفّر كهرباء ومياه، وحافظ على الأمان والصحة. المواطنين بيتصرفوا حسب الظروف: لو الكهرباء قطعت أو المرور اتزحم هيتضايقوا وممكن يطردوك!</p><p>💡 اختار أداة من تحت واضغط أو اسحب على الخريطة. اضغط على أي مبنى (أداة 🔍) لتشوف حالته وتطوره أو ترسل الطوارئ.</p><button class="b g" id="bGo" style="font-size:18px;padding:10px 26px">ابدأ الحكم</button></div>
   </div>
   <div id="side"><div id="mission"></div><h4>🔍 معلومات</h4><div id="info">اضغط على مبنى</div><h4>📈 السكان والميزانية</h4><canvas id="chart" width="260" height="60" style="width:100%;height:60px;flex:none"></canvas><h4>📰 أخبار المدينة</h4><div id="feed"></div></div>
@@ -100,10 +100,11 @@ const DEFS={
  12:{n:'حديقة',c:120,u:1,i:'🌳'},
  13:{n:'محطة مترو',c:1200,u:8,i:'🚇'},
  14:{n:'ملعب',c:1500,u:10,i:'🏟'},
- 15:{n:'توربين رياح',c:900,u:3,i:'🌬'}
+ 15:{n:'توربين رياح',c:900,u:3,i:'🌬'},
+ 16:{n:'موقف أتوبيس',c:300,u:2,i:'🚌'}
 };
-const TOOLS=[['sel','🔍','فحص',0],[1,'🛣','طريق',20],[2,'🏠','سكني',100],[3,'🏬','تجاري',160],[4,'🏭','صناعي',160],[5,'⚡','كهرباء',1500],[6,'☀️','شمسية',700],[7,'💧','مياه',700],[8,'👮','شرطة',500],[9,'🚒','إطفاء',500],[10,'🏥','مستشفى',900],[11,'🏫','مدرسة',600],[12,'🌳','حديقة',120],[13,'🚇','مترو',1200],[14,'🏟','ملعب',1500],[15,'🌬','رياح',900],['pan','✋','تحريك',0],['bd','🧨','هدم',0]];
-const RAD={8:8,9:7,10:9,11:8,12:4,13:6,14:10};
+const TOOLS=[['sel','🔍','فحص',0],[1,'🛣','طريق',20],[2,'🏠','سكني',100],[3,'🏬','تجاري',160],[4,'🏭','صناعي',160],[5,'⚡','كهرباء',1500],[6,'☀️','شمسية',700],[7,'💧','مياه',700],[8,'👮','شرطة',500],[9,'🚒','إطفاء',500],[10,'🏥','مستشفى',900],[11,'🏫','مدرسة',600],[12,'🌳','حديقة',120],[13,'🚇','مترو',1200],[14,'🏟','ملعب',1500],[15,'🌬','رياح',900],[16,'🚌','أتوبيس',300],['pan','✋','تحريك',0],['bd','🧨','هدم',0]];
+const RAD={8:8,9:7,10:9,11:8,12:4,13:6,14:10,16:4};
 const NAMES=['أحمد','محمد','منى','سارة','يوسف','هدى','كريم','نور','عمر','ليلى','خالد','دينا','مصطفى','ريم','طارق','سلمى','إبراهيم','آية','حسن','مريم'];
 let selW=null,S,cells,walkers=[],sel=null,tool='sel',layer=0,speed=1,paused=false,timer=null,started=false;
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
@@ -129,7 +130,7 @@ const N4=[[1,0],[-1,0],[0,1],[0,-1]];
 function isZone(t){return t>=2&&t<=4}
 function cap(c){return 10*c.lvl*(c.t===4?1.2:1)}
 function coverage(){
- const cov={8:new Uint8Array(W*H),9:new Uint8Array(W*H),10:new Uint8Array(W*H),11:new Uint8Array(W*H),12:new Uint8Array(W*H),13:new Uint8Array(W*H),14:new Uint8Array(W*H)};
+ const cov={8:new Uint8Array(W*H),9:new Uint8Array(W*H),10:new Uint8Array(W*H),11:new Uint8Array(W*H),12:new Uint8Array(W*H),13:new Uint8Array(W*H),14:new Uint8Array(W*H),16:new Uint8Array(W*H)};
  if(S.money<0)return cov;
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=cells[idx(x,y)],r=RAD[c.t];if(!r)continue;
   for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(dx*dx+dy*dy>r*r)continue;const X=x+dx,Y=y+dy;if(inb(X,Y))cov[c.t][idx(X,Y)]=1}}
@@ -158,7 +159,7 @@ function step(){
   if(isZone(c.t)&&c.pop>0&&c.acc){const rs=[];
    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const X=x+dx,Y=y+dy;if(inb(X,Y)&&cells[idx(X,Y)].t===1)rs.push(idx(X,Y))}
    for(const r of rs)LOAD[r]+=c.pop*0.35/rs.length*2}}
- for(let i=0;i<W*H;i++){if(COV[13][i])LOAD[i]*=0.55;if(RS.lights)LOAD[i]*=0.75;if(PL.flex)LOAD[i]*=0.88}
+ for(let i=0;i<W*H;i++){if(COV[13][i])LOAD[i]*=0.55;if(COV[16][i])LOAD[i]*=0.82;if(RS.lights)LOAD[i]*=0.75;if(PL.flex)LOAD[i]*=0.88}
  let tl=0,rc=0;
  for(let i=0;i<W*H;i++)if(cells[i].t===1){rc++;tl+=Math.min(1.5,LOAD[i]/9)}
  S.cong=rc?Math.min(1,tl/rc):0;
@@ -172,7 +173,7 @@ function step(){
   let h=45+S.pr*15+S.wr*10;
   if(COV[10][i])h+=6;if(COV[8][i])h+=6;if(COV[9][i])h+=4;if(COV[12][i])h+=8;if(c.t===2&&COV[11][i])h+=5;
   if(c.t===2)h-=Math.min(14,pollN[i]*4);
-  if(COV[14][i])h+=8;
+  if(COV[14][i])h+=8;if(COV[16][i])h+=3;
   h-=S.cong*14;h-=c.crime?20:0;h-=c.sick?10:0;h-=c.fire?25:0;h-=Math.max(0,S.tax-12)*1.6;
   if(S.fest>0)h+=10;if(PL.clean)h+=4;
   c.h=Math.max(0,Math.min(100,h));
@@ -360,10 +361,23 @@ let AC=null,snd=true;
 function beep(f,d){if(!snd)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='square';g.gain.value=0.03;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(_){}}
 $('bSnd').onclick=()=>{snd=!snd;$('bSnd').textContent=snd?'🔊':'🔇'};
 function roads(){const r=[];for(let i=0;i<W*H;i++)if(cells[i].t===1)r.push(i);return r}
+let buses=[];
+function moveW(w,dt,rd){
+  if(cells[idx(w.x,w.y)].t!==1&&w.p>=1&&rd.length){w.x=w.tx=rd[0]%W;w.y=w.ty=Math.floor(rd[0]/W)}
+  w.p+=dt*w.sp*(S.cong>0.6?0.5:1)*speed*(paused?0:1);
+  if(w.p>=1){w.px=w.x;w.py=w.y;w.x=w.tx;w.y=w.ty;w.p=0;
+   const opts=N4.map(([a,b])=>[w.x+a,w.y+b]).filter(([a,b])=>inb(a,b)&&cells[idx(a,b)].t===1);
+   const f=opts.filter(([a,b])=>!(a===w.px&&b===w.py));const o=f.length?f:opts;
+   if(o.length){const n=o[Math.floor(Math.random()*o.length)];w.tx=n[0];w.ty=n[1]}else{w.tx=w.x;w.ty=w.y;w.p=1}}
+}
 function updWalkers(dt){
  const rd=roads(),want=Math.min(70,Math.floor(S.pop/3));
  while(walkers.length<want&&rd.length){const i=rd[Math.floor(Math.random()*rd.length)];walkers.push({x:i%W,y:Math.floor(i/W),tx:i%W,ty:Math.floor(i/W),p:1,px:-1,py:-1,name:NAMES[Math.floor(Math.random()*NAMES.length)],job:['موظف','سائق','طبيب','معلم','عامل','تاجر'][Math.floor(Math.random()*6)],col:['#ffd24a','#ff6b6b','#6bd6ff','#fff','#9cff6b'][Math.floor(Math.random()*5)],sp:1.4+Math.random()})}
  while(walkers.length>want)walkers.pop();
+ const stops=cells.reduce((a,c)=>a+(c.t===16?1:0),0),wb=Math.min(8,stops*2);
+ while(buses.length<wb&&rd.length){const i=rd[Math.floor(Math.random()*rd.length)];buses.push({x:i%W,y:Math.floor(i/W),tx:i%W,ty:Math.floor(i/W),p:1,px:-1,py:-1,sp:1.1})}
+ while(buses.length>wb)buses.pop();
+ for(const b of buses)moveW(b,dt,rd);
  for(const w of walkers){
   if(cells[idx(w.x,w.y)].t!==1&&w.p>=1&&rd.length){w.x=w.tx=rd[0]%W;w.y=w.ty=Math.floor(rd[0]/W)}
   w.p+=dt*w.sp*(S.cong>0.6?0.5:1)*speed*(paused?0:1);
@@ -397,12 +411,12 @@ function draw(t){
    if(!c.acc||S.pr<0.6){ctx.font=ts*0.4+'px sans-serif';ctx.textAlign='center';ctx.fillText(!c.acc?'🚫':'⚡',X+ts/2,Y+ts*0.45)}
    if(c.t===4&&c.pop>0){ctx.fillStyle='#ccc8';const s=(t/600+x)%1;ctx.beginPath();ctx.arc(X+ts*0.75,Y+ts*0.1-s*ts*0.3,ts*0.1*(1+s),0,6.3);ctx.fill()}
   }else if(c.t){
-   ctx.fillStyle=({5:'#4a3b2f',6:'#26467a',7:'#2a5d7a',8:'#2d3f8a',9:'#8a2d2d',10:'#e6e6e6',11:'#8a7a2d',12:'#1f6b2a',13:'#5a2d8a',14:'#2d8a6d',15:'#3a6a8a'})[c.t];
+   ctx.fillStyle=({5:'#4a3b2f',6:'#26467a',7:'#2a5d7a',8:'#2d3f8a',9:'#8a2d2d',10:'#e6e6e6',11:'#8a7a2d',12:'#1f6b2a',13:'#5a2d8a',14:'#2d8a6d',15:'#3a6a8a',16:'#b8860b'})[c.t];
    ctx.fillRect(X+ts*0.06,Y+ts*0.06,ts*0.88,ts*0.88);
    ctx.font=ts*0.65+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.fillText(DEFS[c.t].i,X+ts/2,Y+ts/2+1);ctx.textBaseline='alphabetic';
   }
   if(layer){
-   if(layer===3){if(COV[8][i]||COV[10][i]||COV[9][i]||COV[13][i]||COV[14][i]){ctx.fillStyle='rgba(60,120,255,0.25)';ctx.fillRect(X,Y,ts,ts)}if(COV[9][i]){ctx.fillStyle='rgba(255,60,60,.2)';ctx.fillRect(X,Y,ts,ts)}}
+   if(layer===3){if(COV[8][i]||COV[10][i]||COV[9][i]||COV[13][i]||COV[14][i]||COV[16][i]){ctx.fillStyle='rgba(60,120,255,0.25)';ctx.fillRect(X,Y,ts,ts)}if(COV[9][i]){ctx.fillStyle='rgba(255,60,60,.2)';ctx.fillRect(X,Y,ts,ts)}}
    else{let v=null;
     if(layer===1&&c.t===1)v=Math.min(1,LOAD[i]/9);
     else if(layer===2&&isZone(c.t))v=1-c.h/100;
@@ -414,6 +428,7 @@ function draw(t){
   else if(c.sick){ctx.font=ts*0.6+'px sans-serif';ctx.textAlign='center';ctx.fillText('🤒',X+ts/2,Y+ts*0.7)}
  }
  for(const w of walkers){const p=Math.min(1,w.p),px=ox+(w.x+(w.tx-w.x)*p+0.5)*ts,py=oy+(w.y+(w.ty-w.y)*p+0.5)*ts;ctx.fillStyle=w.col;ctx.fillRect(px-ts*0.1,py-ts*0.07,ts*0.2,ts*0.14)}
+ for(const b of buses){const p=Math.min(1,b.p),px=ox+(b.x+(b.tx-b.x)*p+0.5)*ts,py=oy+(b.y+(b.ty-b.y)*p+0.5)*ts;ctx.fillStyle='#ffc107';ctx.fillRect(px-ts*0.22,py-ts*0.13,ts*0.44,ts*0.26);ctx.fillStyle='#222';ctx.fillRect(px-ts*0.16,py-ts*0.07,ts*0.1,ts*0.08);ctx.fillRect(px+ts*0.04,py-ts*0.07,ts*0.1,ts*0.08)}
  if(sel){ctx.strokeStyle='#ffd24a';ctx.lineWidth=2;ctx.strokeRect(ox+sel[0]*ts,oy+sel[1]*ts,ts,ts)}
  const dn=Math.max(0,-Math.sin(S.tick/20));ctx.fillStyle='rgba(5,10,40,'+(dn*0.45)+')';ctx.fillRect(ox,oy,ts*W,ts*H);
  if(dn>0.3&&S.pr>0.6){for(let i=0;i<W*H;i++){const c=cells[i];if(c.t===1&&((i*7)%3===0)){const X=ox+(i%W+0.5)*ts,Y=oy+(Math.floor(i/W)+0.5)*ts;const g=ctx.createRadialGradient(X,Y,0,X,Y,ts*1.2);g.addColorStop(0,'rgba(255,220,120,'+dn*0.5+')');g.addColorStop(1,'rgba(255,220,120,0)');ctx.fillStyle=g;ctx.fillRect(X-ts*1.2,Y-ts*1.2,ts*2.4,ts*2.4)}}}
@@ -426,7 +441,14 @@ $('bPause').onclick=()=>{paused=!paused;$('bPause').textContent=paused?'▶':'�
 $('layer').onchange=e=>layer=+e.target.value;
 $('tax').oninput=e=>{S.tax=+e.target.value;$('taxV').textContent=S.tax};
 function save(){try{localStorage.setItem('smartcity_v1',JSON.stringify({S,cells}));return true}catch(e){return false}}
-$('bSave').onclick=()=>toast(save()?'💾 تم الحفظ':'تعذر الحفظ');
+function slotInfo(n){try{const j=JSON.parse(localStorage.getItem('smartcity_slot'+n)||'null');return j?'سكان '+j.S.pop+' · شهر '+j.S.month+' · '+Math.floor(j.S.money)+'💰':'فاضية'}catch(e){return 'فاضية'}}
+function renderSlots(){$('slotList').innerHTML=[1,2,3].map(n=>'<div style="margin:5px 0;padding:6px;background:#1b2a49;border-radius:8px">خانة '+n+': <small>'+slotInfo(n)+'</small><br><button class="b g" data-s="save'+n+'">حفظ هنا</button><button class="b" data-s="load'+n+'">تحميل</button></div>').join('')}
+$('bSave').onclick=()=>{save();renderSlots();$('slots').style.display='flex'};
+$('slotClose').onclick=()=>$('slots').style.display='none';
+$('slotList').onclick=e=>{const k=e.target.dataset&&e.target.dataset.s;if(!k)return;const n=k.slice(-1);
+ if(k.startsWith('save')){try{localStorage.setItem('smartcity_slot'+n,JSON.stringify({S,cells}));toast('💾 تم الحفظ في خانة '+n)}catch(_){toast('تعذر الحفظ')}}
+ else{try{const j=JSON.parse(localStorage.getItem('smartcity_slot'+n)||'null');if(!j||j.cells.length!==W*H)return toast('الخانة فاضية');S=j.S;cells=j.cells;S.over=false;$('over').style.display='none';walkers=[];buses=[];sel=null;COV=coverage();$('tax').value=S.tax;$('taxV').textContent=S.tax;renderFeed();ui();toast('📂 تم التحميل');$('slots').style.display='none'}catch(_){toast('خطأ في التحميل')}}
+ renderSlots()};
 $('bReset').onclick=()=>{if(confirm('ابدأ مدينة جديدة؟ هيتمسح الحالي.')){fresh();COV=coverage();ui()}};
 $('bAgain').onclick=()=>{$('over').style.display='none';fresh();COV=coverage();ui()};
 $('bGo').onclick=()=>{$('start').style.display='none';started=true;ui()};
