@@ -369,3 +369,5 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .hot-lines{padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .hot-title{width:100%;color:var(--muted);font-size:12px}
 .hot-chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:2px 8px;font-size:12px}
+.runbar{flex-wrap:wrap}
+.stepbar{flex-wrap:wrap}
