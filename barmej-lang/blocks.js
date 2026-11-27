@@ -72,7 +72,7 @@ function importCode(src){
 const code=()=>gen(ws,0);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const root=document.createElement('section'); root.id='panel-blocks'; root.className='panel';
-root.innerHTML='<div class="bk-top"><b>🧩 برمجة بالبلوكات</b><span class="bk-hint">اضغط بلوك من الجنب يتضاف في المكان المحدد (الإطار الأخضر)، وغيّر القيم جواه.</span></div><div class="bk-main"><div class="bk-pal" id="bkPal"></div><div class="bk-work"><div id="bkTree" class="bk-tree"></div><div class="bk-actions"><button id="bkRun" class="run">▶ شغّل في المحرر</button><button id="bkCopy" class="ghost small">📥 انقل للمحرر</button><button id="bkEx" class="ghost small">✨ مثال: مربع</button><button id="bkEx2" class="ghost small">🌈 مثال: وردة</button><button id="bkImp" class="ghost small">📤 هات كود المحرر</button><button id="bkClear" class="ghost small">🗑️ فضّي</button></div><div class="bk-actions bk-save"><input id="bkName" placeholder="اسم برنامج البلوكات" dir="rtl"><button id="bkSave" class="ghost small">💾 احفظ</button><select id="bkSel"></select><button id="bkLoad" class="ghost small">📂 افتح</button><button id="bkDel" class="ghost small">✕ احذف</button></div><div class="bk-code-h">الكود الناتج:</div><pre id="bkCode" class="bk-code"></pre></div></div>';
+root.innerHTML='<div class="bk-top"><b>🧩 برمجة بالبلوكات</b><span class="bk-hint">اضغط بلوك من الجنب يتضاف في المكان المحدد (الإطار الأخضر)، وغيّر القيم جواه.</span></div><div class="bkm" id="bkMis"><div class="bkm-head"><b>🎓 مهام تعليمية</b><span id="bkmProg" class="bkm-prog"></span></div><div id="bkmChips" class="bkm-chips"></div><div id="bkmText" class="bkm-text"></div><div class="bkm-act"><button id="bkmCheck" class="run small">✔ تحقق</button><button id="bkmHint" class="ghost small">💡 ورّيني الحل</button><button id="bkmNext" class="ghost small">التالية ◀</button><span id="bkmRes" class="bkm-res"></span></div></div><div class="bk-main"><div class="bk-pal" id="bkPal"></div><div class="bk-work"><div id="bkTree" class="bk-tree"></div><div class="bk-actions"><button id="bkRun" class="run">▶ شغّل في المحرر</button><button id="bkCopy" class="ghost small">📥 انقل للمحرر</button><button id="bkEx" class="ghost small">✨ مثال: مربع</button><button id="bkEx2" class="ghost small">🌈 مثال: وردة</button><button id="bkImp" class="ghost small">📤 هات كود المحرر</button><button id="bkClear" class="ghost small">🗑️ فضّي</button></div><div class="bk-actions bk-save"><input id="bkName" placeholder="اسم برنامج البلوكات" dir="rtl"><button id="bkSave" class="ghost small">💾 احفظ</button><select id="bkSel"></select><button id="bkLoad" class="ghost small">📂 افتح</button><button id="bkDel" class="ghost small">✕ احذف</button></div><div class="bk-code-h">الكود الناتج:</div><pre id="bkCode" class="bk-code"></pre></div></div>';
 const dp=$('#panel-docs'); dp.parentNode.insertBefore(root,dp);
 const nav=document.querySelector('.tabs'); const tb=document.createElement('button'); tb.className='tab'; tb.dataset.panel='blocks'; tb.textContent='🧩 بلوكات';
 const ed=nav.querySelector('[data-panel="challenges"]'); nav.insertBefore(tb,ed?ed.nextSibling:null);
@@ -109,6 +109,36 @@ $('#bkLoad').onclick=()=>{ const o=sget(); const k=$('#bkSel').value; if(!k||!o[
 $('#bkDel').onclick=()=>{ const o=sget(); const k=$('#bkSel').value; if(!k) return; delete o[k]; try{ localStorage.setItem(SK,JSON.stringify(o)); }catch(e){} fillSel(); };
 $('#bkImp').onclick=()=>{ const c=$('#code').value; ws=importCode(c); target=null; save(); render(); };
 fillSel();
+
+/* 🎓 مهام تعليمية: كل مهمة بتتحقق من الناتج ومن استخدام أنواع بلوكات معيّنة */
+const MK='barmej-blocks-missions'; let mdone=[]; try{ mdone=JSON.parse(localStorage.getItem(MK))||[]; }catch(e){}
+const used=(list,acc)=>{ list.forEach(b=>{ acc.add(b.t); used(b.k,acc); used(b.k2,acc); }); return acc; };
+const MIS=[
+ {t:'أول بلوك',x:'اضغط بلوك «اطبع» وخلّي القيمة <code>"أهلاً"</code>، وبعدها اضغط تحقق.',need:['print'],ok:(o)=>o.length>=1&&o[0]==='أهلاً',msg:'لازم يطبع: أهلاً',sol:[B('print',['"أهلاً"'])]},
+ {t:'كرر ٣ مرات',x:'اطبع كلمة <code>"برمجة"</code> ٣ مرات: ضيف بلوك «كرر» (٣)، واختار «جوّه» وضيف جواه بلوك اطبع.',need:['repeat','print'],ok:(o)=>o.length===3&&o.every(x=>x==='برمجة'),msg:'المفروض ٣ أسطر كلها: برمجة',sol:[B('repeat',['٣'],[B('print',['"برمجة"'])])]},
+ {t:'متغير',x:'اعمل متغير <code>س</code> قيمته ٥ بالبلوك «خلي»، وبعدها اطبع <code>س * ٢</code>.',need:['let','print'],ok:(o)=>o.length===1&&o[0]==='10',msg:'المفروض يطبع 10',sol:[B('let',['س','٥']),B('print',['س * ٢'])]},
+ {t:'مربع بالسلحفاة',x:'ارسم مربع: كرر ٤ مرات: قدم(١٠٠) ثم يمين(٩٠).',need:['repeat','fwd','right'],ops:true,ok:(o,ops)=>ops.filter(a=>a.op==='fd').length===4&&ops.filter(a=>a.op==='rt'&&Math.round(a.z)===90).length===4,msg:'محتاج ٤ مرات قدم و٤ مرات يمين(٩٠)',sol:[B('repeat',['٤'],[B('fwd',['١٠٠']),B('right',['٩٠'])])]},
+ {t:'لو / وإلا',x:'خلي <code>س = ٧</code>. لو س أكبر من ٥ اطبع <code>"كبير"</code> وإلا اطبع <code>"صغير"</code>. استخدم بلوك «لو / وإلا».',need:['let','ifelse','print'],ok:(o)=>o.length===1&&o[0]==='كبير',msg:'المفروض يطبع: كبير',sol:[B('let',['س','٧']),B('ifelse',['س > ٥'],[B('print',['"كبير"'])],[B('print',['"صغير"'])])]},
+ {t:'لكل عنصر',x:'اطبع كل عنصر من القايمة <code>["أ"، "ب"، "ج"]</code> في سطر: بلوك «لكل» (المتغير ر، في القايمة) وجواه اطبع ر.',need:['each','print'],ok:(o)=>o.length===3&&o[0]==='أ'&&o[1]==='ب'&&o[2]==='ج',msg:'المفروض ٣ أسطر: أ ب ج',sol:[B('each',['ر','["أ"، "ب"، "ج"]'],[B('print',['ر'])])]},
+ {t:'دالة',x:'اعمل دالة اسمها <code>ضعف</code> مدخلها <code>ن</code> وترجّع <code>ن * ٢</code> (بلوك دالة + ارجع)، وبعدها اطبع <code>ضعف(٢١)</code>.',need:['func','ret','print'],ok:(o)=>o.length===1&&o[0]==='42',msg:'المفروض يطبع 42',sol:[B('func',['ضعف','ن'],[B('ret',['ن * ٢'])]),B('print',['ضعف(٢١)'])]},
+ {t:'عدّاد بالحلقة',x:'ابدأ <code>م = ٠</code> وبلوك «طالما م &lt; ٥»: جواه اطبع م وغيّر م إلى م + ١. لازم يطبع ٠ لـ ٤.',need:['let','while','print','set'],ok:(o)=>o.length===5&&o.join(',')==='0,1,2,3,4',msg:'المفروض يطبع 0,1,2,3,4 كل رقم في سطر',sol:[B('let',['م','٠']),B('while',['م < ٥'],[B('print',['م']),B('set',['م','م + ١'])])]},
+ {t:'نجمة ملوّنة',x:'اختار لون بلوك «لون» وارسم نجمة: كرر ٥: قدم(١٠٠) ويمين(١٤٤).',need:['color','repeat','fwd','right'],ops:true,ok:(o,ops)=>ops.filter(a=>a.op==='fd').length===5&&ops.filter(a=>a.op==='rt'&&Math.round(a.z)===144).length===5&&ops.some(a=>a.op==='color'),msg:'محتاج لون + ٥ مرات (قدم ويمين ١٤٤)',sol:[B('color',['"#fbbf24"']),B('repeat',['٥'],[B('fwd',['١٠٠']),B('right',['١٤٤'])])]}
+];
+let mi=0;
+const mText=$('#bkmText'), mRes=$('#bkmRes');
+function mRender(){ const ch=$('#bkmChips'); ch.innerHTML=''; MIS.forEach((m,i)=>{ const b=document.createElement('button'); b.className='chip'+(i===mi?' on':''); b.textContent=(mdone.includes(i)?'✔ ':'')+(i+1)+'. '+m.t; b.onclick=()=>{ mi=i; mRender(); }; ch.appendChild(b); });
+  $('#bkmProg').textContent=mdone.length+' من '+MIS.length+' اتحلوا'; mText.innerHTML=MIS[mi].x; mRes.textContent=''; mRes.className='bkm-res'; }
+$('#bkmNext').onclick=()=>{ mi=(mi+1)%MIS.length; mRender(); };
+$('#bkmHint').onclick=()=>{ ws=JSON.parse(JSON.stringify(MIS[mi].sol)); target=null; save(); render(); mRes.textContent='اتحط الحل في مساحة الشغل: دوس تحقق وشوف إزاي اتبنى.'; mRes.className='bkm-res'; };
+$('#bkmCheck').onclick=()=>{ const m=MIS[mi]; const u=used(ws,new Set()); const miss=m.need.filter(t=>!u.has(t));
+  if(miss.length){ mRes.className='bkm-res bad'; mRes.textContent='لسه ناقصك بلوك: '+miss.map(t=>DEFS[t].lbl).join('، '); return; }
+  const c=code(); const out=[],ops=[]; let r; try{ r=Barmej.runSource(c,{print:x=>out.push(String(x)),ask:()=>'5',draw:o=>ops.push(o),sleep(){}},{maxSteps:2e5}); }catch(e){ r={ok:false,error:String(e)}; }
+  if(!r.ok){ mRes.className='bkm-res bad'; mRes.textContent='الكود فيه خطأ: '+(r.error&&r.error.message||r.error); return; }
+  if(!m.ok(out,ops)){ mRes.className='bkm-res bad'; mRes.textContent='لسه: '+m.msg; return; }
+  mRes.className='bkm-res ok'; mRes.textContent='برافو! المهمة اتحلت 🎉'; if(!mdone.includes(mi)){ mdone.push(mi); try{ localStorage.setItem(MK,JSON.stringify(mdone)); }catch(e){} }
+  $('#bkmProg').textContent=mdone.length+' من '+MIS.length+' اتحلوا'; [...$('#bkmChips').children][mi].classList.add('done'); [...$('#bkmChips').children][mi].textContent='✔ '+(mi+1)+'. '+m.t; };
+mRender();
+window.BARMEJ_BLOCK_MISSIONS=MIS;
 window.BARMEJ_BLOCKS={gen,mk,DEFS,B,importCode};
 
 render();
