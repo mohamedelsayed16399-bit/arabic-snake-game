@@ -74,7 +74,7 @@ select{background:#1b2a49;color:#fff;border:1px solid #2a3b60;border-radius:8px;
  <div id="main">
   <div id="cv-wrap"><canvas id="cv"></canvas><div id="zoomb" style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:4"><button class="b" id="zin" style="font-size:20px;padding:4px 12px">＋</button><button class="b" id="zout" style="font-size:20px;padding:4px 12px">－</button></div><div id="banner"></div><div id="toast"></div>
    <div id="modal" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🔬 أبحاث المدينة الذكية</h3><div id="resList"></div><h3 style="margin:8px 0">📜 سياسات المحافظ (تكلفة بالثانية)</h3><div id="polList"></div><button class="b" id="resClose">إغلاق</button></div></div><div id="slots" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">💾 خانات الحفظ</h3><div id="slotList"></div><button class="b" id="slotClose">إغلاق</button></div></div><div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
-   <div id="start"><h1>🏙 المحافظ</h1><p>انت محافظ مدينة ذكية. ابني الطرق والمناطق السكنية والتجارية والصناعية، وفّر كهرباء ومياه، وحافظ على الأمان والصحة. المواطنين بيتصرفوا حسب الظروف: لو الكهرباء قطعت أو المرور اتزحم هيتضايقوا وممكن يطردوك!</p><p>💡 اختار أداة من تحت واضغط أو اسحب على الخريطة. اضغط على أي مبنى (أداة 🔍) لتشوف حالته وتطوره أو ترسل الطوارئ.</p><button class="b g" id="bGo" style="font-size:18px;padding:10px 26px">ابدأ الحكم</button></div>
+   <div id="start"><h1>🏙 المحافظ</h1><p>انت محافظ مدينة ذكية. ابني الطرق والمناطق السكنية والتجارية والصناعية، وفّر كهرباء ومياه، وحافظ على الأمان والصحة. المواطنين بيتصرفوا حسب الظروف: لو الكهرباء قطعت أو المرور اتزحم هيتضايقوا وممكن يطردوك!</p><p>💡 اختار أداة من تحت واضغط أو اسحب على الخريطة. اضغط على أي مبنى (أداة 🔍) لتشوف حالته وتطوره أو ترسل الطوارئ.</p><button class="b g" id="bGo" style="font-size:18px;padding:10px 26px">ابدأ الحكم</button><div style="margin-top:6px;font-size:13px">أو اختار تحدي:</div><div><button class="b o" data-sc="1">🚗 مدينة مزدحمة</button><button class="b o" data-sc="2">⚡ أزمة طاقة</button><button class="b o" data-sc="3">💸 ميزانية شحيحة</button></div></div>
   </div>
   <div id="side"><div id="mission"></div><h4>🔍 معلومات</h4><div id="info">اضغط على مبنى</div><h4>📈 السكان والميزانية</h4><canvas id="chart" width="260" height="60" style="width:100%;height:60px;flex:none"></canvas><h4>📰 أخبار المدينة</h4><div id="feed"></div></div>
  </div>
@@ -451,6 +451,12 @@ $('slotList').onclick=e=>{const k=e.target.dataset&&e.target.dataset.s;if(!k)ret
  renderSlots()};
 $('bReset').onclick=()=>{if(confirm('ابدأ مدينة جديدة؟ هيتمسح الحالي.')){fresh();COV=coverage();ui()}};
 $('bAgain').onclick=()=>{$('over').style.display='none';fresh();COV=coverage();ui()};
+function scenario(n){fresh();
+ if(n===1){S.money=9000;for(let x=14;x<=34;x++)for(const y of [14,15,17,18]){const c=cells[idx(x,y)];if(c.t===0&&x%3!==0){c.t=[2,3,4,2][x%4];c.pop=8}}log('🚗 تحدي: المدينة مزدحمة! وفّر مترو وأتوبيس وطرق أكتر.')}
+ else if(n===2){S.money=12000;S.heat=60;cells.forEach(c=>{if(c.t===5)c.t=0});for(let x=14;x<=34;x++){const c=cells[idx(x,14)];if(c.t===0&&x%2){c.t=2;c.pop=8}}log('⚡ تحدي: أزمة طاقة وموجة حر! ابني محطات.')}
+ else if(n===3){S.money=1500;log('💸 تحدي: الميزانية شحيحة. اصرف بحكمة وارفع الضرايب بحذر.')}
+ COV=coverage();$('tax').value=S.tax;$('taxV').textContent=S.tax;$('start').style.display='none';started=true;ui()}
+document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>scenario(+b.dataset.sc));
 $('bGo').onclick=()=>{$('start').style.display='none';started=true;ui()};
 window.addEventListener('beforeunload',()=>{if(S&&!S.over)save()});
 fresh();
@@ -458,7 +464,7 @@ try{const j=JSON.parse(localStorage.getItem('smartcity_v1')||'null');if(j&&j.S&&
 COV=coverage();
 $('tax').value=S.tax;$('taxV').textContent=S.tax;
 resize();ui();checkMissions();loop();requestAnimationFrame(frame);
-window.__city={cam:()=>[ts,ox,oy],get S(){return S},get cells(){return cells},step,apply,setTool:t=>{tool=t}};
+window.__city={cam:()=>[ts,ox,oy],get S(){return S},get cells(){return cells},step,apply,setTool:t=>{tool=t},scenario};
 })();
 </script>
 </body>
