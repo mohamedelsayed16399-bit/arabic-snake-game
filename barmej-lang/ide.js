@@ -501,6 +501,18 @@ $('#formatBtn').addEventListener('click',()=>{
   code.dispatchEvent(new Event('input')); renderHL();
   toast('اتنسّق الكود ✨ (Ctrl+Z للتراجع)');
 });
+/* --- فاحص الكود --- */
+function lintGo(line){ $('#lintModal').classList.add('hidden'); try{ document.querySelector('.tab[data-panel="editor"]').click(); }catch(e){}
+  const ls=code.value.split('\n'); let a=0; for(let i=0;i<line-1&&i<ls.length;i++) a+=ls[i].length+1; const b=a+(ls[line-1]||'').length;
+  code.focus(); code.setSelectionRange(a,b); const lh=parseFloat(getComputedStyle(code).lineHeight)||22; code.scrollTop=Math.max(0,(line-3)*lh); code.dispatchEvent(new Event('scroll')); }
+function lintRun(){ const r=BarmejLint.lint(code.value); const B=$('#lintBody'); const col=r.score>=80?'#34d399':r.score>=60?'#fbbf24':'#f87171';
+  const ic={err:'⛔',warn:'⚠️',info:'💡'}, nm={err:'خطأ',warn:'تحذير',info:'نصيحة'};
+  let html='<div class="lint-head"><div class="lint-score" style="border-color:'+col+';color:'+col+'">'+r.score+'</div><div><h2>🔍 فحص الكود: '+r.grade+'</h2><div class="lint-sub">'+r.lines+' سطر كود · ⛔ '+r.counts.err+' · ⚠️ '+r.counts.warn+' · 💡 '+r.counts.info+'</div></div></div>';
+  if(!r.issues.length) html+='<p class="lint-ok">✅ مفيش ولا ملاحظة. كودك نضيف! جرّب تشغّله 😎</p>';
+  else{ html+='<div class="lint-list">'; r.issues.forEach(i=>{ html+='<button class="lint-item lint-'+i.sev+'" data-line="'+i.line+'"><span class="lint-ln">س'+i.line+'</span><span class="lint-ic">'+ic[i.sev]+'</span><span class="lint-tx"><b>'+nm[i.sev]+':</b> '+i.msg.replace(/&/g,'&amp;').replace(/</g,'&lt;')+(i.tip?'<small>'+i.tip.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</small>':'')+'</span></button>'; }); html+='</div>'; }
+  B.innerHTML=html; B.querySelectorAll('.lint-item').forEach(b=>b.addEventListener('click',()=>lintGo(+b.dataset.line))); $('#lintModal').classList.remove('hidden'); }
+$('#lintBtn').addEventListener('click',lintRun); $('#lintAgain').addEventListener('click',lintRun); $('#lintClose').addEventListener('click',()=>$('#lintModal').classList.add('hidden'));
+$('#lintModal').addEventListener('click',e=>{ if(e.target.id==='lintModal') $('#lintModal').classList.add('hidden'); });
 document.addEventListener('keydown',e=>{ if(e.shiftKey&&(e.ctrlKey||e.metaKey)&&(e.key==='F'||e.key==='f')&&document.activeElement===code){ e.preventDefault(); $('#formatBtn').click(); } });
 $('#fontDown').addEventListener('click',()=>{ editorFont=Math.max(11,editorFont-1); applyFont(); renderHL(); });
 applyFont();
