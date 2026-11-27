@@ -751,7 +751,8 @@ function formatCode(src,unit){
   return out.join('\n')+'\n';
 }
 
-const Barmej={LIBS,format:formatCode,tokenize,parse,run,runSource,runSourceAsync,createStepper,makeRunner,show,KEYWORDS};
+const builtinNames=()=>Object.keys(builtins({print(){},ask(){return ''},draw(){}}));
+const Barmej={builtinNames,LIBS,format:formatCode,tokenize,parse,run,runSource,runSourceAsync,createStepper,makeRunner,show,KEYWORDS};
 if(typeof module!=='undefined'&&module.exports) module.exports=Barmej;
 root.Barmej=Barmej;
 })(typeof window!=='undefined'?window:globalThis);
