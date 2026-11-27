@@ -108,9 +108,11 @@ const DEFS={
  14:{n:'ملعب',c:1500,u:10,i:'🏟'},
  15:{n:'توربين رياح',c:900,u:3,i:'🌬'},
  16:{n:'موقف أتوبيس',c:300,u:2,i:'🚌'},
- 17:{n:'مركز التحكم الذكي',c:3000,u:15,i:'🧠'}
+ 17:{n:'مركز التحكم الذكي',c:3000,u:15,i:'🧠'},
+ 18:{n:'مطار',c:6000,u:30,i:'✈️'},
+ 19:{n:'فندق',c:900,u:4,i:'🏨'}
 };
-const TOOLS=[['sel','🔍','فحص',0],[1,'🛣','طريق',20],[2,'🏠','سكني',100],[3,'🏬','تجاري',160],[4,'🏭','صناعي',160],[5,'⚡','كهرباء',1500],[6,'☀️','شمسية',700],[7,'💧','مياه',700],[8,'👮','شرطة',500],[9,'🚒','إطفاء',500],[10,'🏥','مستشفى',900],[11,'🏫','مدرسة',600],[12,'🌳','حديقة',120],[13,'🚇','مترو',1200],[14,'🏟','ملعب',1500],[15,'🌬','رياح',900],[16,'🚌','أتوبيس',300],[17,'🧠','مركز ذكي',3000],['pan','✋','تحريك',0],['bd','🧨','هدم',0]];
+const TOOLS=[['sel','🔍','فحص',0],[1,'🛣','طريق',20],[2,'🏠','سكني',100],[3,'🏬','تجاري',160],[4,'🏭','صناعي',160],[5,'⚡','كهرباء',1500],[6,'☀️','شمسية',700],[7,'💧','مياه',700],[8,'👮','شرطة',500],[9,'🚒','إطفاء',500],[10,'🏥','مستشفى',900],[11,'🏫','مدرسة',600],[12,'🌳','حديقة',120],[13,'🚇','مترو',1200],[14,'🏟','ملعب',1500],[15,'🌬','رياح',900],[16,'🚌','أتوبيس',300],[17,'🧠','مركز ذكي',3000],[18,'✈️','مطار',6000],[19,'🏨','فندق',900],['pan','✋','تحريك',0],['bd','🧨','هدم',0]];
 const RAD={8:8,9:7,10:9,11:8,12:4,13:6,14:10,16:4};
 const NAMES=['أحمد','محمد','منى','سارة','يوسف','هدى','كريم','نور','عمر','ليلى','خالد','دينا','مصطفى','ريم','طارق','سلمى','إبراهيم','آية','حسن','مريم'];
 let selW=null,S,cells,walkers=[],sel=null,tool='sel',layer=0,speed=1,paused=false,timer=null,started=false;
@@ -210,6 +212,8 @@ function step(){
   if(c.sick){if(COV[10][i]&&Math.random()<0.2){c.sick=0;log('🏥 تم علاج المصابين ('+x+','+y+')')}else if(Math.random()<0.35)c.pop=Math.max(0,c.pop-1)}
  }
  for(const c of cells){if(c.t===0){c.fire=c.crime=c.sick=0}}
+ let tour=0;const nAir=cells.filter(c=>c.t===18).length,nHot=cells.filter(c=>c.t===19).length,nPark=cells.filter(c=>c.t===12).length,nStad=cells.filter(c=>c.t===14).length;
+ if(S.pop>60){tour=Math.min(nHot*6,(nAir?1:0.3)*(nPark*2+nStad*8+nHot*3+(S.appr>70?10:0))*(S.pr>0.8?1:0.3));S.money+=tour}S.tour=tour;
  const hasAI=S.money>=0&&cells.some(c=>c.t===17);
  if(hasAI){let fixed=0;for(let i=0;i<W*H;i++){const c=cells[i];if((c.fire||c.crime||c.sick)&&Math.random()<0.35&&S.money>=20){c.fire=c.crime=c.sick=0;S.money-=20;fixed++}}if(fixed)log('🤖 المركز الذكي عالج '+fixed+' حادث تلقائيًا')}
  S.avgH=hn?hs/hn:60;
@@ -293,7 +297,7 @@ const MISSIONS=[
  ['وصّل السكان لـ 1000 (مدينة كبرى!)',()=>S.pop>=1000,8000],
  ['وصّل السكان لـ 2500',()=>S.pop>=2500,15000]
 ];
-const ACH=[['blk','🕯 أول انقطاع كهرباء… اتعلمت الدرس',()=>S.pr<0.6&&S.pop>10],['mil','🌟 سكان 500',()=>S.pop>=500],['rich','💰 ميزانية 100 ألف',()=>S.money>=100000],['safe','🛡 صفر حوادث وسكان 150',()=>S.inc===0&&S.pop>=150],['happy','😍 رضا 90%+',()=>S.appr>=90&&S.pop>=60],['ai','🧠 بنيت مركز التحكم الذكي',()=>cells.some(c=>c.t===17)],['green','🌱 3 محطات طاقة نظيفة',()=>cells.filter(c=>c.t===6||c.t===15).length>=3]];
+const ACH=[['blk','🕯 أول انقطاع كهرباء… اتعلمت الدرس',()=>S.pr<0.6&&S.pop>10],['mil','🌟 سكان 500',()=>S.pop>=500],['rich','💰 ميزانية 100 ألف',()=>S.money>=100000],['safe','🛡 صفر حوادث وسكان 150',()=>S.inc===0&&S.pop>=150],['happy','😍 رضا 90%+',()=>S.appr>=90&&S.pop>=60],['ai','🧠 بنيت مركز التحكم الذكي',()=>cells.some(c=>c.t===17)],['tour','🧳 دخل سياحة 15 في الثانية',()=>(S.tour||0)>=15],['green','🌱 3 محطات طاقة نظيفة',()=>cells.filter(c=>c.t===6||c.t===15).length>=3]];
 function checkAch(){S.ach=S.ach||{};for(const a of ACH){if(!S.ach[a[0]]&&a[2]()){S.ach[a[0]]=1;log('🏅 إنجاز: '+a[1]);toast('🏅 '+a[1],3000);beep(990,0.2)}}}
 function checkMissions(){checkAch();
  const m=MISSIONS[S.missions];if(!m){$('mission').textContent='🏆 خلصت كل المهام! أنت محافظ أسطوري';return}
@@ -314,6 +318,7 @@ function advice(){const cnt=t=>cells.filter(c=>c.t===t).length;
  if(S.cong>0.5)return'🚗 الزحمة عالية: ابني مترو أو مواقف أتوبيس';
  if(S.inc>2)return'🚨 في حوادث: اضغط على المبنى المصاب وارسل الطوارئ';
  if(S.pop>150&&!cells.some(c=>c.t===17)&&S.money>3500)return'🧠 مركز التحكم الذكي بيعالج الحوادث لوحده';
+ if(S.pop>250&&!cells.some(c=>c.t===19)&&S.money>2500)return'🏨 ابني فندق ومطار لتجذب سياح';
  if(!S.res.grid&&S.money>4000)return'🔬 جرب الأبحاث: الشبكة الذكية بتقلل الكهرباء';
  if(S.money>8000)return'📈 فلوس كتير: رقّي المباني لمستوى أعلى أو ابني ملعب';
  return'';}
@@ -331,7 +336,7 @@ function ui(){
 let hintOff=false;$('hint').onclick=()=>{hintOff=true;$('hint').style.display='none'};
 function renderInfo(){
  const el=$('info');
- if(!sel){const bar=v=>{v=Math.max(-1,Math.min(1,(v||0)/40));return v>0.15?'<b class=good>مرتفع ▲</b>':v<-0.15?'<b class=bad>منخفض ▼</b>':'<b>متوازن</b>'};el.innerHTML='ضريبة '+S.tax+'% · دخل '+S.income.toFixed(1)+' · مصروف '+S.expense.toFixed(1)+'<br>الطلب على: 🏠 سكن '+bar(S.rd)+' · 🏬🏭 وظائف '+bar(S.jd)+'<br><small>ابني مناطق جنب الطرق ووفّر كهرباء ومياه. اضغط على أي مبنى أو مواطن لتفحصه.</small>';return}
+ if(!sel){const bar=v=>{v=Math.max(-1,Math.min(1,(v||0)/40));return v>0.15?'<b class=good>مرتفع ▲</b>':v<-0.15?'<b class=bad>منخفض ▼</b>':'<b>متوازن</b>'};el.innerHTML='ضريبة '+S.tax+'% · دخل '+S.income.toFixed(1)+' · مصروف '+S.expense.toFixed(1)+(S.tour?'<br>🧳 دخل السياحة '+S.tour.toFixed(1)+'/ث':'')+'<br>الطلب على: 🏠 سكن '+bar(S.rd)+' · 🏬🏭 وظائف '+bar(S.jd)+'<br><small>ابني مناطق جنب الطرق ووفّر كهرباء ومياه. اضغط على أي مبنى أو مواطن لتفحصه.</small>';return}
  const[x,y]=sel,c=cells[idx(x,y)],d=DEFS[c.t];
  const dd=distOf(x,y),ds=distStats(dd);let h=selW?'<b>🧑 '+selW.name+'</b> ('+selW.job+')<br>مزاج: '+(S.avgH>70?'😍 مبسوط':S.avgH>45?'🙂 عادي':'😞 متضايق')+(S.pr<0.8?' · الكهرباء بتقطع':'')+(S.cong>0.55?' · الزحمة خانقة':'')+'<hr style="border-color:#345">':'';
  h+='<b>'+(d.i||'')+' '+d.n+'</b> ('+x+','+y+')';
@@ -453,7 +458,7 @@ function draw(t){
    if(!c.acc||S.pr<0.6){ctx.font=ts*0.4+'px sans-serif';ctx.textAlign='center';ctx.fillText(!c.acc?'🚫':'⚡',X+ts/2,Y+ts*0.45)}
    if(c.t===4&&c.pop>0){ctx.fillStyle='#ccc8';const s=(t/600+x)%1;ctx.beginPath();ctx.arc(X+ts*0.75,Y+ts*0.1-s*ts*0.3,ts*0.1*(1+s),0,6.3);ctx.fill()}
   }else if(c.t){
-   ctx.fillStyle=({5:'#4a3b2f',6:'#26467a',7:'#2a5d7a',8:'#2d3f8a',9:'#8a2d2d',10:'#e6e6e6',11:'#8a7a2d',12:'#1f6b2a',13:'#5a2d8a',14:'#2d8a6d',15:'#3a6a8a',16:'#b8860b',17:'#0d6e8a'})[c.t];
+   ctx.fillStyle=({5:'#4a3b2f',6:'#26467a',7:'#2a5d7a',8:'#2d3f8a',9:'#8a2d2d',10:'#e6e6e6',11:'#8a7a2d',12:'#1f6b2a',13:'#5a2d8a',14:'#2d8a6d',15:'#3a6a8a',16:'#b8860b',17:'#0d6e8a',18:'#5c6bc0',19:'#a0522d'})[c.t];
    ctx.fillRect(X+ts*0.06,Y+ts*0.06,ts*0.88,ts*0.88);
    ctx.font=ts*0.65+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.fillText(DEFS[c.t].i,X+ts/2,Y+ts/2+1);ctx.textBaseline='alphabetic';
   }
