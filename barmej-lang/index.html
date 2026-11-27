@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=248">
+<link rel="stylesheet" href="style.css?v=249">
 </head>
 <body>
 <header id="topbar">
@@ -46,6 +46,7 @@
           <button id="snipBtn" class="ghost" title="قصاصات كود جاهزة">🧩 قصاصات</button>
           <button id="histBtn" class="ghost" title="سجل النسخ: ارجع لأي نسخة شغّلتها قبل كده">🕘 سجل</button>
           <button id="formatBtn" class="ghost" title="نسّق الكود (Ctrl+Shift+F)">✨ نسّق</button>
+          <button id="lintBtn" class="ghost" title="افحص الكود: أخطاء وتحذيرات ونصايح من غير تشغيل">🔍 افحص</button>
           <button id="fontDown" class="ghost" title="صغّر الخط">أ−</button>
           <button id="fontUp" class="ghost" title="كبّر الخط">أ+</button>
           <button id="programsBtn" class="ghost">📂 برامجي</button>
@@ -232,11 +233,13 @@
     </div>
   </div>
 </div>
+<div id="lintModal" class="modal-back hidden"><div class="modal lint-modal"><div id="lintBody"></div><div class="modal-actions"><button id="lintAgain" class="run">🔄 افحص تاني</button><button id="lintClose" class="ghost">إغلاق</button></div></div></div>
 <div id="toast"></div>
 
-<script src="lang.js?v=248"></script>
-<script src="lessons.js?v=248"></script>
-<script src="examples2.js?v=248"></script>
-<script src="ide.js?v=248"></script>
+<script src="lang.js?v=249"></script>
+<script src="lessons.js?v=249"></script>
+<script src="examples2.js?v=249"></script>
+<script src="lint.js?v=249"></script>
+<script src="ide.js?v=249"></script>
 </body>
 </html>
