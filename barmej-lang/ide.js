@@ -747,9 +747,14 @@ $('#checkChallenge').addEventListener('click',()=>{
   window.barmejProjectsDone=()=>PR.filter(finished).length;
   const list=$('#projList'), body=$('#projBody');
   const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-  function runCode(src){ const out=[]; let n=0;
-    const io={print:s=>{ if(out.length<300) out.push(String(s)); },ask:()=> '5',draw:()=>{}};
-    const r=Barmej.runSource(src,io,{maxSteps:3e6}); return {r,out}; }
+  function runCode(src){ const out=[], ops=[];
+    const io={print:s=>{ if(out.length<300) out.push(String(s)); },ask:()=> '5',draw:o=>{ if(ops.length<30000) ops.push(o); }};
+    const r=Barmej.runSource(src,io,{maxSteps:3e6}); return {r,out,ops}; }
+  function preview(ops){ const cv=$('#projCanvas'); if(!cv) return; const cx=cv.getContext('2d');
+    cx.setTransform(1,0,0,1,0,0); cx.fillStyle='#0b1220'; cx.fillRect(0,0,cv.width,cv.height);
+    if(!ops.length){ cv.classList.add('hidden'); return; } cv.classList.remove('hidden');
+    try{ turtle=null; turtleReset(); ops.forEach(turtleHandle); cx.drawImage(tc,0,0,cv.width,cv.height); }catch(e){}
+    turtle=null; turtlePanel.classList.add('hidden'); }
   function renderList(){ list.innerHTML='';
     PR.forEach((p,i)=>{ const s=get(p); const d=document.createElement('div'); d.className='lesson-item'+(i===cur?' active':'');
       d.innerHTML='<span class="done-mark">'+(finished(p)?'🏅':'○')+'</span><span>'+p.icon+' '+p.title+' <small>('+s.done.length+'/'+p.steps.length+')</small></span>';
@@ -764,17 +769,17 @@ $('#checkChallenge').addEventListener('click',()=>{
     h+='<h3>الخطوة '+(k+1)+' من '+p.steps.length+': '+stp.title+'</h3><div class="lesson-text">'+stp.text+'</div>';
     h+='<textarea id="projCode" class="proj-code" spellcheck="false" dir="rtl"></textarea>';
     h+='<div class="proj-btns"><button id="pRun" class="run small">▶ شغّل</button><button id="pCheck" class="check">✔ تحقق من الخطوة</button><button id="pHint" class="ghost small">💡 تلميح</button><button id="pSol" class="ghost small">📋 حطّ الحل</button><button id="pOpen" class="ghost small">📂 افتح في المحرر</button><button id="pReset" class="ghost small">↺ ابدأ من الأول</button></div>';
-    h+='<div id="projResult" class="lesson-result"></div><pre id="projOut" class="proj-out"></pre>';
+    h+='<div id="projResult" class="lesson-result"></div><canvas id="projCanvas" class="proj-canvas hidden" width="450" height="310"></canvas><pre id="projOut" class="proj-out"></pre>';
     body.innerHTML=h; const ta=$('#projCode'); ta.value=s.code;
     const res=$('#projResult'), outEl=$('#projOut');
     ta.addEventListener('input',()=>{ s.code=ta.value; save(); });
     ta.addEventListener('keydown',e=>{ if(e.key==='Tab'){ e.preventDefault(); const a=ta.selectionStart; ta.setRangeText('  ',a,ta.selectionEnd,'end'); s.code=ta.value; save(); } });
     body.querySelectorAll('.proj-chip').forEach(b=>b.addEventListener('click',()=>{ s.step=+b.dataset.i; save(); render(); }));
-    $('#pRun').addEventListener('click',()=>{ const {r,out}=runCode(ta.value); res.className='lesson-result'; res.textContent='';
+    $('#pRun').addEventListener('click',()=>{ const {r,out,ops}=runCode(ta.value); preview(ops); res.className='lesson-result'; res.textContent='';
       outEl.textContent=out.join('\n')+(r.ok?'':'\n⚠ '+r.error+(r.line?' (سطر '+r.line+')':'')); try{ achCheck({ran:true}); }catch(e){} });
-    $('#pCheck').addEventListener('click',()=>{ const {r,out}=runCode(ta.value); outEl.textContent=out.join('\n');
+    $('#pCheck').addEventListener('click',()=>{ const {r,out,ops}=runCode(ta.value); preview(ops); outEl.textContent=out.join('\n');
       if(!r.ok){ res.className='lesson-result bad'; res.textContent='فيه خطأ في الكود: '+r.error+(r.line?' (سطر '+r.line+')':''); return; }
-      const prob=stp.check(out,ta.value);
+      const prob=stp.check(out,ta.value,ops);
       if(prob){ res.className='lesson-result bad'; res.textContent='لسه مش مظبوط: '+prob; return; }
       const was=finished(p); if(!s.done.includes(k)) s.done.push(k);
       const nxt=p.steps.findIndex((x,i)=>!s.done.includes(i)); if(nxt>=0) s.step=nxt; save();
