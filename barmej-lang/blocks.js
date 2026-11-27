@@ -16,9 +16,15 @@ const DEFS={
  color:{lbl:'لون',col:'#fb7185',f:[['اللون','"#38bdf8"']],gen:v=>'لون('+v[0]+')'},
  circle:{lbl:'دائرة',col:'#fb7185',f:[['نصف القطر','٥٠']],gen:v=>'دائرة('+v[0]+')'},
  wait:{lbl:'استنى',col:'#94a3b8',f:[['مللي ثانية','٥٠٠']],gen:v=>'استنى('+v[0]+')'},
+ func:{lbl:'دالة',col:'#22d3ee',f:[['الاسم','جمع'],['المدخلات','أ، ب']],box:1,gen:v=>'دالة '+v[0]+'('+v[1]+')'},
+ ret:{lbl:'ارجع',col:'#22d3ee',f:[['القيمة','أ + ب']],gen:v=>'ارجع '+v[0]},
+ add:{lbl:'أضف لقايمة',col:'#a78bfa',f:[['القايمة','ق'],['العنصر','١']],gen:v=>'أضف('+v[0]+'، '+v[1]+')'},
+ brk:{lbl:'قف',col:'#f59e0b',f:[],gen:v=>'قف'},
+ cont:{lbl:'كمل',col:'#f59e0b',f:[],gen:v=>'كمل'},
+ box:{lbl:'كتلة',col:'#64748b',f:[['العنوان','جرّب']],box:1,gen:v=>v[0]},
  call:{lbl:'نداء حر',col:'#94a3b8',f:[['سطر كود','نغمة("دو")']],gen:v=>v[0]}
 };
-const ORDER=[['🖨️ أساسي',['print','let','set','call']],['🔁 تكرار وشروط',['repeat','each','while','if','ifelse']],['🐢 رسم',['fwd','right','left','color','circle']],['⏱️ وقت',['wait']]];
+const ORDER=[['🖨️ أساسي',['print','let','set','call']],['🔁 تكرار وشروط',['repeat','each','while','if','ifelse','brk','cont']],['🧱 دوال وقوائم',['func','ret','add','box']],['🐢 رسم',['fwd','right','left','color','circle']],['⏱️ وقت',['wait']]];
 let ws=[]; try{ ws=JSON.parse(localStorage.getItem(KEY))||[]; }catch(e){}
 let target=null; /* {list} */
 const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(ws)); }catch(e){} };
@@ -28,10 +34,45 @@ function gen(list,ind){ const pad='  '.repeat(ind); let o=[];
     if(!d.box) o.push(pad+head);
     else { o.push(pad+head+' {'); o.push(gen(b.k,ind+1)); if(d.box===2){ o.push(pad+'} وإلا {'); o.push(gen(b.k2,ind+1)); } o.push(pad+'}'); } });
   return o.filter(x=>x!=='').join('\n'); }
+
+/* استيراد كود نصي لبلوكات (بأقصى جهد: أي سطر مش معروف يبقى «نداء حر») */
+function importCode(src){
+  const raw=String(src).replace(/\r/g,'').split('\n'); const root=[]; const st=[{list:root,blk:null,chain:false}];
+  const cur=()=>st[st.length-1];
+  const bal=l=>{ let n=0,q=null; for(const c of l){ if(q){ if(c===q) q=null; continue; } if(c==='"'||c==="'"){ q=c; continue; } if('([{'.includes(c)) n++; else if(')]}'.includes(c)) n--; } return n; };
+  const B=(t,v,k,k2)=>({t,v,k:k||[],k2:k2||[]});
+  const idr=/^[\p{L}_][\p{L}\p{N}_]*$/u;
+  const push=(b,chain)=>{ cur().list.push(b); st.push({list:b.k,blk:b,chain:!!chain}); };
+  const simple=l=>{ let m;
+    if((m=l.match(/^اطبع\s+(.+)$/))) return B('print',[m[1]]);
+    if((m=l.match(/^خلي\s+(\S+?)\s*=\s*(.+)$/)) && idr.test(m[1])) return B('let',[m[1],m[2]]);
+    if((m=l.match(/^(\S+?)\s*=\s*([^=].*)$/)) && idr.test(m[1])) return B('set',[m[1],m[2]]);
+    if((m=l.match(/^ارجع\s+(.+)$/))) return B('ret',[m[1]]);
+    if(l==='قف') return B('brk',[]); if(l==='كمل') return B('cont',[]);
+    if((m=l.match(/^أضف\((.+?)[،,]\s*(.+)\)$/)) && idr.test(m[1])) return B('add',[m[1],m[2]]);
+    for(const [t,n] of [['fwd','قدم'],['right','يمين'],['left','شمال'],['color','لون'],['circle','دائرة'],['wait','استنى']]){ const r=l.match(new RegExp('^'+n+'\\((.*)\\)$')); if(r && bal(r[1])===0) return B(t,[r[1]]); }
+    return B('call',[l]); };
+  for(let i=0;i<raw.length;i++){ let l=raw[i].trim(); if(!l) continue;
+    let m;
+    if(l==='}'){ if(st.length>1){ let c=st.pop(); while(c.chain&&st.length>1) c=st.pop(); } continue; }
+    if((m=l.match(/^\}\s*وإلا\s+لو\s+(.+?)\s*\{$/))){ if(st.length>1){ const t=cur().blk; t.t='ifelse'; const nb=B('if',[m[1]]); t.k2.push(nb); st.pop(); st.push({list:t.k2,blk:t,chain:false}); st.push({list:nb.k,blk:nb,chain:true}); } continue; }
+    if(/^\}\s*(وإلا|والا|إلا)\s*\{$/.test(l)){ if(st.length>1){ const t=cur().blk; t.t='ifelse'; st.pop(); st.push({list:t.k2,blk:t,chain:false}); } continue; }
+    if(l.endsWith('{') && bal(l)===1 && !/[=(\[،,]\s*\{$/.test(l)){
+      const h=l.slice(0,-1).trim();
+      if((m=h.match(/^كرر\s+(.+)$/)) && !/[،,]/.test(m[1])) push(B('repeat',[m[1]]));
+      else if((m=h.match(/^لكل\s+(\S+)\s+في\s+(.+)$/))) push(B('each',[m[1],m[2]]));
+      else if((m=h.match(/^طالما\s+(.+)$/))) push(B('while',[m[1]]));
+      else if((m=h.match(/^لو\s+(.+)$/))) push(B('if',[m[1]]));
+      else if((m=h.match(/^دالة\s+([^\s(]+)\((.*)\)$/))) push(B('func',[m[1],m[2]]));
+      else push(B('box',[h]));
+      continue; }
+    let d=bal(l); while(d>0 && i+1<raw.length){ i++; const n=raw[i].trim(); l+=' '+n; d=bal(l); }
+    cur().list.push(simple(l)); }
+  return root; }
 const code=()=>gen(ws,0);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const root=document.createElement('section'); root.id='panel-blocks'; root.className='panel';
-root.innerHTML='<div class="bk-top"><b>🧩 برمجة بالبلوكات</b><span class="bk-hint">اضغط بلوك من الجنب يتضاف في المكان المحدد (الإطار الأخضر)، وغيّر القيم جواه.</span></div><div class="bk-main"><div class="bk-pal" id="bkPal"></div><div class="bk-work"><div id="bkTree" class="bk-tree"></div><div class="bk-actions"><button id="bkRun" class="run">▶ شغّل في المحرر</button><button id="bkCopy" class="ghost small">📥 انقل للمحرر</button><button id="bkEx" class="ghost small">✨ مثال: مربع</button><button id="bkEx2" class="ghost small">🌈 مثال: وردة</button><button id="bkClear" class="ghost small">🗑️ فضّي</button></div><div class="bk-code-h">الكود الناتج:</div><pre id="bkCode" class="bk-code"></pre></div></div>';
+root.innerHTML='<div class="bk-top"><b>🧩 برمجة بالبلوكات</b><span class="bk-hint">اضغط بلوك من الجنب يتضاف في المكان المحدد (الإطار الأخضر)، وغيّر القيم جواه.</span></div><div class="bk-main"><div class="bk-pal" id="bkPal"></div><div class="bk-work"><div id="bkTree" class="bk-tree"></div><div class="bk-actions"><button id="bkRun" class="run">▶ شغّل في المحرر</button><button id="bkCopy" class="ghost small">📥 انقل للمحرر</button><button id="bkEx" class="ghost small">✨ مثال: مربع</button><button id="bkEx2" class="ghost small">🌈 مثال: وردة</button><button id="bkImp" class="ghost small">📤 هات كود المحرر</button><button id="bkClear" class="ghost small">🗑️ فضّي</button></div><div class="bk-actions bk-save"><input id="bkName" placeholder="اسم برنامج البلوكات" dir="rtl"><button id="bkSave" class="ghost small">💾 احفظ</button><select id="bkSel"></select><button id="bkLoad" class="ghost small">📂 افتح</button><button id="bkDel" class="ghost small">✕ احذف</button></div><div class="bk-code-h">الكود الناتج:</div><pre id="bkCode" class="bk-code"></pre></div></div>';
 const dp=$('#panel-docs'); dp.parentNode.insertBefore(root,dp);
 const nav=document.querySelector('.tabs'); const tb=document.createElement('button'); tb.className='tab'; tb.dataset.panel='blocks'; tb.textContent='🧩 بلوكات';
 const ed=nav.querySelector('[data-panel="challenges"]'); nav.insertBefore(tb,ed?ed.nextSibling:null);
@@ -60,6 +101,15 @@ $('#bkClear').onclick=()=>{ ws=[]; target=null; save(); render(); };
 const B=(t,v,k,k2)=>({t,v,k:k||[],k2:k2||[]});
 $('#bkEx').onclick=()=>{ ws=[B('color',['"#38bdf8"']),B('repeat',['٤'],[B('fwd',['١٠٠']),B('right',['٩٠'])])]; target=null; save(); render(); };
 $('#bkEx2').onclick=()=>{ ws=[B('repeat',['١٢'],[B('color',['قوس_قزح(عداد)']),B('circle',['٦٠']),B('right',['٣٠'])])]; ws.unshift(B('call',['استورد "ألوان"'])); target=null; save(); render(); };
-window.BARMEJ_BLOCKS={gen,mk,DEFS,B};
+
+const SK='barmej-blocks-saved'; const sget=()=>{ try{ return JSON.parse(localStorage.getItem(SK))||{}; }catch(e){ return {}; } };
+function fillSel(){ const sel=$('#bkSel'); const o=sget(); sel.innerHTML=''; const ks=Object.keys(o); if(!ks.length){ sel.innerHTML='<option value="">(مفيش محفوظ)</option>'; return; } ks.forEach(k=>{ const op=document.createElement('option'); op.value=k; op.textContent=k; sel.appendChild(op); }); }
+$('#bkSave').onclick=()=>{ const n=$('#bkName').value.trim(); if(!n||!ws.length) return; const o=sget(); o[n]=JSON.parse(JSON.stringify(ws)); try{ localStorage.setItem(SK,JSON.stringify(o)); }catch(e){} fillSel(); $('#bkSel').value=n; };
+$('#bkLoad').onclick=()=>{ const o=sget(); const k=$('#bkSel').value; if(!k||!o[k]) return; ws=JSON.parse(JSON.stringify(o[k])); $('#bkName').value=k; target=null; save(); render(); };
+$('#bkDel').onclick=()=>{ const o=sget(); const k=$('#bkSel').value; if(!k) return; delete o[k]; try{ localStorage.setItem(SK,JSON.stringify(o)); }catch(e){} fillSel(); };
+$('#bkImp').onclick=()=>{ const c=$('#code').value; ws=importCode(c); target=null; save(); render(); };
+fillSel();
+window.BARMEJ_BLOCKS={gen,mk,DEFS,B,importCode};
+
 render();
 })();
