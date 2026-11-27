@@ -1286,7 +1286,7 @@ $('#docsContent').innerHTML=`
 
 /* --- backup / restore --- */
 (function(){
-  const KEYS=['barmej-programs','barmej-lessons-done','barmej-challenges-done','barmej-fav-ex','barmej-daily','barmej-hist','barmej-projects','barmej-path','barmej-thumbs'];
+  const KEYS=['barmej-programs','barmej-lessons-done','barmej-challenges-done','barmej-fav-ex','barmej-daily','barmej-hist','barmej-projects','barmej-path','barmej-thumbs','barmej-activity'];
   $('#backupBtn').addEventListener('click',()=>{ stashCurrent();
     const data={app:'barmej',v:1,time:new Date().toISOString(),keys:{}};
     try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(KEYS.includes(k)||k.startsWith('barmej-data:')) data.keys[k]=localStorage.getItem(k); } }catch(e){}
