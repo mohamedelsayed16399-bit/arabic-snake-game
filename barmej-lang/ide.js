@@ -784,7 +784,7 @@ $('#checkChallenge').addEventListener('click',()=>{
       const was=finished(p); if(!s.done.includes(k)) s.done.push(k);
       const nxt=p.steps.findIndex((x,i)=>!s.done.includes(i)); if(nxt>=0) s.step=nxt; save();
       if(!was&&finished(p)){ try{ achCheck({projects:window.barmejProjectsDone()}); }catch(e){} toast('🏅 خلّصت المشروع!'); }
-      render(); const r2=$('#projResult'); r2.className='lesson-result ok'; r2.textContent=finished(p)?'المشروع كله اتحل! 🏆':'الخطوة صح! ✅ كمّل الخطوة اللي بعدها'; $('#projOut').textContent=out.join('\n'); });
+      render(); preview(ops); const r2=$('#projResult'); r2.className='lesson-result ok'; r2.textContent=finished(p)?'المشروع كله اتحل! 🏆':'الخطوة صح! ✅ كمّل الخطوة اللي بعدها'; $('#projOut').textContent=out.join('\n'); });
     $('#pHint').addEventListener('click',()=>{ res.className='lesson-result ok'; res.textContent='💡 '+stp.hint; });
     $('#pSol').addEventListener('click',()=>{ if(ta.value.includes(stp.sol.trim())){ toast('الحل موجود فعلا في الكود'); return; }
       ta.value=ta.value.replace(/\s*$/,'\n')+stp.sol; s.code=ta.value; save(); toast('اتضاف حل الخطوة — دوس تحقق'); });
