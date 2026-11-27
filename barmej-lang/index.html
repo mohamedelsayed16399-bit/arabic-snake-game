@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=250">
+<link rel="stylesheet" href="style.css?v=251">
 </head>
 <body>
 <header id="topbar">
@@ -46,6 +46,7 @@
           <button id="snipBtn" class="ghost" title="قصاصات كود جاهزة">🧩 قصاصات</button>
           <button id="histBtn" class="ghost" title="سجل النسخ: ارجع لأي نسخة شغّلتها قبل كده">🕘 سجل</button>
           <button id="formatBtn" class="ghost" title="نسّق الكود (Ctrl+Shift+F)">✨ نسّق</button>
+          <button id="testBtn" class="ghost" title="مختبر الاختبارات: جرّب دوالك على حالات وشوف النتيجة">🧪 اختبر</button>
           <button id="explainBtn" class="ghost" title="اشرح الكود بالعربي البسيط سطر بسطر">🧠 اشرح</button>
           <button id="lintBtn" class="ghost" title="افحص الكود: أخطاء وتحذيرات ونصايح من غير تشغيل">🔍 افحص</button>
           <button id="fontDown" class="ghost" title="صغّر الخط">أ−</button>
@@ -236,13 +237,15 @@
 </div>
 <div id="lintModal" class="modal-back hidden"><div class="modal lint-modal"><div id="lintBody"></div><div class="modal-actions"><button id="lintAgain" class="run">🔄 افحص تاني</button><button id="lintClose" class="ghost">إغلاق</button></div></div></div>
 <div id="explainModal" class="modal-back hidden"><div class="modal lint-modal"><div id="explainBody"></div><div class="modal-actions"><button id="explainAgain" class="run">🔄 اشرح تاني</button><button id="explainClose" class="ghost">إغلاق</button></div></div></div>
+<div id="testModal" class="modal-back hidden"><div class="modal lint-modal"><h2>🧪 مختبر الاختبارات</h2><p class="lint-sub">اكتب حالة في كل سطر بالشكل: <code>نداء_الدالة => النتيجة_المتوقعة</code> مثال: <code>مجموع(٥) => ١٥</code></p><textarea id="testCases" class="test-cases" spellcheck="false" placeholder="مجموع(٥) => ١٥"></textarea><div id="testOut"></div><div class="modal-actions"><button id="testRun" class="run">▶ شغّل الاختبارات</button><button id="testSnap" class="ghost" title="يجرّب دوالك على قيم عينة ويكتب النتائج الحالية كحالات">📸 ولّد حالات من كودي</button><button id="testClose" class="ghost">إغلاق</button></div></div></div>
 <div id="toast"></div>
 
-<script src="lang.js?v=250"></script>
-<script src="lessons.js?v=250"></script>
-<script src="examples2.js?v=250"></script>
-<script src="lint.js?v=250"></script>
-<script src="explain.js?v=250"></script>
-<script src="ide.js?v=250"></script>
+<script src="lang.js?v=251"></script>
+<script src="lessons.js?v=251"></script>
+<script src="examples2.js?v=251"></script>
+<script src="lint.js?v=251"></script>
+<script src="explain.js?v=251"></script>
+<script src="tester.js?v=251"></script>
+<script src="ide.js?v=251"></script>
 </body>
 </html>
