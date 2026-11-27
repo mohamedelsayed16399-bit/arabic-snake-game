@@ -682,8 +682,21 @@ function renderLesson(){
   $('#lessonTitle').textContent=l.id+'. '+l.title;
   $('#lessonText').innerHTML=l.text;
   $('#lessonResult').className='lesson-result'; $('#lessonResult').textContent='';
+  try{ lessonHelpReset(); }catch(e){}
   renderLessonList();
 }
+/* --- lesson help: 2-step hint + show solution --- */
+let lessonHintLvl=0;
+function lessonHelpReset(){ lessonHintLvl=0; const h=$('#lessonHelp'); if(h){ h.innerHTML=''; h.className='lesson-help'; } }
+function lessonMsg(l){ try{ const m=l.check([],[]); return m?String(m):''; }catch(e){ return ''; } }
+$('#hintLesson').addEventListener('click',()=>{ const l=BARMEJ_LESSONS[currentLesson], h=$('#lessonHelp'); const full=lessonMsg(l)||'اقرا المهمة فوق تاني وجرّب خطوة صغيرة.';
+  const first=full.split(' — ')[0];
+  lessonHintLvl++; h.className='lesson-help show';
+  h.textContent='💡 '+(lessonHintLvl===1&&full.includes(' — ')?first+'  (دوس تلميح تاني لو لسه محتاج)':full); });
+$('#solLesson').addEventListener('click',()=>{ const l=BARMEJ_LESSONS[currentLesson], h=$('#lessonHelp'); const sol=(window.BARMEJ_LESSON_SOLS&&BARMEJ_LESSON_SOLS[l.id])||l.starter;
+  h.className='lesson-help show'; h.innerHTML='<div>📋 حل مقترح (حاول لوحدك الأول 😉):</div><pre class="lesson-sol"></pre><button class="run small" id="solToEditor">📥 حطه في المحرر</button>';
+  h.querySelector('.lesson-sol').textContent=sol;
+  $('#solToEditor').addEventListener('click',()=>{ code.value=sol; renderHL(); autosave(); document.querySelector('.tab[data-panel="editor"]').click(); toast('اتحط الحل في المحرر — شغّله وراجعه'); }); });
 $('#tryLesson').addEventListener('click',()=>{
   code.value=BARMEJ_LESSONS[currentLesson].starter; renderHL(); autosave();
   document.querySelector('.tab[data-panel="editor"]').click(); toast('اتحط الكود في المحرر — دوس شغّل');
