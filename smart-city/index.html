@@ -453,7 +453,7 @@ $('bReset').onclick=()=>{if(confirm('ابدأ مدينة جديدة؟ هيتمس
 $('bAgain').onclick=()=>{$('over').style.display='none';fresh();COV=coverage();ui()};
 function scenario(n){fresh();
  if(n===1){S.money=9000;for(let x=14;x<=34;x++)for(const y of [14,15,17,18]){const c=cells[idx(x,y)];if(c.t===0&&x%3!==0){c.t=[2,3,4,2][x%4];c.pop=8}}log('🚗 تحدي: المدينة مزدحمة! وفّر مترو وأتوبيس وطرق أكتر.')}
- else if(n===2){S.money=12000;S.heat=60;cells.forEach(c=>{if(c.t===5)c.t=0});for(let x=14;x<=34;x++){const c=cells[idx(x,14)];if(c.t===0&&x%2){c.t=2;c.pop=8}}log('⚡ تحدي: أزمة طاقة وموجة حر! ابني محطات.')}
+ else if(n===2){S.money=12000;S.heat=60;for(let x=14;x<=34;x++)for(const y of [14,18]){const c=cells[idx(x,y)];if(c.t===0&&x%2){c.t=x%4===1?2:4;c.pop=9}}log('⚡ تحدي: أزمة طاقة وموجة حر! ابني محطات.')}
  else if(n===3){S.money=1500;log('💸 تحدي: الميزانية شحيحة. اصرف بحكمة وارفع الضرايب بحذر.')}
  COV=coverage();$('tax').value=S.tax;$('taxV').textContent=S.tax;$('start').style.display='none';started=true;ui()}
 document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>scenario(+b.dataset.sc));
