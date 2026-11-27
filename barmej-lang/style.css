@@ -443,3 +443,7 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .chl-prog{height:8px;background:#16223b;border-radius:6px;overflow:hidden}.chl-fill{height:100%;background:linear-gradient(90deg,#34d399,#38bdf8)}
 .chl-sub{font-size:12px;opacity:.75;margin:4px 0}.chl-bar input{width:100%;box-sizing:border-box;margin:4px 0}.chl-f{display:flex;gap:6px;flex-wrap:wrap}
 .ch-sol{background:#050b17;border-radius:8px;padding:10px;direction:rtl;text-align:right;white-space:pre-wrap;margin-top:10px;border:1px dashed #34d399}.ch-sol.hidden{display:none}
+
+/* 📊 معالج المخططات */
+#chartModal input,#chartModal textarea{width:100%;box-sizing:border-box;background:#050b17;color:#e2e8f0;border:1px solid #2a3a5c;border-radius:8px;padding:8px;font-family:inherit;margin:8px 0;font-size:15px}
+#chartModal .bk-code{max-height:160px;overflow:auto}
