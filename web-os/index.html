@@ -368,7 +368,7 @@ document.addEventListener('dragover',e=>{const r=e.target.closest&&e.target.clos
 document.addEventListener('dragleave',e=>{e.target.classList&&e.target.classList.remove('over')});
 document.addEventListener('drop',e=>{const r=e.target.closest&&e.target.closest('.row[data-dir]');if(!r)return;e.preventDefault();r.classList.remove('over');const nm=e.dataTransfer.getData('text/plain'),w=window.__dragW;if(!nm||!w)return;const from=w.cwd,to=join(from,r.dataset.nm);if(nm===r.dataset.nm)return;const a=node(from),b=node(to);if(!a||!b||b.t!=='d')return;b.c[uniq(b,nm)]=a.c[nm];delete a.c[nm];save();toast('اتنقل '+nm+' ✓');w.redraw&&w.redraw();renderDesk()});
 /* about */
-app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 4.8'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
+app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 4.9'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
 STORE.push({id:'about',n:'عن النظام',i:'ℹ️',d:'معلومات النظام والاختصارات'});S.inst=[...new Set([...S.inst,'about'])];
 
 /* ROUND 7 */
@@ -814,7 +814,7 @@ which:a=>C[a[0]]?a[0]+': أمر مدمج':AL[a[0]]?a[0]+': alias':APPS[a[0]]?a[0
 ps:()=>'PID  التطبيق\n'+wins.map((x,i)=>String(i+1).padStart(3)+'  '+x.id+' ('+x.app.name+')').join('\n'),kill:a=>{const x=wins[+a[0]-1];if(!x)throw new Error('PID غلط');x.close();return 'اتقفل'},
 apps:()=>allApps().join(' '),open:a=>{if(APPS[a[0]]){openApp(a[0]);return 'فتحت '+a[0]}const n=node(abs(a[0]));if(n){openPath(abs(a[0]));return 'فتحت'}throw new Error('مفيش تطبيق أو ملف بالاسم ده')},edit:a=>{openApp('editor',abs(a[0]));return ''},
 js:a=>runJS('return ('+a.join(' ')+')'),run:a=>runJS(rd(a[0])),calc:a=>{if(!/^[\d+\-*/().%\s^]+$/.test(a.join(' ')))throw new Error('تعبير غلط');return String(Function('"use strict";return ('+a.join(' ').replace(/\^/g,'**')+')')())},seq:a=>{const[x,y]=a.length>1?[+a[0],+a[1]]:[1,+a[0]];const o=[];for(let i=x;i<=y&&o.length<1000;i++)o.push(i);return o.join('\n')},
-theme:a=>{S.light=a[0]==='light';theme();save();return 'تم'},reboot:()=>location.reload(),neofetch:()=>'  ◢◣   user@webos\n ◢██◣  OS: Web OS '+(document.querySelector('.about-v')?'':'4.8')+'\n◢████◣ Apps: '+allApps().length+'\n       Windows: '+wins.length+'\n       Files: '+(sz(S.fs)/1024).toFixed(1)+' KB\n       Browser: '+navigator.userAgent.slice(0,40)};
+theme:a=>{S.light=a[0]==='light';theme();save();return 'تم'},reboot:()=>location.reload(),neofetch:()=>'  ◢◣   user@webos\n ◢██◣  OS: Web OS '+(document.querySelector('.about-v')?'':'4.9')+'\n◢████◣ Apps: '+allApps().length+'\n       Windows: '+wins.length+'\n       Files: '+(sz(S.fs)/1024).toFixed(1)+' KB\n       Browser: '+navigator.userAgent.slice(0,40)};
 const AS={curl:async a=>{const r=await fetch(a[0]);return(await r.text()).slice(0,4000)},sleep:a=>new Promise(r=>setTimeout(()=>r(''),(+a[0]||1)*1000))};
 const tok=s=>{const r=[];const re=/"([^"]*)"|'([^']*)'|(\S+)/g;let m;while((m=re.exec(s)))r.push((m[1]??m[2]??m[3]).replace(/\$(\w+)/g,(x,k)=>ENV[k]??''));return r};
 const runLine=async(ln)=>{const redir=ln.match(/^(.*?)\s*(>>|>)\s*(\S+)\s*$/);let body=ln,rf=null,app=false;if(redir&&!/^\s*(js|calc)\b/.test(ln)){body=redir[1];rf=redir[3];app=redir[2]==='>>'}let data='';for(const seg of body.split(/\s*\|\s*/)){let a=tok(seg);if(!a.length)continue;if(AL[a[0]])a=tok(AL[a[0]]).concat(a.slice(1));const c=a.shift();if(AS[c])data=await AS[c](a,data);else if(C[c])data=await C[c](a,data);else if(c.endsWith('.js')&&node(abs(c)))data=runJS(rd(c));else throw new Error(c+': أمر مش موجود. اكتب help')}if(rf){const p=abs(rf),old=app&&node(p)?String(node(p).d):'';writeF(p,old+(old&&!old.endsWith('\n')?'\n':'')+data+'\n');renderDesk();return ''}return data};
@@ -1123,6 +1123,53 @@ go.onclick=run;sel.onchange=()=>{inp.style.display=T[sel.value].in?'':'none';if(
 cp.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(out.value).then(()=>toast('تم النسخ'),()=>{out.select();document.execCommand('copy');toast('تم النسخ')})};
 sw.onclick=()=>{inp.value=out.value;out.value=''};sv.onclick=()=>{writeF('/المستندات/نتيجة-الأدوات.txt',out.value);toast('حُفظ /المستندات/نتيجة-الأدوات.txt')};
 b.append(sel,inp,bar,out);window._tb={T,sel,inp,out,run};go.click()},{w:520,h:520});
+
+/* QUIZ */
+const QZ=[
+['جغرافيا','ما عاصمة مصر؟',['القاهرة','الإسكندرية','الجيزة','أسوان'],0],
+['جغرافيا','ما أطول نهر في أفريقيا؟',['النيل','الكونغو','النيجر','الزامبيزي'],0],
+['جغرافيا','ما عاصمة اليابان؟',['طوكيو','كيوتو','أوساكا','سول'],0],
+['جغرافيا','أي قارة تقع فيها مصر؟',['أفريقيا','آسيا','أوروبا','أمريكا الجنوبية'],0],
+['جغرافيا','ما أكبر محيط في العالم؟',['الهادئ','الأطلسي','الهندي','المتجمد الشمالي'],0],
+['جغرافيا','ما عاصمة السعودية؟',['الرياض','جدة','مكة','الدمام'],0],
+['جغرافيا','ما عاصمة فرنسا؟',['باريس','ليون','مرسيليا','بروكسل'],0],
+['جغرافيا','ما أكبر دولة في العالم مساحةً؟',['روسيا','كندا','الصين','أمريكا'],0],
+['علوم','ما أقرب كوكب إلى الشمس؟',['عطارد','الزهرة','المريخ','الأرض'],0],
+['علوم','ما الغاز الذي نتنفسه ونحتاجه للحياة؟',['الأكسجين','النيتروجين','الهيدروجين','الهيليوم'],0],
+['علوم','كم عدد كواكب المجموعة الشمسية؟',['8','9','7','10'],0],
+['علوم','ما الرمز الكيميائي للماء؟',['H2O','CO2','O2','NaCl'],0],
+['علوم','ما أكبر كوكب في المجموعة الشمسية؟',['المشتري','زحل','نبتون','الأرض'],0],
+['علوم','في أي درجة حرارة (مئوية) يغلي الماء عند مستوى البحر؟',['100','90','120','80'],0],
+['علوم','ما أسرع حيوان بري؟',['الفهد','الأسد','الحصان','الغزال'],0],
+['علوم','ما الكوكب المعروف بالكوكب الأحمر؟',['المريخ','الزهرة','المشتري','عطارد'],0],
+['علوم','كم عدد أيام السنة الميلادية العادية؟',['365','360','364','366'],0],
+['علوم','من أي نوع من الحيوانات الحوت؟',['ثدييات','أسماك','زواحف','برمائيات'],0],
+['ثقافة','كم عدد أيام الأسبوع؟',['7','5','6','8'],0],
+['ثقافة','كم عدد أشهر السنة؟',['12','10','11','13'],0],
+['ثقافة','كم عدد أضلاع المثلث؟',['3','4','5','6'],0],
+['ثقافة','ما ناتج 12 × 12؟',['144','124','122','132'],0],
+['ثقافة','ما ناتج 15 + 27؟',['42','41','43','52'],0],
+['ثقافة','كم دقيقة في الساعة؟',['60','100','30','90'],0],
+['ثقافة','ما لون خلط الأزرق مع الأصفر؟',['أخضر','بنفسجي','برتقالي','بني'],0],
+['ثقافة','كم عدد حروف اللغة العربية؟',['28','26','30','32'],0],
+['ثقافة','ما اسم أكبر أهرامات الجيزة؟',['خوفو','خفرع','منكاورع','زوسر'],0],
+['ثقافة','ما أطول عضلة في جسم الإنسان؟',['الخياطية (في الفخذ)','العضلة ذات الرأسين','عضلة القلب','عضلة اللسان'],0],
+['تقنية','ما معنى CPU؟',['وحدة المعالجة المركزية','ذاكرة الوصول العشوائي','قرص صلب','بطاقة الشاشة'],0],
+['تقنية','ما اللغة المستخدمة لتنسيق صفحات الويب (الشكل)؟',['CSS','SQL','PHP','C++'],0],
+['تقنية','كم بت في البايت الواحد؟',['8','4','16','10'],0]];
+app('quiz','اختبار معلومات','🧠',w=>{const b=w.body;b.style.cssText+=';padding:10px;gap:10px;overflow:auto;align-items:center';
+let best=+localStorage.quiz_best||0,Q,i,score,tm,left,locked;
+const info=el('div','');info.style.cssText='display:flex;gap:12px;font-weight:700;flex-wrap:wrap;justify-content:center';const bar=el('div','');bar.style.cssText='width:100%;max-width:460px;height:8px;border-radius:6px;background:#334155;overflow:hidden';const fill=el('div','');fill.style.cssText='height:100%;background:var(--ac);width:100%;transition:width 1s linear';bar.append(fill);
+const qt=el('div','');qt.style.cssText='font-size:19px;font-weight:800;text-align:center;line-height:1.7;max-width:460px;min-height:70px';const ch=el('div','');ch.style.cssText='display:grid;gap:8px;width:100%;max-width:460px';const nx=el('button','btn','ابدأ اختبار جديد ▶');
+b.append(info,bar,qt,ch,nx);
+const shuffle=a=>{a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
+const start=()=>{Q=shuffle(QZ).slice(0,10).map(q=>{const o=q[2].map((t,k)=>[t,k===q[3]]);return{c:q[0],q:q[1],o:shuffle(o)}});i=0;score=0;nx.style.display='none';show()};
+const upd=()=>{info.textContent='السؤال '+(i+1)+' / 10   |   النقاط: '+score+'   |   الأفضل: '+best};
+const show=()=>{clearInterval(tm);locked=false;const q=Q[i];upd();qt.textContent='['+q.c+'] '+q.q;ch.innerHTML='';q.o.forEach(([t,ok],k)=>{const bt=el('button','btn',t);bt.style.cssText='padding:12px;font-size:16px';bt.onclick=()=>pick(k);ch.append(bt)});left=15;fill.style.transition='none';fill.style.width='100%';setTimeout(()=>{fill.style.transition='width 15s linear';fill.style.width='0%'},30);
+tm=setInterval(()=>{if(!w.el.isConnected){clearInterval(tm);return}left--;if(left<=0){pick(-1)}},1000)};
+const pick=k=>{if(locked)return;locked=true;clearInterval(tm);const q=Q[i];[...ch.children].forEach((bt,j)=>{bt.disabled=true;if(q.o[j][1])bt.style.background='#16a34a';else if(j===k)bt.style.background='#dc2626'});if(k>=0&&q.o[k][1])score+=10+Math.max(0,left);setTimeout(()=>{i++;if(i>=10)fin();else show()},900)};
+const fin=()=>{if(score>best){best=score;localStorage.quiz_best=best;toast('🏆 رقم قياسي جديد!')}ch.innerHTML='';fill.style.width='0%';qt.textContent='انتهى الاختبار! نقاطك: '+score+' (الأفضل '+best+')';info.textContent='';nx.style.display='';nx.textContent='🔄 العب تاني'};
+nx.onclick=start;window._qz={get Q(){return Q},pick,get score(){return score},get i(){return i},QZ};start()},{w:520,h:520});
 
 /* BOOT */
 theme();renderDesk();clock();
