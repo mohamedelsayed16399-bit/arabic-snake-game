@@ -312,3 +312,12 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
   .console-head button, .console-head select{ white-space:nowrap; flex:0 0 auto; padding:5px 9px }
   .runbar{ padding:6px 8px }
 }
+
+/* --- phone: give the drawing canvas its real shape --- */
+@media (max-width:600px){
+  .turtle-panel{ max-height:none; flex:0 0 auto }
+  .canvas-holder{ flex:0 0 auto }
+  #turtleCanvas{ width:100%; height:auto; aspect-ratio:900/620; flex:none }
+  .console-wrap{ overflow-y:auto; flex:1.4 1 0 }
+  .editor-wrap{ flex:.7 1 0 }
+}
