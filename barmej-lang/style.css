@@ -419,3 +419,19 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .ref-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ref-note{font-size:12px;opacity:.7}
 .ref-out{margin:0;background:#06220f;color:#86efac;border-radius:8px;padding:8px;font-size:13px;white-space:pre-wrap;direction:rtl;text-align:right}
 .ref-out.bad{background:#2a0b0b;color:#fca5a5}.ref-empty{padding:16px;text-align:center;opacity:.7}
+
+/* 🧩 بلوكات */
+.bk-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.bk-hint{font-size:13px;opacity:.7}
+.bk-main{display:flex;gap:12px;align-items:flex-start}
+.bk-pal{width:150px;flex:none;display:flex;flex-direction:column;gap:5px;background:#0b1426;border:1px solid #243454;border-radius:10px;padding:8px;position:sticky;top:6px;max-height:80vh;overflow:auto}
+.bk-ph{font-size:12px;opacity:.7;margin-top:6px}.bk-pb{border:0;color:#04101f;font-weight:700;border-radius:8px;padding:7px 8px;cursor:pointer;text-align:right;font-family:inherit}
+.bk-work{flex:1;min-width:0}.bk-tree{background:#0b1426;border:1px solid #243454;border-radius:10px;padding:8px;min-height:140px}
+.bk-slot{border:2px dashed #2a3a5c;border-radius:10px;padding:6px;margin:4px 0}.bk-slot.sel{border-color:#34d399;background:#0d2a22}
+.bk-slot-h{font-size:12px;opacity:.8;cursor:pointer;margin-bottom:4px}
+.bk-block{border:2px solid;border-radius:10px;padding:6px 8px;margin:5px 0;background:#101b33}
+.bk-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.bk-lbl{color:#04101f;font-weight:700;border-radius:6px;padding:3px 9px}
+.bk-f{font-size:13px}.bk-f input{background:#050b17;color:#e2e8f0;border:1px solid #2a3a5c;border-radius:6px;padding:3px 6px;font-family:inherit;min-width:40px}
+.bk-ctl{margin-inline-start:auto;display:flex;gap:3px}.bk-mini{background:#1b2a4a;color:#cbd5e1;border:0;border-radius:6px;padding:3px 7px;cursor:pointer}
+.bk-empty{padding:18px;text-align:center;opacity:.7}.bk-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.bk-code-h{font-size:13px;opacity:.7}.bk-code{background:#050b17;border-radius:8px;padding:10px;direction:rtl;text-align:right;white-space:pre-wrap;min-height:40px;margin:4px 0}
+@media(max-width:640px){.bk-main{flex-direction:column}.bk-pal{width:auto;flex-direction:row;flex-wrap:wrap;position:static;max-height:none}.bk-ph{width:100%}}
