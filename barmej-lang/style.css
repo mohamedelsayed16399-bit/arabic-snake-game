@@ -406,3 +406,16 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .pf-badges{display:flex;flex-wrap:wrap;gap:8px}.pf-badge{display:flex;flex-direction:column;align-items:center;gap:2px;width:92px;padding:10px 4px;background:var(--panel2,#111a2c);border:1px solid #34d399;border-radius:10px;text-align:center}.pf-badge big{font-size:26px}.pf-badge small{font-size:11px;color:var(--muted)}.pf-badge.off{opacity:.3;filter:grayscale(1);border-color:var(--line)}
 .pf-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 @media (max-width:600px){.pf-row span{width:95px;font-size:12px}.pf-cards{flex-wrap:wrap}.pf-cards>div{flex:1 1 90px}}
+
+/* 📖 مرجع الدوال */
+.ref-wrap{background:var(--panel,#111c33);border:1px solid #2a3a5c;border-radius:12px;padding:12px;margin-bottom:16px}
+.ref-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}.ref-head b{font-size:17px}.ref-count{opacity:.7;font-size:13px;flex:1}
+.ref-body.hidden,.ref-out.hidden{display:none}
+.ref-body #refSearch{width:100%;box-sizing:border-box;margin-bottom:8px}
+.ref-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-top:8px;max-height:560px;overflow:auto}
+.ref-card{background:#0b1426;border:1px solid #243454;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.ref-sig{font-weight:700;color:#38bdf8;direction:rtl;font-family:inherit}.ref-desc{font-size:13px;opacity:.9;line-height:1.6}
+.ref-code{margin:0;background:#050b17;border-radius:8px;padding:8px;font-size:13px;white-space:pre-wrap;direction:rtl;text-align:right;color:#e2e8f0}
+.ref-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ref-note{font-size:12px;opacity:.7}
+.ref-out{margin:0;background:#06220f;color:#86efac;border-radius:8px;padding:8px;font-size:13px;white-space:pre-wrap;direction:rtl;text-align:right}
+.ref-out.bad{background:#2a0b0b;color:#fca5a5}.ref-empty{padding:16px;text-align:center;opacity:.7}
