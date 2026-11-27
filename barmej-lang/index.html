@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=241">
+<link rel="stylesheet" href="style.css?v=242">
 </head>
 <body>
 <header id="topbar">
@@ -17,6 +17,7 @@
     <button class="tab active" data-panel="editor">المحرر</button>
     <button class="tab" data-panel="lessons">الدروس</button>
     <button class="tab" data-panel="challenges">تحديات</button>
+    <button class="tab" data-panel="projects">🏗️ مشاريع</button>
     <button class="tab" data-panel="docs">الدليل</button>
     <button class="tab" data-panel="examples">أمثلة</button>
   </nav>
@@ -137,6 +138,13 @@
     </div>
   </section>
 
+  <section id="panel-projects" class="panel">
+    <div class="lessons-layout">
+      <div id="projList" class="lesson-list"></div>
+      <div id="projBody" class="lesson-body"></div>
+    </div>
+  </section>
+
   <section id="panel-docs" class="panel">
     <input id="docsSearch" type="search" placeholder="دوّر في الدليل… مثل: قوائم، رسم، صوت" />
     <div id="docsContent" class="docs"></div>
@@ -210,9 +218,9 @@
 </div>
 <div id="toast"></div>
 
-<script src="lang.js?v=241"></script>
-<script src="lessons.js?v=241"></script>
-<script src="examples2.js?v=241"></script>
-<script src="ide.js?v=241"></script>
+<script src="lang.js?v=242"></script>
+<script src="lessons.js?v=242"></script>
+<script src="examples2.js?v=242"></script>
+<script src="ide.js?v=242"></script>
 </body>
 </html>
