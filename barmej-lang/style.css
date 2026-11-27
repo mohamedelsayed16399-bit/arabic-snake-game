@@ -353,3 +353,5 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .proj-code{width:100%;min-height:200px;box-sizing:border-box;margin-top:10px;padding:10px;border-radius:8px;border:1px solid var(--muted);background:#0b1220;color:#e2e8f0;font:14px/1.7 monospace;resize:vertical}
 .proj-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .proj-out{margin-top:10px;padding:10px;border-radius:8px;background:#0b1220;color:#a7f3d0;white-space:pre-wrap;min-height:20px;max-height:220px;overflow:auto;direction:rtl}
+.proj-canvas{display:block;margin-top:10px;width:100%;max-width:450px;border-radius:10px;border:1px solid var(--line)}
+.proj-canvas.hidden{display:none}
