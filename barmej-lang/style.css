@@ -392,3 +392,7 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .lint-ln{font-size:11px;color:var(--muted);min-width:34px;font-family:monospace}.lint-tx{flex:1}
 .test-cases{width:100%;min-height:110px;background:#0b1220;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font:14px/1.7 monospace;direction:rtl;resize:vertical;box-sizing:border-box}
 .test-bar{height:10px;border-radius:6px;background:#1e293b;overflow:hidden;margin-top:12px}.test-bar div{height:100%}
+.ch-in{width:100%;box-sizing:border-box;margin:6px 0;background:#0b1220;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px;font-family:inherit;font-size:14px}
+.ch-bar{position:fixed;bottom:12px;left:12px;right:12px;max-width:560px;z-index:60;background:#0f172a;border:1px solid var(--accent2);border-radius:12px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;box-shadow:0 8px 30px #000a}
+.ch-bar.hidden{display:none}.ch-info{flex:1 1 100%;font-size:13px;color:var(--muted);line-height:1.7;order:5}.ch-t{color:#34d399}
+.ch-res{flex:1 1 100%;order:6;font-size:14px;line-height:1.7}.ch-res.ok{color:#34d399;font-weight:700}.ch-res.bad{color:#fbbf24}
