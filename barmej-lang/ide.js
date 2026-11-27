@@ -521,6 +521,17 @@ function explainRun(){ const r=BarmejExplain.explain(code.value); const B=$('#ex
   B.innerHTML=html; B.querySelectorAll('.ex-row').forEach(b=>b.addEventListener('click',()=>{ $('#explainModal').classList.add('hidden'); lintGo(+b.dataset.line); })); $('#explainModal').classList.remove('hidden'); }
 $('#explainBtn').addEventListener('click',explainRun); $('#explainAgain').addEventListener('click',explainRun); $('#explainClose').addEventListener('click',()=>$('#explainModal').classList.add('hidden'));
 $('#explainModal').addEventListener('click',e=>{ if(e.target.id==='explainModal') $('#explainModal').classList.add('hidden'); });
+/* --- مختبر الاختبارات --- */
+function testShow(r){ const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;'); const O=$('#testOut'); if(!r.total){ O.innerHTML='<p class="lint-sub">لسه مفيش حالات. اكتب حالة أو دوس «ولّد حالات من كودي».</p>'; return; }
+  const col=r.pass===r.total?'#34d399':r.pass>0?'#fbbf24':'#f87171';
+  let h='<div class="test-bar"><div style="width:'+Math.round(100*r.pass/r.total)+'%;background:'+col+'"></div></div><div class="lint-sub" style="margin:6px 0">'+(r.pass===r.total?'🎉 ':'')+r.pass+' من '+r.total+' نجحت</div><div class="lint-list">';
+  r.res.forEach(x=>{ h+='<button class="lint-item '+(x.ok?'lint-info':'lint-err')+'" data-l="'+x.c.line+'"><span class="lint-ln">س'+x.c.line+'</span><span class="lint-ic">'+(x.ok?'✅':'❌')+'</span><span class="lint-tx">'+esc(x.c.expr||x.c.raw)+(x.ok?' ← '+esc(x.got):(x.msg?'<small>'+esc(x.msg)+'</small>':'<small>المتوقع «'+esc(x.c.expected)+'» لكن طلع «'+esc(x.got)+'»</small>'))+'</span></button>'; }); O.innerHTML=h+'</div>'; }
+function testRun(){ const t=$('#testCases').value; try{ localStorage.setItem('barmej-tests',t); }catch(e){} const r=BarmejTester.run(code.value,t); testShow(r); if(r.total&&r.pass===r.total){ try{ toast('🧪 كل الاختبارات نجحت'); }catch(e){} } }
+$('#testBtn').addEventListener('click',()=>{ let t=''; try{ t=localStorage.getItem('barmej-tests')||''; }catch(e){} $('#testCases').value=t; $('#testOut').innerHTML=''; $('#testModal').classList.remove('hidden'); if(t.trim()) testRun(); });
+$('#testRun').addEventListener('click',testRun);
+$('#testSnap').addEventListener('click',()=>{ const s=BarmejTester.snapshot(code.value); if(s.error){ $('#testOut').innerHTML='<p class="lint-ok">⛔ '+s.error+'</p>'; return; } if(!s.lines.length){ $('#testOut').innerHTML='<p class="lint-ok">مفيش دوال في كودك أولد منها حالات. اكتب دالة الأول (دالة اسمها(معاملات) { ... }).</p>'; return; } $('#testCases').value=s.lines.join('\n'); testRun(); });
+$('#testClose').addEventListener('click',()=>$('#testModal').classList.add('hidden'));
+$('#testModal').addEventListener('click',e=>{ if(e.target.id==='testModal') $('#testModal').classList.add('hidden'); });
 $('#lintBtn').addEventListener('click',lintRun); $('#lintAgain').addEventListener('click',lintRun); $('#lintClose').addEventListener('click',()=>$('#lintModal').classList.add('hidden'));
 $('#lintModal').addEventListener('click',e=>{ if(e.target.id==='lintModal') $('#lintModal').classList.add('hidden'); });
 document.addEventListener('keydown',e=>{ if(e.shiftKey&&(e.ctrlKey||e.metaKey)&&(e.key==='F'||e.key==='f')&&document.activeElement===code){ e.preventDefault(); $('#formatBtn').click(); } });
