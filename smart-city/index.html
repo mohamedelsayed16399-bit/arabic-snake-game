@@ -79,7 +79,7 @@ select{background:#1b2a49;color:#fff;border:1px solid #2a3b60;border-radius:8px;
  </div>
  <div id="main">
   <div id="cv-wrap"><canvas id="cv"></canvas><div id="zoomb" style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:4"><button class="b" id="zin" style="font-size:20px;padding:4px 12px">＋</button><button class="b" id="zout" style="font-size:20px;padding:4px 12px">－</button></div><div id="hint" style="position:absolute;left:8px;bottom:8px;background:#0b3d2ecc;border:1px solid #2f9e6b;border-radius:12px;padding:5px 10px;font-size:12.5px;z-index:4;max-width:70%;display:none"></div><div id="banner"></div><div id="toast"></div>
-   <div id="modal" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🔬 أبحاث المدينة الذكية</h3><div id="resList"></div><h3 style="margin:8px 0">📜 سياسات المحافظ (تكلفة بالثانية)</h3><div id="polList"></div><button class="b" id="resClose">إغلاق</button></div></div><div id="slots" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">💾 خانات الحفظ</h3><div id="slotList"></div><button class="b" id="slotClose">إغلاق</button></div></div><div id="board" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🏆 لوحة الشرف</h3><div id="boardList"></div><button class="b" id="boardClose">إغلاق</button></div></div><div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
+   <div id="modal" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🔬 أبحاث المدينة الذكية</h3><div id="resList"></div><h3 style="margin:8px 0">📜 سياسات المحافظ (تكلفة بالثانية)</h3><div id="polList"></div><button class="b" id="resClose">إغلاق</button></div></div><div id="slots" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">💾 خانات الحفظ</h3><div id="slotList"></div><button class="b" id="slotClose">إغلاق</button></div></div><div id="board" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:8"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 style="margin:0 0 8px">🏆 لوحة الشرف</h3><div id="boardList"></div><button class="b" id="boardClose">إغلاق</button></div></div><div id="dec" style="position:absolute;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:9"><div style="background:#16233f;border:1px solid #3a5088;border-radius:14px;padding:14px;max-width:420px;width:92%"><h3 id="decT" style="margin:0 0 8px"></h3><div id="decD" style="margin-bottom:8px;line-height:1.7"></div><div id="decB"></div></div></div><div id="over"><div id="overT"></div><button class="b g" id="bAgain">ابدأ مدينة جديدة</button></div>
    <div id="start"><h1>🏙 المحافظ</h1><p>انت محافظ مدينة ذكية. ابني الطرق والمناطق السكنية والتجارية والصناعية، وفّر كهرباء ومياه، وحافظ على الأمان والصحة. المواطنين بيتصرفوا حسب الظروف: لو الكهرباء قطعت أو المرور اتزحم هيتضايقوا وممكن يطردوك!</p><p>💡 اختار أداة من تحت واضغط أو اسحب على الخريطة. اضغط على أي مبنى (أداة 🔍) لتشوف حالته وتطوره أو ترسل الطوارئ.</p><button class="b g" id="bGo" style="font-size:18px;padding:10px 26px">ابدأ الحكم</button><div style="margin-top:6px;font-size:13px">أو اختار تحدي:</div><div><button class="b o" data-sc="1">🚗 مدينة مزدحمة</button><button class="b o" data-sc="2">⚡ أزمة طاقة</button><button class="b o" data-sc="3">💸 ميزانية شحيحة</button></div></div>
   </div>
   <div id="side"><div id="mission"></div><h4>🔍 معلومات</h4><div id="info">اضغط على مبنى</div><h4>📈 السكان والميزانية</h4><canvas id="chart" width="260" height="60" style="width:100%;height:60px;flex:none"></canvas><h4>📰 أخبار المدينة</h4><div id="feed"></div></div>
@@ -147,7 +147,7 @@ function coverage(){
 let COV=null,LOAD=new Float32Array(W*H);
 function step(){
  if(S.over)return;
- S.tick++;floodStep();if(rain>0)rain--;else if(Math.random()<0.004){rain=25;log('🌧 مطر غزير: الزحمة هتزيد شوية')}
+ S.tick++;S.bonusH=(S.bonusH||0)*0.97;floodStep();if(rain>0)rain--;else if(Math.random()<0.004){rain=25;log('🌧 مطر غزير: الزحمة هتزيد شوية')}
  let sup=0,dem=0,wsup=0,wdem=0;
  S.res=S.res||{grid:0,lights:0,cams:0,alarm:0};S.pol=S.pol||{clean:0,flex:0,patrol:0,fest:0};const RS=S.res,PL=S.pol;
  const heat=(S.heat>0?1.4:1)*(RS.grid?0.85:1),dro=S.drought>0?0.6:1;
@@ -184,7 +184,7 @@ function step(){
   if(c.t===2)h-=Math.min(14,pollN[i]*4);
   if(COV[14][i])h+=8;if(COV[16][i])h+=3;
   h-=S.cong*14;h-=c.crime?20:0;h-=c.sick?10:0;h-=c.fire?25:0;h-=Math.max(0,S.tax-12)*1.6;
-  if(S.fest>0)h+=10;if(PL.clean)h+=4;
+  if(S.fest>0)h+=10;h+=(S.bonusH||0);if(PL.clean)h+=4;
   c.h=Math.max(0,Math.min(100,h));
   if(c.t===2&&c.pop>0){hs+=c.h*c.pop;hn+=c.pop}
   const dm=c.t===2?resDem:jobDem;
@@ -227,6 +227,7 @@ function step(){
  if(S.tick%3===0){S.hist=S.hist||{p:[],m:[]};S.hist.p.push(pop);S.hist.m.push(S.money);if(S.hist.p.length>80){S.hist.p.shift();S.hist.m.shift()}drawChart()}
  if(S.tick%6===0&&pop>0)citizenSay();
  if(S.tick%80===0&&pop>20&&Math.random()<0.8)randomEvent();
+ if(S.tick%130===65&&pop>60)decision();
  if(PL.fest&&S.tick%50===0){S.fest=Math.max(S.fest,8)}
  if(S.tick%30===0)monthly();
  checkMissions();
@@ -267,6 +268,17 @@ function randomEvent(){
 }
 function story(){const ds=DIST.map((n,i)=>[n,distStats(i)]).filter(a=>a[1].p>0);if(!ds.length)return;const[n,st]=ds[Math.floor(Math.random()*ds.length)];
  const m=st.inc>0?'أهالي حي '+n+' قلقانين من الحوادث ('+st.inc+')':st.h<45?'حي '+n+' متضايق: رضا '+Math.round(st.h)+'% وبيطالبوا بخدمات':st.h>75?'حي '+n+' مزدهر والناس بتتكلم عن إنجازاتك':'حي '+n+' هادي: '+st.p+' ساكن';log('🏘 '+m)}
+const DECS=[
+ ['🏭 مصنع جديد عايز يفتح','شركة كبيرة عايزة تبني مصنع وتوفر وظايف، لكن هيلوث.',[['وافق (+1500 فلوس، رضا -5)',()=>{S.money+=1500;S.appr=Math.max(0,S.appr-5);S.bonusH=-3}],['ارفض (رضا +3)',()=>{S.bonusH=3}]]],
+ ['🎓 جامعة تطلب دعم','الجامعة طلبت 1200 لدعم الأبحاث. هتفيد المدينة على المدى الطويل.',[['ادعم (-1200، دخل أعلى لفترة)',()=>{if(S.money>=1200){S.money-=1200;S.boom=Math.max(S.boom,40)}}],['اعتذر',()=>{}]]],
+ ['📢 مظاهرة في الشارع','المواطنين بيطالبوا بتخفيض الضرائب.',[['اخفض الضريبة 3%',()=>{S.tax=Math.max(2,S.tax-3);$('tax').value=S.tax;$('taxV').textContent=S.tax}],['تجاهل (رضا -4)',()=>{S.bonusH=-4}]]],
+ ['💎 مستثمر أجنبي','مستثمر عايز يشتري أرض عامة بـ 3000.',[['بيع (+3000، رضا -3)',()=>{S.money+=3000;S.bonusH=-3}],['ارفض',()=>{}]]]];
+let decOpen=false;
+function decision(){if(decOpen||S.over)return;const d=DECS[Math.floor(Math.random()*DECS.length)];decOpen=true;paused0=paused;if(!paused){paused=true;loop()}
+ $('decT').textContent=d[0];$('decD').textContent=d[1];$('decB').innerHTML='';
+ d[2].forEach(o=>{const b=document.createElement('button');b.className='b g';b.textContent=o[0];b.onclick=()=>{o[1]();log('📜 قرارك: '+o[0].split(' (')[0]);$('dec').style.display='none';decOpen=false;if(!paused0){paused=false;loop()}ui()};$('decB').appendChild(b)});
+ $('dec').style.display='flex'}
+let paused0=false;
 let rain=0;let flood=null;
 function startFlood(){const zs=[];for(let i=0;i<W*H;i++)if(isZone(cells[i].t)&&cells[i].pop>0)zs.push(i);if(!zs.length)return;const i=zs[Math.floor(Math.random()*zs.length)];flood={x:i%W,y:Math.floor(i/W),r:1,left:12,safe:false};
  log('🌊 فيضان! اضغط على زر 🧱 دفاع الفيضان قبل ما يوصل (تكلفة 400) أو هتخسر مباني');beep(140,0.5);$('bFlood').style.display='inline-block';banner('🌊 فيضان قادم! ('+flood.left+' ثانية)')}
@@ -520,7 +532,7 @@ try{const j=JSON.parse(localStorage.getItem('smartcity_v1')||'null');if(j&&j.S&&
 COV=coverage();
 $('tax').value=S.tax;$('taxV').textContent=S.tax;
 resize();ui();checkMissions();loop();requestAnimationFrame(frame);
-window.__city={cam:()=>[ts,ox,oy],get S(){return S},get cells(){return cells},step,apply,setTool:t=>{tool=t},scenario,startFlood,flood:()=>flood,score};
+window.__city={cam:()=>[ts,ox,oy],get S(){return S},get cells(){return cells},step,apply,setTool:t=>{tool=t},scenario,decision,startFlood,flood:()=>flood,score};
 })();
 </script>
 </body>
