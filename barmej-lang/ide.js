@@ -736,6 +736,60 @@ $('#checkChallenge').addEventListener('click',()=>{
     renderChallengeList(); }
 });
 
+/* --- guided projects (multi-step builder with saved progress) --- */
+(function(){
+  const PK='barmej-projects'; const PR=window.BARMEJ_PROJECTS||[]; if(!PR.length) return;
+  let st={}; try{ st=JSON.parse(localStorage.getItem(PK)||'{}')||{}; }catch(e){ st={}; }
+  let cur=0;
+  const save=()=>{ try{ localStorage.setItem(PK,JSON.stringify(st)); }catch(e){} };
+  const get=p=>{ if(!st[p.id]) st[p.id]={code:p.base,step:0,done:[]}; return st[p.id]; };
+  const finished=p=>get(p).done.length>=p.steps.length;
+  window.barmejProjectsDone=()=>PR.filter(finished).length;
+  const list=$('#projList'), body=$('#projBody');
+  const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  function runCode(src){ const out=[]; let n=0;
+    const io={print:s=>{ if(out.length<300) out.push(String(s)); },ask:()=> '5',draw:()=>{}};
+    const r=Barmej.runSource(src,io,{maxSteps:3e6}); return {r,out}; }
+  function renderList(){ list.innerHTML='';
+    PR.forEach((p,i)=>{ const s=get(p); const d=document.createElement('div'); d.className='lesson-item'+(i===cur?' active':'');
+      d.innerHTML='<span class="done-mark">'+(finished(p)?'🏅':'○')+'</span><span>'+p.icon+' '+p.title+' <small>('+s.done.length+'/'+p.steps.length+')</small></span>';
+      d.addEventListener('click',()=>{ cur=i; render(); }); list.appendChild(d); }); }
+  function render(){ renderList(); const p=PR[cur], s=get(p), k=Math.min(s.step,p.steps.length-1), stp=p.steps[k];
+    const pct=Math.round(s.done.length*100/p.steps.length);
+    let h='<h2>'+p.icon+' '+p.title+'</h2><p class="proj-desc">'+p.desc+'</p>';
+    h+='<div class="proj-bar"><div class="proj-fill" style="width:'+pct+'%"></div></div><div class="proj-chips">';
+    p.steps.forEach((x,i)=>{ h+='<button class="proj-chip'+(i===k?' on':'')+(s.done.includes(i)?' ok':'')+'" data-i="'+i+'">'+(s.done.includes(i)?'✔':(i+1))+'</button>'; });
+    h+='</div>';
+    if(finished(p)) h+='<div class="lesson-result ok" style="display:block">🎉 خلّصت مشروع «'+p.title+'» كله! الكود النهائي متسجّل وتقدر تفتحه في المحرر وتطوّره.</div>';
+    h+='<h3>الخطوة '+(k+1)+' من '+p.steps.length+': '+stp.title+'</h3><div class="lesson-text">'+stp.text+'</div>';
+    h+='<textarea id="projCode" class="proj-code" spellcheck="false" dir="rtl"></textarea>';
+    h+='<div class="proj-btns"><button id="pRun" class="run small">▶ شغّل</button><button id="pCheck" class="check">✔ تحقق من الخطوة</button><button id="pHint" class="ghost small">💡 تلميح</button><button id="pSol" class="ghost small">📋 حطّ الحل</button><button id="pOpen" class="ghost small">📂 افتح في المحرر</button><button id="pReset" class="ghost small">↺ ابدأ من الأول</button></div>';
+    h+='<div id="projResult" class="lesson-result"></div><pre id="projOut" class="proj-out"></pre>';
+    body.innerHTML=h; const ta=$('#projCode'); ta.value=s.code;
+    const res=$('#projResult'), outEl=$('#projOut');
+    ta.addEventListener('input',()=>{ s.code=ta.value; save(); });
+    ta.addEventListener('keydown',e=>{ if(e.key==='Tab'){ e.preventDefault(); const a=ta.selectionStart; ta.setRangeText('  ',a,ta.selectionEnd,'end'); s.code=ta.value; save(); } });
+    body.querySelectorAll('.proj-chip').forEach(b=>b.addEventListener('click',()=>{ s.step=+b.dataset.i; save(); render(); }));
+    $('#pRun').addEventListener('click',()=>{ const {r,out}=runCode(ta.value); res.className='lesson-result'; res.textContent='';
+      outEl.textContent=out.join('\n')+(r.ok?'':'\n⚠ '+r.error+(r.line?' (سطر '+r.line+')':'')); try{ achCheck({ran:true}); }catch(e){} });
+    $('#pCheck').addEventListener('click',()=>{ const {r,out}=runCode(ta.value); outEl.textContent=out.join('\n');
+      if(!r.ok){ res.className='lesson-result bad'; res.textContent='فيه خطأ في الكود: '+r.error+(r.line?' (سطر '+r.line+')':''); return; }
+      const prob=stp.check(out,ta.value);
+      if(prob){ res.className='lesson-result bad'; res.textContent='لسه مش مظبوط: '+prob; return; }
+      const was=finished(p); if(!s.done.includes(k)) s.done.push(k);
+      const nxt=p.steps.findIndex((x,i)=>!s.done.includes(i)); if(nxt>=0) s.step=nxt; save();
+      if(!was&&finished(p)){ try{ achCheck({projects:window.barmejProjectsDone()}); }catch(e){} toast('🏅 خلّصت المشروع!'); }
+      render(); const r2=$('#projResult'); r2.className='lesson-result ok'; r2.textContent=finished(p)?'المشروع كله اتحل! 🏆':'الخطوة صح! ✅ كمّل الخطوة اللي بعدها'; $('#projOut').textContent=out.join('\n'); });
+    $('#pHint').addEventListener('click',()=>{ res.className='lesson-result ok'; res.textContent='💡 '+stp.hint; });
+    $('#pSol').addEventListener('click',()=>{ if(ta.value.includes(stp.sol.trim())){ toast('الحل موجود فعلا في الكود'); return; }
+      ta.value=ta.value.replace(/\s*$/,'\n')+stp.sol; s.code=ta.value; save(); toast('اتضاف حل الخطوة — دوس تحقق'); });
+    $('#pOpen').addEventListener('click',()=>{ code.value=ta.value; renderHL(); autosave(); document.querySelector('.tab[data-panel="editor"]').click(); toast('اتحط المشروع في المحرر'); });
+    $('#pReset').addEventListener('click',()=>{ if(!confirm('تبدأ المشروع من الأول وتمسح تقدّمك فيه؟')) return; st[p.id]={code:p.base,step:0,done:[]}; save(); render(); });
+  }
+  const tab=document.querySelector('.tab[data-panel="projects"]'); if(tab) tab.addEventListener('click',render);
+  render();
+})();
+
 const _normAr=s=>(s||'').toLowerCase().replace(/[\u0640\u064B-\u065F]/g,'').replace(/[\u0623\u0625\u0622]/g,'\u0627').replace(/\u0649/g,'\u064A').replace(/\u0629/g,'\u0647');
 /* --- examples --- */
 const exList=$('#exampleList');
@@ -1056,7 +1110,7 @@ $('#docsContent').innerHTML=`
 
 /* --- backup / restore --- */
 (function(){
-  const KEYS=['barmej-programs','barmej-lessons-done','barmej-challenges-done','barmej-fav-ex','barmej-daily','barmej-hist'];
+  const KEYS=['barmej-programs','barmej-lessons-done','barmej-challenges-done','barmej-fav-ex','barmej-daily','barmej-hist','barmej-projects'];
   $('#backupBtn').addEventListener('click',()=>{ stashCurrent();
     const data={app:'barmej',v:1,time:new Date().toISOString(),keys:{}};
     try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(KEYS.includes(k)||k.startsWith('barmej-data:')) data.keys[k]=localStorage.getItem(k); } }catch(e){}
@@ -1185,6 +1239,7 @@ const BADGES=[
  {id:'les10',icon:'📚',t:'دارس',d:'خلّص ١٠ دروس',ok:c=>c.lessons>=10},
  {id:'lesall',icon:'🎓',t:'خريج برمِج',d:'خلّص كل الدروس',ok:c=>c.lessons>=BARMEJ_LESSONS.length},
  {id:'ch1',icon:'🧩',t:'حلّال ألغاز',d:'حل تحدي واحد',ok:c=>c.challenges>=1},
+ {id:'proj1',icon:'🏗️',t:'بنّاء مشاريع',d:'خلّص مشروع موجّه كامل',ok:c=>c.projects>=1},
  {id:'chall',icon:'🏆',t:'بطل التحديات',d:'حل كل التحديات',ok:c=>c.challenges>=BARMEJ_CHALLENGES.length},
  {id:'cls',icon:'🧱',t:'بنّاء الأصناف',d:'استخدم صنف في برنامج شغّال',ok:c=>c.ran&&/(^|\n)\s*صنف\s+\S+/.test(c.code)},
  {id:'lam',icon:'⚡',t:'دالة بلا اسم',d:'اكتب دالة بدون اسم',ok:c=>c.ran&&/دالة\s*\(/.test(c.code)},
@@ -1206,7 +1261,7 @@ function achLevel(xp){ let k=0; for(let j=0;j<LEVELS.length;j++) if(xp>=LEVELS[j
 function renderAchBtn(){ const s=achState(), xp=achXP(s), k=achLevel(xp); const b=$('#achBtn'); if(b) b.textContent='🏆 '+(k+1); }
 function achCheck(extra){
   const s=achState(); if(extra&&extra.ran) s.runs++;
-  const ctx=Object.assign({streak:dailyStreakNow(),runs:s.runs,lessons:doneLessons.size,challenges:doneChallenges.size,code:''},extra||{});
+  const ctx=Object.assign({streak:dailyStreakNow(),runs:s.runs,lessons:doneLessons.size,challenges:doneChallenges.size,projects:(window.barmejProjectsDone?window.barmejProjectsDone():0),code:''},extra||{});
   const newly=[]; for(const b of BADGES){ if(!s.badges[b.id]&&b.ok(ctx)){ s.badges[b.id]=Date.now(); newly.push(b); } }
   achSave(s);
   if(newly.length) toast('🏅 إنجاز جديد: '+newly.map(b=>b.icon+' '+b.t).join('، '));
