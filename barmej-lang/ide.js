@@ -882,6 +882,44 @@ $('#checkChallenge').addEventListener('click',()=>{
   render();
 })();
 
+/* --- my gallery: thumbnails of saved programs, open / run / share link --- */
+(function(){
+  const TK='barmej-thumbs'; let th={}; try{ th=JSON.parse(localStorage.getItem(TK)||'{}')||{}; }catch(e){ th={}; }
+  const saveTh=()=>{ const ks=Object.keys(th); if(ks.length>40){ ks.sort((a,b)=>th[a].t-th[b].t).slice(0,ks.length-40).forEach(k=>delete th[k]); }
+    try{ localStorage.setItem(TK,JSON.stringify(th)); }catch(e){ try{ const ks2=Object.keys(th).sort((a,b)=>th[a].t-th[b].t); delete th[ks2[0]]; localStorage.setItem(TK,JSON.stringify(th)); }catch(e2){} } };
+  function snapThumb(){ try{
+    if(turtlePanel.classList.contains('hidden')) return;
+    const o=document.createElement('canvas'); o.width=240; o.height=166; const g=o.getContext('2d'); g.fillStyle='#0b1220'; g.fillRect(0,0,240,166); g.drawImage(tc,0,0,240,166);
+    th[currentProgram]={img:o.toDataURL('image/jpeg',0.6),t:Date.now()}; saveTh(); }catch(e){} }
+  window.__barmejSnap=snapThumb;
+  // capture 4s after a run starts, and when a run ends or the user leaves the editor tab
+  const rb=$('#runBtn'); rb.addEventListener('click',()=>{ const my=runSeq; setTimeout(()=>{ if(runSeq===my||true) snapThumb(); },4000); });
+  const runBtnObs=new MutationObserver(()=>{ if(!rb.disabled) setTimeout(snapThumb,300); }); runBtnObs.observe(rb,{attributes:true,attributeFilter:['disabled']});
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{ if(t.dataset.panel!=='editor'&&document.querySelector('#panel-editor').classList.contains('active')===false) return; }));
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('mousedown',()=>{ if(document.querySelector('#panel-editor').classList.contains('active')) snapThumb(); }));
+  const body=$('#galBody'); let q='';
+  async function linkFor(src){ const plain='#code='+encodeURIComponent(btoa(unescape(encodeURIComponent(src))));
+    try{ if(typeof CompressionStream==='undefined') return plain; const z='#z='+b64u.enc(await zPipe(new TextEncoder().encode(src),CompressionStream)); return z.length<plain.length?z:plain; }catch(e){ return plain; } }
+  function openProg(n,run){ stashCurrent(); currentProgram=n; const pp=getPrograms(); code.value=pp[n]||''; $('#fileName').textContent=n+'.برمج';
+    try{ localStorage.setItem('barmej-current',n); }catch(e){} renderHL(); document.querySelector('.tab[data-panel="editor"]').click(); if(run) setTimeout(()=>$('#runBtn').click(),300); }
+  function render(){ stashCurrent(); const p=getPrograms(); const names=Object.keys(p).filter(n=>!q||n.includes(q)||p[n].includes(q));
+    const lines=Object.keys(p).reduce((a,n)=>a+p[n].split('\n').length,0), withTh=Object.keys(p).filter(n=>th[n]).length;
+    let h='<h2>🖼️ معرض أعمالي</h2><p class="proj-desc">'+Object.keys(p).length+' برنامج · '+lines+' سطر كود · '+withTh+' ليهم صورة (الصورة بتتاخد تلقائي لما تشغّل برنامج رسم أو لعبة)</p>';
+    h+='<input id="galSearch" type="search" class="gal-search" placeholder="🔎 دوّر في أسماء وأكواد برامجك…" value="'+q.replace(/"/g,'&quot;')+'">';
+    h+='<div class="gal-grid">';
+    names.sort((a,b)=>((th[b]||{}).t||0)-((th[a]||{}).t||0));
+    names.forEach(n=>{ const t=th[n]; h+='<div class="gal-card'+(n===currentProgram?' cur':'')+'" data-n="'+encodeURIComponent(n)+'"><div class="gal-img">'+(t?'<img alt="" src="'+t.img+'">':'<span>📝</span>')+'</div><div class="gal-name"></div><div class="gal-sub">'+p[n].split('\n').length+' سطر'+(t?' · '+new Date(t.t).toLocaleDateString('ar-EG'):'')+'</div>'
+      +'<div class="gal-btns"><button class="ghost small g-open">✏️ افتح</button><button class="run small g-run">▶ شغّل</button><button class="ghost small g-link">🔗 رابط</button></div></div>'; });
+    if(!names.length) h+='<p class="proj-desc">مفيش نتايج.</p>';
+    h+='</div>'; body.innerHTML=h;
+    body.querySelectorAll('.gal-card').forEach(c=>{ const n=decodeURIComponent(c.dataset.n); c.querySelector('.gal-name').textContent=n;
+      c.querySelector('.g-open').addEventListener('click',()=>openProg(n,false)); c.querySelector('.g-run').addEventListener('click',()=>openProg(n,true));
+      c.querySelector('.g-link').addEventListener('click',async()=>{ const url=location.origin+location.pathname+await linkFor(getPrograms()[n]||''); try{ await navigator.clipboard.writeText(url); toast('اتنسخ رابط «'+n+'»'); }catch(e){ location.hash=url.slice(url.indexOf('#')); toast('الرابط في شريط العنوان — انسخه'); } }); });
+    const s=$('#galSearch'); s.addEventListener('input',e=>{ q=e.target.value; const pos=e.target.selectionStart; render(); const s2=$('#galSearch'); s2.focus(); try{ s2.setSelectionRange(pos,pos); }catch(er){} }); }
+  const tab=document.querySelector('.tab[data-panel="gallery"]'); if(tab) tab.addEventListener('click',render);
+  window.__barmejGal={render,thumbs:()=>th};
+})();
+
 const _normAr=s=>(s||'').toLowerCase().replace(/[\u0640\u064B-\u065F]/g,'').replace(/[\u0623\u0625\u0622]/g,'\u0627').replace(/\u0649/g,'\u064A').replace(/\u0629/g,'\u0647');
 /* --- examples --- */
 const exList=$('#exampleList');
@@ -1202,7 +1240,7 @@ $('#docsContent').innerHTML=`
 
 /* --- backup / restore --- */
 (function(){
-  const KEYS=['barmej-programs','barmej-lessons-done','barmej-challenges-done','barmej-fav-ex','barmej-daily','barmej-hist','barmej-projects','barmej-path'];
+  const KEYS=['barmej-programs','barmej-lessons-done','barmej-challenges-done','barmej-fav-ex','barmej-daily','barmej-hist','barmej-projects','barmej-path','barmej-thumbs'];
   $('#backupBtn').addEventListener('click',()=>{ stashCurrent();
     const data={app:'barmej',v:1,time:new Date().toISOString(),keys:{}};
     try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(KEYS.includes(k)||k.startsWith('barmej-data:')) data.keys[k]=localStorage.getItem(k); } }catch(e){}
