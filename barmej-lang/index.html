@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>برمِج — لغة برمجة عربية وبيئة تطوير كاملة</title>
 <meta name="description" content="برمِج: أول بيئة تطوير عربية كاملة في المتصفح. اكتب كود بالعربي، شغّله فورًا، وتعلم البرمجة بدروس تفاعلية.">
-<link rel="stylesheet" href="style.css?v=251">
+<link rel="stylesheet" href="style.css?v=252">
 </head>
 <body>
 <header id="topbar">
@@ -46,6 +46,7 @@
           <button id="snipBtn" class="ghost" title="قصاصات كود جاهزة">🧩 قصاصات</button>
           <button id="histBtn" class="ghost" title="سجل النسخ: ارجع لأي نسخة شغّلتها قبل كده">🕘 سجل</button>
           <button id="formatBtn" class="ghost" title="نسّق الكود (Ctrl+Shift+F)">✨ نسّق</button>
+          <button id="chMakeBtn" class="ghost" title="اعمل تحدي برمجي وشاركه برابط، وأصحابك يحلوه ويتصحح تلقائي">🎯 اعمل تحدي</button>
           <button id="testBtn" class="ghost" title="مختبر الاختبارات: جرّب دوالك على حالات وشوف النتيجة">🧪 اختبر</button>
           <button id="explainBtn" class="ghost" title="اشرح الكود بالعربي البسيط سطر بسطر">🧠 اشرح</button>
           <button id="lintBtn" class="ghost" title="افحص الكود: أخطاء وتحذيرات ونصايح من غير تشغيل">🔍 افحص</button>
@@ -238,14 +239,23 @@
 <div id="lintModal" class="modal-back hidden"><div class="modal lint-modal"><div id="lintBody"></div><div class="modal-actions"><button id="lintAgain" class="run">🔄 افحص تاني</button><button id="lintClose" class="ghost">إغلاق</button></div></div></div>
 <div id="explainModal" class="modal-back hidden"><div class="modal lint-modal"><div id="explainBody"></div><div class="modal-actions"><button id="explainAgain" class="run">🔄 اشرح تاني</button><button id="explainClose" class="ghost">إغلاق</button></div></div></div>
 <div id="testModal" class="modal-back hidden"><div class="modal lint-modal"><h2>🧪 مختبر الاختبارات</h2><p class="lint-sub">اكتب حالة في كل سطر بالشكل: <code>نداء_الدالة => النتيجة_المتوقعة</code> مثال: <code>مجموع(٥) => ١٥</code></p><textarea id="testCases" class="test-cases" spellcheck="false" placeholder="مجموع(٥) => ١٥"></textarea><div id="testOut"></div><div class="modal-actions"><button id="testRun" class="run">▶ شغّل الاختبارات</button><button id="testSnap" class="ghost" title="يجرّب دوالك على قيم عينة ويكتب النتائج الحالية كحالات">📸 ولّد حالات من كودي</button><button id="testClose" class="ghost">إغلاق</button></div></div></div>
+<div id="chMakeModal" class="modal-back hidden"><div class="modal lint-modal"><h2>🎯 اعمل تحدي وشاركه</h2>
+<p class="lint-sub">اكتب الحل في المحرر، دوس «ولّد المتوقع»، اكتب العنوان والمهمة، وانسخ الرابط. اللي يفتحه يحل ويتصحح كوده تلقائي.</p>
+<input id="chT" class="ch-in" placeholder="عنوان التحدي (مثلاً: مثلث النجوم)"><textarea id="chD" class="ch-in" rows="3" placeholder="المهمة: اطبع ... (اشرح المطلوب)"></textarea>
+<textarea id="chS" class="ch-in test-cases" rows="4" placeholder="كود البداية اللي هيظهر للحال (اختياري)"></textarea>
+<textarea id="chE" class="ch-in test-cases" rows="3" placeholder="المخرجات المتوقعة: سطر لكل طباعة"></textarea><input id="chH" class="ch-in" placeholder="تلميح (اختياري)">
+<div id="chMsg" class="lint-sub" style="min-height:22px"></div>
+<div class="modal-actions"><button id="chCopy" class="run">🔗 انسخ رابط التحدي</button><button id="chGen" class="ghost">⚙️ ولّد المتوقع من المحرر</button><button id="chStarterFromEditor" class="ghost">📥 كود المحرر كبداية</button><button id="chMakeClose" class="ghost">إغلاق</button></div></div></div>
+<div id="chPlayModal" class="modal-back hidden"><div class="modal"><h2 id="chPlayT"></h2><p id="chPlayD" style="line-height:1.9"></p><div class="modal-actions"><button id="chStart" class="run">ابدأ التحدي 🚀</button></div></div></div>
+<div id="chBar" class="ch-bar hidden"><b class="ch-t"></b><span id="chInfo" class="ch-info"></span><button id="chCheck" class="run small">✔ تحقق</button><button id="chHint" class="ghost small">💡</button><button id="chBarClose" class="ghost small">✕</button><div id="chRes" class="ch-res"></div></div>
 <div id="toast"></div>
 
-<script src="lang.js?v=251"></script>
-<script src="lessons.js?v=251"></script>
-<script src="examples2.js?v=251"></script>
-<script src="lint.js?v=251"></script>
-<script src="explain.js?v=251"></script>
-<script src="tester.js?v=251"></script>
-<script src="ide.js?v=251"></script>
+<script src="lang.js?v=252"></script>
+<script src="lessons.js?v=252"></script>
+<script src="examples2.js?v=252"></script>
+<script src="lint.js?v=252"></script>
+<script src="explain.js?v=252"></script>
+<script src="tester.js?v=252"></script>
+<script src="ide.js?v=252"></script>
 </body>
 </html>
