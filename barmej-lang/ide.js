@@ -766,10 +766,21 @@ function recordDaily(){ const s=dailyState(), t=dayKey(); if(s.last===t) return 
 function renderDaily(){ const el=document.createElement('div'); el.id='dailyBanner'; el.className='daily-banner'; const i=dailyIndex(), s=dailyState(), done=s.last===dayKey(), st=dailyStreakNow();
   el.innerHTML='<div class="daily-top"><b>⭐ تحدي اليوم</b><span class="daily-streak">🔥 '+st+' يوم متتالي</span></div><div class="daily-title">'+(i+1)+'. '+BARMEJ_CHALLENGES[i].title+'</div><button class="run small" id="dailyGo">'+(done?'✔ اتحل النهارده — اعمله تاني':'▶ ابدأ تحدي اليوم')+'</button>';
   el.querySelector('#dailyGo').addEventListener('click',()=>{ currentChallenge=i; renderChallenge(); }); challengeList.appendChild(el); }
+let chFilter='all', chQ='';
 function renderChallengeList(){
   challengeList.innerHTML='';
   renderDaily();
+  const tot=BARMEJ_CHALLENGES.length, dn=BARMEJ_CHALLENGES.filter(l=>doneChallenges.has(l.id)).length;
+  const bar=document.createElement('div'); bar.className='ch-bar';
+  bar.innerHTML='<div class="ch-prog"><div class="ch-fill" style="width:'+Math.round(dn*100/tot)+'%"></div></div><div class="ch-sub">'+dn+' من '+tot+' اتحلوا</div><input id="chSearch" type="search" placeholder="🔎 دوّر في التحديات" dir="rtl" value="'+chQ.replace(/"/g,'')+'"><div class="ch-f">'+[['all','الكل'],['todo','لسه'],['done','محلول']].map(x=>'<button class="chip'+(chFilter===x[0]?' on':'')+'" data-f="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
+  challengeList.appendChild(bar);
+  bar.querySelectorAll('[data-f]').forEach(b=>b.addEventListener('click',()=>{ chFilter=b.dataset.f; renderChallengeList(); }));
+  const si=bar.querySelector('#chSearch'); si.addEventListener('input',()=>{ chQ=si.value; const p=si.selectionStart; renderChallengeList(); const n=$('#chSearch'); n.focus(); try{ n.setSelectionRange(p,p); }catch(e){} });
+  const nz=t=>(t||'').toLowerCase().replace(/[\u0640\u064B-\u065F]/g,'').replace(/[\u0623\u0625\u0622]/g,'\u0627').replace(/\u0649/g,'\u064A').replace(/\u0629/g,'\u0647'); const qn=nz(chQ.trim());
   BARMEJ_CHALLENGES.forEach((l,i)=>{
+    if(chFilter==='todo'&&doneChallenges.has(l.id)&&i!==currentChallenge) return;
+    if(chFilter==='done'&&!doneChallenges.has(l.id)) return;
+    if(qn&&!nz(l.title+' '+l.text.replace(/<[^>]+>/g,' ')).includes(qn)) return;
     const d=document.createElement('div');
     d.className='lesson-item'+(i===currentChallenge?' active':'');
     d.innerHTML='<span class="done-mark">'+(doneChallenges.has(l.id)?'✔':'○')+'</span><span>'+(i+1)+'. '+l.title+'</span>';
@@ -782,8 +793,10 @@ function renderChallenge(){
   $('#challengeTitle').textContent=(currentChallenge+1)+'. '+l.title;
   $('#challengeText').innerHTML=l.text;
   $('#challengeResult').className='lesson-result'; $('#challengeResult').textContent='';
+  const sb=$('#solChallenge'), sp=$('#challengeSol'); sp.classList.add('hidden'); sp.textContent=''; sb.style.display=l.sol?'':'none';
   renderChallengeList();
 }
+$('#solChallenge').addEventListener('click',()=>{ const l=BARMEJ_CHALLENGES[currentChallenge]; const sp=$('#challengeSol'); if(!l.sol) return; if(!sp.classList.contains('hidden')){ sp.classList.add('hidden'); return; } sp.textContent=l.sol; sp.classList.remove('hidden'); });
 $('#tryChallenge').addEventListener('click',()=>{
   code.value=BARMEJ_CHALLENGES[currentChallenge].starter; renderHL(); autosave();
   document.querySelector('.tab[data-panel="editor"]').click(); toast('اتحط التحدي في المحرر');
