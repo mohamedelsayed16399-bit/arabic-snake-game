@@ -1488,7 +1488,7 @@ renderAchBtn();
 (function(){
   const m=$('#welcomeModal');
   let seen=null; try{ seen=localStorage.getItem('barmej-welcomed'); }catch(e){}
-  if(!seen&&!/[#&](app\b|code=|z=)/.test(location.hash)) m.classList.remove('hidden');
+  if(!seen&&!/[#&](app\b|code=|z=|ch=)/.test(location.hash)) m.classList.remove('hidden');
   function dismiss(){ m.classList.add('hidden'); try{ localStorage.setItem('barmej-welcomed','1'); }catch(e){} }
   $('#welcomeClose').addEventListener('click',dismiss);
   $('#welcomeLessons').addEventListener('click',()=>{ dismiss(); document.querySelector('.tab[data-panel="lessons"]').click(); });
@@ -1501,6 +1501,33 @@ if(!loadFromHash()){
     else { const saved=localStorage.getItem('barmej-code'); code.value=saved||BARMEJ_EXAMPLES[0].code; }
   }catch(e){ code.value=BARMEJ_EXAMPLES[0].code; }
 }
+/* --- 🎯 اعمل تحدي وشاركه برابط --- */
+const chNorm=s=>String(s).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/٫/g,'.').replace(/\s+/g,' ').trim();
+function chRun(src){ const out=[]; let r; try{ r=Barmej.runSource(src,{print:s=>out.push(String(s)),ask:()=>'٥',draw:()=>{},sleep:()=>{}},{maxSteps:2000000}); }catch(e){ return {ok:false,error:String(e.message||e),out}; } return r.ok?{ok:true,out}:{ok:false,error:r.error+(r.line?' (سطر '+r.line+')':''),out}; }
+function chEncode(o){ return b64u.enc(new TextEncoder().encode(JSON.stringify(o))); }
+function chDecode(t){ return JSON.parse(new TextDecoder().decode(b64u.dec(t))); }
+$('#chMakeBtn').addEventListener('click',()=>{ $('#chMakeModal').classList.remove('hidden'); $('#chMsg').textContent=''; });
+$('#chMakeClose').addEventListener('click',()=>$('#chMakeModal').classList.add('hidden'));
+$('#chMakeModal').addEventListener('click',e=>{ if(e.target.id==='chMakeModal') $('#chMakeModal').classList.add('hidden'); });
+$('#chGen').addEventListener('click',()=>{ const r=chRun(code.value); if(!r.ok){ $('#chMsg').textContent='⛔ كود المحرر فيه خطأ: '+r.error; return; } $('#chE').value=r.out.join('\n'); $('#chMsg').textContent='✅ اتولّد المتوقع من '+r.out.length+' سطر طباعة. راجعه وعدّل لو عايز.'; });
+$('#chStarterFromEditor').addEventListener('click',()=>{ $('#chS').value=code.value; $('#chMsg').textContent='اتنسخ كود المحرر كبداية (مسح الحل منه قبل ما تنسخ الرابط!)'; });
+$('#chCopy').addEventListener('click',async()=>{ const t=$('#chT').value.trim(), e=$('#chE').value.trim();
+  if(!t||!e){ $('#chMsg').textContent='⚠️ لازم عنوان ومخرجات متوقعة (دوس «ولّد المتوقع»)'; return; }
+  const o={t,d:$('#chD').value.trim(),s:$('#chS').value,e:$('#chE').value,h:$('#chH').value.trim()}; const url=location.origin+location.pathname+'#ch='+chEncode(o);
+  try{ await navigator.clipboard.writeText(url); $('#chMsg').textContent='✅ اتنسخ رابط التحدي ('+url.length+' حرف). ابعته لأي حد!'; }catch(err){ location.hash='ch='+chEncode(o); $('#chMsg').textContent='الرابط في شريط العنوان — انسخه'; } });
+let chCur=null;
+function chShow(o){ chCur=o; const B=$('#chBar'); B.classList.remove('hidden'); B.querySelector('.ch-t').textContent='🎯 '+o.t; $('#chInfo').textContent=o.d||''; $('#chRes').textContent=''; $('#chRes').className='ch-res'; }
+$('#chStart').addEventListener('click',()=>{ if(!chCur) return; code.value=chCur.s||'# اكتب حلك هنا\n'; renderHL(); try{ autosave(); }catch(e){} document.querySelector('.tab[data-panel="editor"]').click(); $('#chPlayModal').classList.add('hidden'); });
+$('#chHint').addEventListener('click',()=>{ $('#chRes').className='ch-res'; $('#chRes').textContent=chCur&&chCur.h?'💡 '+chCur.h:'مفيش تلميح من صاحب التحدي'; });
+$('#chCheck').addEventListener('click',()=>{ if(!chCur) return; const r=chRun(code.value), R=$('#chRes'); if(!r.ok){ R.className='ch-res bad'; R.textContent='⛔ '+r.error; return; }
+  const exp=chCur.e.split('\n').map(chNorm).filter(x=>x!==''), got=r.out.map(chNorm).filter(x=>x!=='');
+  let i=0; while(i<exp.length&&i<got.length&&exp[i]===got[i]) i++;
+  if(i===exp.length&&got.length===exp.length){ R.className='ch-res ok'; R.textContent='🎉 صح! حليت التحدي ('+exp.length+' سطر مطابق)'; try{ toast('🎉 حليت التحدي!'); }catch(e){} }
+  else if(i===got.length&&got.length<exp.length){ R.className='ch-res bad'; R.textContent='ناقص: طبعت '+got.length+' سطر والمطلوب '+exp.length+'. السطر الجاي المطلوب: «'+exp[i]+'»'; }
+  else { R.className='ch-res bad'; R.textContent='لسه: السطر '+(i+1)+' المفروض «'+exp[i]+'»'+(got[i]!==undefined?' لكن طلع «'+got[i]+'»':'')+(got.length>exp.length&&i===exp.length?' (طبعت أكتر من المطلوب)':''); } });
+$('#chBarClose').addEventListener('click',()=>{ $('#chBar').classList.add('hidden'); chCur=null; });
+(function(){ const m=location.hash.match(/#ch=([^&]*)/); if(!m) return; try{ const o=chDecode(m[1]); if(!o||!o.t||o.e===undefined) throw 0;
+  chShow(o); $('#chPlayT').textContent='🎯 '+o.t; $('#chPlayD').textContent=o.d||'حل التحدي ده بالكود.'; $('#chPlayModal').classList.remove('hidden'); const w=$('#welcomeModal'); if(w) w.classList.add('hidden'); }catch(e){ try{ toast('رابط التحدي مش سليم'); }catch(x){} } })();
 renderHL(); renderLesson(); renderChallenge();
 const tabM=location.hash.match(/[#&]tab=(\w+)/);
 if(tabM){ const tb=document.querySelector('.tab[data-panel="'+tabM[1]+'"]'); if(tb) tb.click(); }
