@@ -377,3 +377,4 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .gal-img{height:130px;border-radius:8px;background:#0b1220;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:42px}.gal-img img{width:100%;height:100%;object-fit:cover}
 .gal-name{font-weight:700;margin:8px 0 2px;word-break:break-word}.gal-sub{color:var(--muted);font-size:12px;margin-bottom:8px}
 .gal-btns{display:flex;gap:6px;flex-wrap:wrap}.gal-btns button{margin:0!important}
+@media (min-width:761px) and (max-width:1500px){ .actions .lbl{display:none} .tab{padding:7px 9px} .tabs{flex-wrap:nowrap} }
