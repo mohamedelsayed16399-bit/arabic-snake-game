@@ -72,7 +72,7 @@ function lint(src){
       case 'bin': expr(e.l); expr(e.r); if(!inTry&&(e.op==='/'||e.op==='%')&&e.r.k==='num'&&e.r.v===0) add('err',e.line,'قسمة على صفر','ممنوعة: غيّر المقسوم عليه'); if(e.op==='=='&&e.l.k==='var'&&e.r.k==='var'&&e.l.name===e.r.name) add('warn',e.line,'بتقارن «'+e.l.name+'» بنفسه: النتيجة دايماً صح'); break;
       case 'neg': case 'not': expr(e.e); break;
       case 'list': e.items.forEach(expr); break;
-      case 'dict': (e.pairs||[]).forEach(p=>{ if(Array.isArray(p)) p.forEach(expr); else { expr(p.k===undefined?p.key:p.key); expr(p.v!==undefined?p.v:p.value); } }); break;
+      case 'dict': (e.pairs||[]).forEach(p=>expr(p.e)); break;
       case 'index': expr(e.obj); expr(e.idx); break;
       case 'call': expr(e.fn); e.args.forEach(expr); break;
       case 'new': { if(!find(e.name)&&!known.has(e.name)) add('err',e.line,'الصنف «'+e.name+'» مش معرّف'); else { const d=find(e.name); if(d) d.used=true; } e.args.forEach(expr); break; }
