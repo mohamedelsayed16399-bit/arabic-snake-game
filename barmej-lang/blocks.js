@@ -55,8 +55,8 @@ function importCode(src){
   for(let i=0;i<raw.length;i++){ let l=raw[i].trim(); if(!l) continue;
     let m;
     if(l==='}'){ if(st.length>1){ let c=st.pop(); while(c.chain&&st.length>1) c=st.pop(); } continue; }
-    if((m=l.match(/^\}\s*وإلا\s+لو\s+(.+?)\s*\{$/))){ if(st.length>1){ const t=cur().blk; t.t='ifelse'; const nb=B('if',[m[1]]); t.k2.push(nb); st.pop(); st.push({list:t.k2,blk:t,chain:false}); st.push({list:nb.k,blk:nb,chain:true}); } continue; }
-    if(/^\}\s*(وإلا|والا|إلا)\s*\{$/.test(l)){ if(st.length>1){ const t=cur().blk; t.t='ifelse'; st.pop(); st.push({list:t.k2,blk:t,chain:false}); } continue; }
+    if((m=l.match(/^\}\s*وإلا\s+لو\s+(.+?)\s*\{$/))){ if(st.length>1){ const t=cur().blk; t.t='ifelse'; const nb=B('if',[m[1]]); t.k2.push(nb); const oc=st.pop(); st.push({list:t.k2,blk:t,chain:oc.chain}); st.push({list:nb.k,blk:nb,chain:true}); } continue; }
+    if(/^\}\s*(وإلا|والا|إلا)\s*\{$/.test(l)){ if(st.length>1){ const t=cur().blk; t.t='ifelse'; const oc=st.pop(); st.push({list:t.k2,blk:t,chain:oc.chain}); } continue; }
     if(l.endsWith('{') && bal(l)===1 && !/[=(\[،,]\s*\{$/.test(l)){
       const h=l.slice(0,-1).trim();
       if((m=h.match(/^كرر\s+(.+)$/)) && !/[،,]/.test(m[1])) push(B('repeat',[m[1]]));
