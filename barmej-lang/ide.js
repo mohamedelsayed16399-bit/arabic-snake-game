@@ -367,25 +367,46 @@ function showStepLine(line){
   bar.classList.add('step-mode'); bar.classList.remove('hidden');
 }
 let prevVars={};
-function renderVars(vars){
-  const b=$('#varsBody'); b.innerHTML=''; const old=prevVars; prevVars=Object.assign({},vars);
+let trace=[], tpos=-1, reviewing=false;
+function pushTrace(line,vars){ if(trace.length<20000) trace.push({line,vars}); }
+function sparkSvg(vals){ const w=64,h=18; if(vals.length<3) return ''; const mn=Math.min(...vals), mx=Math.max(...vals); if(mn===mx) return '';
+  const pts=vals.map((v,i)=>(i*(w-2)/(vals.length-1)+1).toFixed(1)+','+(h-2-(v-mn)*(h-4)/(mx-mn)).toFixed(1)).join(' ');
+  return '<svg class="spark" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="#2dd4a7" stroke-width="1.5" points="'+pts+'"/></svg>'; }
+function renderVars(vars,i){
+  const b=$('#varsBody'); b.innerHTML=''; const old=(i>0&&trace[i-1])?trace[i-1].vars:{}; prevVars=Object.assign({},vars);
   const ks=Object.keys(vars);
   if(!ks.length){ b.innerHTML='<div class="var-row" style="color:var(--muted)">مفيش متغيرات لسه</div>'; return; }
   ks.forEach(k=>{
     const d=document.createElement('div'); d.className='var-row';
     const n=document.createElement('span'); n.className='var-name'; n.textContent=k;
     const v=document.createElement('span'); v.className='var-val'; v.textContent=vars[k]; if(old[k]!==undefined&&old[k]!==vars[k]) d.classList.add('changed'); else if(old[k]===undefined&&Object.keys(old).length) d.classList.add('changed');
-    d.appendChild(n); d.appendChild(v); b.appendChild(d);
+    d.appendChild(n); d.appendChild(v);
+    if(i!==undefined&&i>=0){ const hist=[]; let last; for(let j=Math.max(0,i-300);j<=i;j++){ const x=trace[j].vars[k]; if(x!==undefined&&x!==last){ hist.push([j,x]); last=x; } }
+      const nums=[]; for(let j=Math.max(0,i-300);j<=i;j++){ const x=trace[j].vars[k]; if(x!==undefined&&x!==''&&isFinite(Number(x))) nums.push(Number(x)); }
+      if(nums.length>=3){ const sp=document.createElement('span'); sp.innerHTML=sparkSvg(nums); d.appendChild(sp); }
+      if(hist.length>1) d.title='تاريخ '+k+': '+hist.slice(-6).map(p=>'خ'+(p[0]+1)+'='+p[1]).join(' ← '); }
+    b.appendChild(d);
   });
 }
+function hotLinesHtml(){ const cnt={}; trace.forEach(t=>{ cnt[t.line]=(cnt[t.line]||0)+1; });
+  const top=Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x]).slice(0,5); if(trace.length<2) return '';
+  return '<div class="hot-title">🔥 أكتر الأسطر تنفيذًا</div>'+top.map(l=>'<span class="hot-chip">سطر '+l+' × '+cnt[l]+'</span>').join(''); }
+function updateTraceUI(){ const r=$('#traceRange'), lb=$('#traceLbl'); if(!r) return;
+  r.max=Math.max(0,trace.length-1); r.value=Math.max(0,tpos); lb.textContent=trace.length?('الخطوة '+(tpos+1)+' / '+trace.length+(trace.length>=20000?'+':'')):'';
+  $('#hotLines').innerHTML=hotLinesHtml(); }
+function viewTrace(i){ if(i<0||i>=trace.length) return; tpos=i; const t=trace[i]; showStepLine(t.line); renderVars(t.vars,i); updateTraceUI(); statusMsg.textContent=(reviewing?'مراجعة الرحلة — ':'وضع الخطوة — ')+'السطر '+t.line; }
+function endRun(){ if(trace.length>1){ reviewing=true; println('✔ خلص البرنامج — اسحب السلايدر أو دوس «السابقة» وارجع لأي خطوة وشوف المتغيرات كانت إيه','sys'); viewTrace(trace.length-1); statusMsg.textContent='مراجعة الرحلة — اسحب السلايدر'; }
+  else { stopStepMode('✔ خلص البرنامج'); statusMsg.textContent='نجح التنفيذ'; } }
 function stopStepMode(msg){
-  stepper=null; prevVars={};
+  stepper=null; prevVars={}; trace=[]; tpos=-1; reviewing=false; try{ updateTraceUI(); }catch(e){}
   $('#stepBar').classList.add('hidden');
   const bar=$('#errBar'); bar.classList.add('hidden'); bar.classList.remove('step-mode');
   if(msg) println(msg,'sys');
 }
 function doStep(){
   if(!stepper) return;
+  if(tpos<trace.length-1){ viewTrace(tpos+1); return; }
+  if(reviewing){ toast('البرنامج خلص — ارجع بالسلايدر أو دوس إيقاف'); return; }
   let s;
   try{ s=stepper.step(); }
   catch(e){
@@ -394,9 +415,8 @@ function doStep(){
     stopStepMode(); statusMsg.textContent='فيه خطأ — السطر '+(e.line||'?');
     return;
   }
-  if(s.done){ stopStepMode('✔ خلص البرنامج'); statusMsg.textContent='نجح التنفيذ'; return; }
-  showStepLine(s.line); renderVars(s.vars);
-  statusMsg.textContent='وضع الخطوة — السطر '+s.line;
+  if(s.done){ endRun(); return; }
+  pushTrace(s.line,s.vars); viewTrace(trace.length-1);
 }
 $('#stepBtn').addEventListener('click',()=>{ try{ achCheck({step:true}); }catch(e){}
   runSeq++;
@@ -407,22 +427,24 @@ $('#stepBtn').addEventListener('click',()=>{ try{ achCheck({step:true}); }catch(
     if(r.line){ println('في السطر '+r.line,'err-line'); showErrLine(r.line); }
     return;
   }
-  stepper=r.stepper;
+  stepper=r.stepper; trace=[]; tpos=-1; reviewing=false;
   $('#stepBar').classList.remove('hidden'); $('#varsPanel').classList.remove('hidden');
   println('👣 وضع الخطوة: هينفذ سطر سطر مع كل ضغطة «التالية»، والمتغيرات قدامك','sys');
   doStep();
 });
 $('#nextStep').addEventListener('click',doStep);
+$('#prevStep').addEventListener('click',()=>{ if(tpos>0) viewTrace(tpos-1); else toast('ده أول خطوة'); });
+$('#traceRange').addEventListener('input',e=>viewTrace(+e.target.value));
 nums.addEventListener('click',e=>{ const l=+(e.target.dataset&&e.target.dataset.l); if(!l) return; if(breakpoints.has(l)) breakpoints.delete(l); else breakpoints.add(l); renderHL(); toast(breakpoints.has(l)?'🔴 نقطة توقف عند السطر '+l:'اتشالت نقطة التوقف'); });
 $('#toBreak').addEventListener('click',()=>{ if(!stepper) return; if(!breakpoints.size){ toast('اضغط على رقم سطر عشان تحط 🔴 نقطة توقف'); return; }
   let s, start=null, n=0;
-  try{ do{ s=stepper.step(); n++; if(start===null&&!s.done) start=s.line; }while(!s.done&&n<20000&&!(breakpoints.has(s.line)&&n>1)); }
+  try{ do{ if(tpos<trace.length-1) tpos=trace.length-1; s=stepper.step(); n++; if(!s.done) pushTrace(s.line,s.vars); if(start===null&&!s.done) start=s.line; }while(!s.done&&n<20000&&!(breakpoints.has(s.line)&&n>1)); }
   catch(e){ println('✖ خطأ: '+(e.message||e),'err'); if(e.line){ println('في السطر '+e.line,'err-line'); showErrLine(e.line); } stopStepMode(); return; }
-  if(s.done){ stopStepMode('✔ خلص البرنامج'); statusMsg.textContent='نجح التنفيذ'; return; }
-  showStepLine(s.line); renderVars(s.vars); statusMsg.textContent=(breakpoints.has(s.line)?'🔴 وقفت عند نقطة التوقف — السطر ':'وضع الخطوة — السطر ')+s.line; });
+  if(s.done){ endRun(); return; }
+  viewTrace(trace.length-1); statusMsg.textContent=(breakpoints.has(s.line)?'🔴 وقفت عند نقطة التوقف — السطر ':'وضع الخطوة — السطر ')+s.line; });
 $('#finishSteps').addEventListener('click',()=>{
   if(!stepper) return;
-  try{ stepper.runSync(); stopStepMode('✔ خلص البرنامج'); statusMsg.textContent='نجح التنفيذ'; }
+  try{ stepper.runSync((l,v)=>pushTrace(l,v)); endRun(); }
   catch(e){
     println('✖ خطأ: '+(e.message||e),'err');
     if(e.line){ println('في السطر '+e.line,'err-line'); showErrLine(e.line); }
