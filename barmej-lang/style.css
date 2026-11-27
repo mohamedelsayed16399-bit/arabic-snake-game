@@ -447,3 +447,10 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 /* 📊 معالج المخططات */
 #chartModal input,#chartModal textarea{width:100%;box-sizing:border-box;background:#050b17;color:#e2e8f0;border:1px solid #2a3a5c;border-radius:8px;padding:8px;font-family:inherit;margin:8px 0;font-size:15px}
 #chartModal .bk-code{max-height:160px;overflow:auto}
+
+/* 🎓 مهام البلوكات */
+.bkm{background:#0b1426;border:1px solid #2a3a5c;border-radius:12px;padding:10px;margin-bottom:12px}
+.bkm-head{display:flex;gap:10px;align-items:center;margin-bottom:6px}.bkm-prog{font-size:13px;opacity:.75}
+.bkm-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.bkm-chips .chip.done{border-color:#34d399;color:#34d399}
+.bkm-text{font-size:15px;line-height:1.8;background:#101b33;border-radius:8px;padding:8px 10px;margin-bottom:8px}
+.bkm-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.bkm-res{font-size:14px}.bkm-res.ok{color:#34d399;font-weight:700}.bkm-res.bad{color:#fca5a5}
