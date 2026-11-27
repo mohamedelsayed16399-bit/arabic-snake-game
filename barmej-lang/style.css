@@ -363,3 +363,9 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .exam-code{background:#0b1220;border:1px solid var(--line);border-radius:8px;padding:10px;direction:rtl;text-align:right;font:14px/1.7 monospace;margin:6px 0;white-space:pre-wrap}
 .exam-opt{display:block;padding:8px 12px;border:1px solid var(--line);border-radius:8px;margin:4px 0;cursor:pointer}
 .exam-opt.on{border-color:var(--accent2)}.exam-opt.right{border-color:var(--accent);background:rgba(45,212,167,.15)}.exam-opt.wrong{border-color:var(--err);background:rgba(255,107,122,.12)}
+.spark{margin-inline-start:10px;vertical-align:middle}
+#traceRange{width:140px;margin:0 8px;vertical-align:middle;accent-color:var(--accent)}
+.trace-lbl{color:var(--muted);font-size:12px}
+.hot-lines{padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hot-title{width:100%;color:var(--muted);font-size:12px}
+.hot-chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:2px 8px;font-size:12px}
