@@ -378,3 +378,6 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .gal-name{font-weight:700;margin:8px 0 2px;word-break:break-word}.gal-sub{color:var(--muted);font-size:12px;margin-bottom:8px}
 .gal-btns{display:flex;gap:6px;flex-wrap:wrap}.gal-btns button{margin:0!important}
 @media (min-width:761px) and (max-width:1500px){ .actions .lbl{display:none} .tab{padding:7px 9px} .tabs{flex-wrap:nowrap} }
+.lesson-help{display:none;margin-top:12px;padding:12px;border-radius:8px;background:rgba(90,169,255,.1);border:1px solid var(--accent2);line-height:1.8}.lesson-help.show{display:block}
+.lesson-sol{background:#0b1220;border:1px solid var(--line);border-radius:8px;padding:10px;direction:rtl;text-align:right;font:14px/1.7 monospace;white-space:pre-wrap;margin:8px 0}
+.lesson-body .ghost.small{margin-top:14px;margin-left:8px}
