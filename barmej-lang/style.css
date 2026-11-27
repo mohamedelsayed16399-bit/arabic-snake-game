@@ -381,3 +381,12 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .lesson-help{display:none;margin-top:12px;padding:12px;border-radius:8px;background:rgba(90,169,255,.1);border:1px solid var(--accent2);line-height:1.8}.lesson-help.show{display:block}
 .lesson-sol{background:#0b1220;border:1px solid var(--line);border-radius:8px;padding:10px;direction:rtl;text-align:right;font:14px/1.7 monospace;white-space:pre-wrap;margin:8px 0}
 .lesson-body .ghost.small{margin-top:14px;margin-left:8px}
+.lint-modal{max-width:680px;width:94vw;max-height:88vh;overflow:auto}
+.lint-head{display:flex;gap:16px;align-items:center;margin-bottom:12px}.lint-head h2{margin:0 0 4px}
+.lint-score{width:76px;height:76px;border-radius:50%;border:5px solid;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;flex:none}
+.lint-sub{color:var(--muted);font-size:13px}.lint-ok{padding:18px;text-align:center;font-size:17px}
+.lint-list{display:flex;flex-direction:column;gap:6px}
+.lint-item{display:flex;gap:8px;align-items:flex-start;text-align:right;background:var(--panel2,#111a2c);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;line-height:1.6}
+.lint-item:hover{border-color:var(--accent2)}.lint-item small{display:block;color:var(--muted);font-size:12px}
+.lint-err{border-right:4px solid #f87171}.lint-warn{border-right:4px solid #fbbf24}.lint-info{border-right:4px solid #60a5fa}
+.lint-ln{font-size:11px;color:var(--muted);min-width:34px;font-family:monospace}.lint-tx{flex:1}
