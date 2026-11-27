@@ -368,7 +368,7 @@ document.addEventListener('dragover',e=>{const r=e.target.closest&&e.target.clos
 document.addEventListener('dragleave',e=>{e.target.classList&&e.target.classList.remove('over')});
 document.addEventListener('drop',e=>{const r=e.target.closest&&e.target.closest('.row[data-dir]');if(!r)return;e.preventDefault();r.classList.remove('over');const nm=e.dataTransfer.getData('text/plain'),w=window.__dragW;if(!nm||!w)return;const from=w.cwd,to=join(from,r.dataset.nm);if(nm===r.dataset.nm)return;const a=node(from),b=node(to);if(!a||!b||b.t!=='d')return;b.c[uniq(b,nm)]=a.c[nm];delete a.c[nm];save();toast('اتنقل '+nm+' ✓');w.redraw&&w.redraw();renderDesk()});
 /* about */
-app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 3.8'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
+app('about','عن النظام','ℹ️',w=>{const b=w.body;b.style.cssText+=';padding:18px;text-align:center;gap:8px';const t=el('div','','🖥️');t.style.fontSize='60px';b.append(t,el('h2','','ويب OS'),el('div','','الإصدار 3.9'),el('div','',allApps().length+' تطبيق مثبت'),el('div','','التخزين: '+Math.round(JSON.stringify(S).length/1024)+' ك.ب'),el('div','','المتصفح: '+navigator.userAgent.slice(0,50)),el('div','','اختصارات: Alt+T طرفية، Alt+W إغلاق، Alt+M قائمة ابدأ، Alt+J تبديل النوافذ'))},{w:380,h:360,single:true});
 STORE.push({id:'about',n:'عن النظام',i:'ℹ️',d:'معلومات النظام والاختصارات'});S.inst=[...new Set([...S.inst,'about'])];
 
 /* ROUND 7 */
@@ -814,7 +814,7 @@ which:a=>C[a[0]]?a[0]+': أمر مدمج':AL[a[0]]?a[0]+': alias':APPS[a[0]]?a[0
 ps:()=>'PID  التطبيق\n'+wins.map((x,i)=>String(i+1).padStart(3)+'  '+x.id+' ('+x.app.name+')').join('\n'),kill:a=>{const x=wins[+a[0]-1];if(!x)throw new Error('PID غلط');x.close();return 'اتقفل'},
 apps:()=>allApps().join(' '),open:a=>{if(APPS[a[0]]){openApp(a[0]);return 'فتحت '+a[0]}const n=node(abs(a[0]));if(n){openPath(abs(a[0]));return 'فتحت'}throw new Error('مفيش تطبيق أو ملف بالاسم ده')},edit:a=>{openApp('editor',abs(a[0]));return ''},
 js:a=>runJS('return ('+a.join(' ')+')'),run:a=>runJS(rd(a[0])),calc:a=>{if(!/^[\d+\-*/().%\s^]+$/.test(a.join(' ')))throw new Error('تعبير غلط');return String(Function('"use strict";return ('+a.join(' ').replace(/\^/g,'**')+')')())},seq:a=>{const[x,y]=a.length>1?[+a[0],+a[1]]:[1,+a[0]];const o=[];for(let i=x;i<=y&&o.length<1000;i++)o.push(i);return o.join('\n')},
-theme:a=>{S.light=a[0]==='light';theme();save();return 'تم'},reboot:()=>location.reload(),neofetch:()=>'  ◢◣   user@webos\n ◢██◣  OS: Web OS '+(document.querySelector('.about-v')?'':'3.8')+'\n◢████◣ Apps: '+allApps().length+'\n       Windows: '+wins.length+'\n       Files: '+(sz(S.fs)/1024).toFixed(1)+' KB\n       Browser: '+navigator.userAgent.slice(0,40)};
+theme:a=>{S.light=a[0]==='light';theme();save();return 'تم'},reboot:()=>location.reload(),neofetch:()=>'  ◢◣   user@webos\n ◢██◣  OS: Web OS '+(document.querySelector('.about-v')?'':'3.9')+'\n◢████◣ Apps: '+allApps().length+'\n       Windows: '+wins.length+'\n       Files: '+(sz(S.fs)/1024).toFixed(1)+' KB\n       Browser: '+navigator.userAgent.slice(0,40)};
 const AS={curl:async a=>{const r=await fetch(a[0]);return(await r.text()).slice(0,4000)},sleep:a=>new Promise(r=>setTimeout(()=>r(''),(+a[0]||1)*1000))};
 const tok=s=>{const r=[];const re=/"([^"]*)"|'([^']*)'|(\S+)/g;let m;while((m=re.exec(s)))r.push((m[1]??m[2]??m[3]).replace(/\$(\w+)/g,(x,k)=>ENV[k]??''));return r};
 const runLine=async(ln)=>{const redir=ln.match(/^(.*?)\s*(>>|>)\s*(\S+)\s*$/);let body=ln,rf=null,app=false;if(redir&&!/^\s*(js|calc)\b/.test(ln)){body=redir[1];rf=redir[3];app=redir[2]==='>>'}let data='';for(const seg of body.split(/\s*\|\s*/)){let a=tok(seg);if(!a.length)continue;if(AL[a[0]])a=tok(AL[a[0]]).concat(a.slice(1));const c=a.shift();if(AS[c])data=await AS[c](a,data);else if(C[c])data=await C[c](a,data);else if(c.endsWith('.js')&&node(abs(c)))data=runJS(rd(c));else throw new Error(c+': أمر مش موجود. اكتب help')}if(rf){const p=abs(rf),old=app&&node(p)?String(node(p).d):'';writeF(p,old+(old&&!old.endsWith('\n')?'\n':'')+data+'\n');renderDesk();return ''}return data};
@@ -883,6 +883,36 @@ const o=el('button','btn','🕐 فتح الساعة');o.onclick=()=>{nc.classLis
 $('#clk').onclick=()=>{build();nc.classList.toggle('on')};window.openCC=()=>{build();nc.classList.add('on')};
 document.addEventListener('keydown',e=>{if(e.altKey&&e.key.toLowerCase()==='n'){e.preventDefault();build();nc.classList.toggle('on')}});
 })();
+
+/* MASTER VOLUME */
+(()=>{const M=new Map(),oc=AudioNode.prototype.connect;window._masters=M;AudioNode.prototype.connect=function(t,...a){if(typeof AudioDestinationNode!=='undefined'&&t instanceof AudioDestinationNode){let g=M.get(t.context);if(!g){g=t.context.createGain();g.gain.value=window.VOL??.8;oc.call(g,t);M.set(t.context,g)}t=g}return oc.call(this,t,...a)};
+setInterval(()=>M.forEach(g=>{const v=window.VOL??.8;if(Math.abs(g.gain.value-v)>.01)g.gain.value=v}),400)})();
+/* MIND MAP */
+app('mind','الخريطة الذهنية','🧠',w=>{
+let M={n:[{id:1,x:300,y:200,t:'فكرتي'}],l:[],nid:2};try{M=JSON.parse(localStorage.mind_d)||M}catch(e){}
+const bar=el('div','bar'),add=el('button','btn','➕ فكرة'),lk=el('button','btn','🔗 ربط'),del=el('button','btn','🗑️ حذف'),ex=el('button','btn','💾 ملف'),hint=el('span','','انقر مرتين على الخلفية لفكرة جديدة');hint.style.cssText='font-size:12px;opacity:.7';bar.append(add,lk,del,ex,hint);
+const sf=el('div','');sf.style.cssText='flex:1;position:relative;overflow:auto;background:radial-gradient(#64748b44 1px,transparent 1px) 0 0/20px 20px';
+const NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg');svg.style.cssText='position:absolute;left:0;top:0;width:2000px;height:1500px;pointer-events:none';const lay=el('div','');lay.style.cssText='position:absolute;left:0;top:0;width:2000px;height:1500px';sf.append(svg,lay);w.body.append(bar,sf);
+let sel=M.n[0].id,linkMode=false;const els={};
+const persist=()=>{localStorage.mind_d=JSON.stringify(M)};
+const lines=()=>{svg.innerHTML='';M.l.forEach(([a,b])=>{const A=M.n.find(n=>n.id===a),B=M.n.find(n=>n.id===b);if(!A||!B)return;const ea=els[a],eb=els[b];const ln=document.createElementNS(NS,'line');ln.setAttribute('x1',A.x+ea.offsetWidth/2);ln.setAttribute('y1',A.y+ea.offsetHeight/2);ln.setAttribute('x2',B.x+eb.offsetWidth/2);ln.setAttribute('y2',B.y+eb.offsetHeight/2);ln.setAttribute('stroke','#38bdf8');ln.setAttribute('stroke-width','2');svg.append(ln)})};
+const mark=()=>{M.n.forEach(n=>{els[n.id].style.outline=sel===n.id?'3px solid #facc15':''});lk.style.outline=linkMode?'2px solid #facc15':''};
+const mk=n=>{const d=el('div','',n.t);d.contentEditable=false;d.style.cssText=`position:absolute;left:${n.x}px;top:${n.y}px;padding:8px 14px;border-radius:14px;background:var(--ac);color:#fff;cursor:grab;user-select:none;min-width:50px;text-align:center;touch-action:none;font-weight:600`;els[n.id]=d;lay.append(d);
+let dx,dy,dr=false,moved=false;d.onpointerdown=e=>{e.stopPropagation();if(d.contentEditable==='true')return;dr=true;moved=false;dx=e.clientX-n.x;dy=e.clientY-n.y;d.setPointerCapture(e.pointerId);
+if(linkMode&&sel&&sel!==n.id){if(!M.l.some(([a,b])=>(a===sel&&b===n.id)||(a===n.id&&b===sel)))M.l.push([sel,n.id]);linkMode=false;persist();lines()}sel=n.id;mark()};
+d.onpointermove=e=>{if(!dr)return;moved=true;n.x=Math.max(0,e.clientX-dx);n.y=Math.max(0,e.clientY-dy);d.style.left=n.x+'px';d.style.top=n.y+'px';lines()};
+d.onpointerup=()=>{dr=false;if(moved)persist()};
+d.ondblclick=e=>{e.stopPropagation();d.contentEditable=true;d.style.userSelect='text';d.focus();document.getSelection().selectAllChildren(d)};
+d.onblur=()=>{d.contentEditable=false;d.style.userSelect='none';n.t=d.textContent.trim()||'...';d.textContent=n.t;persist();lines()};d.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();d.blur()}}};
+M.n.forEach(mk);
+const newN=(x,y)=>{const n={id:M.nid++,x,y,t:'فكرة جديدة'};M.n.push(n);mk(n);if(sel){M.l.push([sel,n.id])}sel=n.id;persist();mark();lines()};
+add.onclick=()=>{const b=sel&&M.n.find(n=>n.id===sel);newN(b?b.x+130:300,b?b.y+(Math.random()*120-60):200)};
+sf.ondblclick=e=>{if(e.target!==sf&&e.target!==lay&&e.target!==svg)return;const r=sf.getBoundingClientRect();sel=null;newN(e.clientX-r.left+sf.scrollLeft-40,e.clientY-r.top+sf.scrollTop-15)};
+sf.onpointerdown=e=>{if(e.target===sf||e.target===lay){sel=null;linkMode=false;mark()}};
+lk.onclick=()=>{if(!sel)return toast('اختر فكرة أولاً');linkMode=!linkMode;mark();if(linkMode)toast('اضغط على فكرة ثانية للربط')};
+del.onclick=()=>{if(!sel)return;if(M.n.length<2)return toast('لازم تبقى فكرة واحدة');els[sel].remove();delete els[sel];M.n=M.n.filter(n=>n.id!==sel);M.l=M.l.filter(([a,b])=>a!==sel&&b!==sel);sel=null;persist();lines();mark()};
+ex.onclick=()=>{const kids=id=>M.l.filter(([a,b])=>a===id||b===id).map(([a,b])=>a===id?b:a);const seen=new Set(),o=[];const walk=(id,d)=>{if(seen.has(id))return;seen.add(id);const n=M.n.find(x=>x.id===id);o.push('  '.repeat(d)+'- '+n.t);kids(id).forEach(k=>walk(k,d+1))};M.n.forEach(n=>walk(n.id,0));writeF('/المستندات/خريطة.md',o.join('\n'));toast('حُفظ /المستندات/خريطة.md')};
+setTimeout(()=>{lines();mark()},50)},{w:700,h:480});
 
 /* BOOT */
 theme();renderDesk();clock();
