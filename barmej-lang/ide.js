@@ -795,6 +795,71 @@ $('#checkChallenge').addEventListener('click',()=>{
   render();
 })();
 
+/* --- graded course path: 5 levels, auto-graded exams, certificate --- */
+(function(){
+  const PATH=window.BARMEJ_PATH||[]; if(!PATH.length) return;
+  const KEY='barmej-path'; let st={}; try{ st=JSON.parse(localStorage.getItem(KEY)||'{}')||{}; }catch(e){ st={}; }
+  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} };
+  const body=$('#pathBody'); let open=-1, exam=null;
+  const N=BARMEJ_LESSONS.length, NL=PATH.length;
+  const range=k=>[Math.floor(N*k/NL),Math.floor(N*(k+1)/NL)];
+  const lessonsIn=k=>{ const [a,b]=range(k); let d=0; for(let i=a;i<b;i++) if(doneLessons.has(BARMEJ_LESSONS[i].id)) d++; return {d,t:b-a}; };
+  const need=k=>Math.ceil(lessonsIn(k).t/2);
+  const passed=k=>!!(st['L'+k]&&st['L'+k].passed);
+  const passedCount=()=>PATH.filter((x,k)=>passed(k)).length;
+  window.barmejPathPassed=passedCount;
+  const status=k=>{ if(passed(k)) return 'passed'; if(k>0&&!passed(k-1)) return 'locked'; return lessonsIn(k).d>=need(k)?'ready':'study'; };
+  const shuffle=a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+  const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  function render(){
+    const pc=passedCount(); let h='<h2>🎓 مسار برمِج (٥ مستويات + امتحانات)</h2>';
+    h+='<p class="proj-desc">كل مستوى ليه امتحان ٥ أسئلة، النجاح من ٤ من ٥. الامتحان بيفتح لما تخلّص نص دروس المستوى، والمستوى اللي بعده بيفتح لما تنجح. أسئلة الأكواد إجاباتها متحقق منها بتشغيل الكود فعلاً.</p>';
+    h+='<div class="proj-bar"><div class="proj-fill" style="width:'+Math.round(pc*100/NL)+'%"></div></div><p class="proj-desc">اجتزت '+pc+' من '+NL+' مستويات</p>';
+    PATH.forEach((L,k)=>{ const s=status(k), li=lessonsIn(k), best=(st['L'+k]||{}).best;
+      const badge={passed:'✅ ناجح'+(best!=null?' ('+best+'/5)':''),ready:'📝 جاهز للامتحان'+(best!=null?' — أفضل نتيجة '+best+'/5':''),study:'📖 كمّل الدروس ('+li.d+'/'+need(k)+' على الأقل)',locked:'🔒 اجتز المستوى اللي قبله'}[s];
+      h+='<div class="path-card '+s+'"><div class="path-top"><b>'+L.icon+' '+L.title+'</b><span>'+badge+'</span></div>'
+        +'<div class="path-sub">دروس المستوى: '+li.d+' / '+li.t+'</div>';
+      if(s==='ready'||s==='passed') h+='<button class="run small path-go" data-k="'+k+'">'+(s==='passed'?'🔁 اعمل الامتحان تاني':'📝 ابدأ الامتحان')+'</button>';
+      if(s==='study') h+='<button class="ghost small path-lessons">🎓 افتح الدروس</button>';
+      if(open===k&&exam) h+=examHtml(k);
+      h+='</div>'; });
+    if(pc===NL){ h+='<div class="lesson-result ok" style="display:block">🏆 خلّصت المسار كله! اكتب اسمك وانزّل شهادتك:<br><input id="pathName" class="cert-name" placeholder="اسمك للشهادة" maxlength="30"> <button id="pathCert" class="run small">🎓 نزّل الشهادة</button></div>'; }
+    body.innerHTML=h;
+    body.querySelectorAll('.path-go').forEach(b=>b.addEventListener('click',()=>start(+b.dataset.k)));
+    body.querySelectorAll('.path-lessons').forEach(b=>b.addEventListener('click',()=>document.querySelector('.tab[data-panel="lessons"]').click()));
+    const sub=$('#examSubmit'); if(sub) sub.addEventListener('click',()=>grade(open));
+    const pc2=$('#pathCert'); if(pc2){ try{ $('#pathName').value=localStorage.getItem('barmej-certname')||''; }catch(e){} pc2.addEventListener('click',()=>{ const nm=($('#pathName').value||'').trim()||'مبرمج برمِج'; try{ localStorage.setItem('barmej-certname',nm); }catch(e){} cert(nm); }); }
+  }
+  function start(k){ open=k; exam={k,qs:PATH[k].qs.map(q=>{ const opts=shuffle([q.a].concat(q.w)); return {q:q.q,code:q.code,opts,ans:opts.indexOf(q.a),pick:-1}; }),done:false}; render(); const c=document.querySelector('.path-card .exam'); if(c) c.scrollIntoView({block:'start'}); }
+  function examHtml(k){ let h='<div class="exam">';
+    exam.qs.forEach((q,i)=>{ h+='<div class="exam-q"><div class="exam-t">'+(i+1)+'. '+esc(q.q)+'</div>'+(q.code?'<pre class="exam-code">'+esc(q.code)+'</pre>':'');
+      q.opts.forEach((o,j)=>{ let cls='exam-opt'; if(exam.done){ if(j===q.ans) cls+=' right'; else if(j===q.pick) cls+=' wrong'; } else if(j===q.pick) cls+=' on';
+        h+='<label class="'+cls+'"><input type="radio" name="q'+i+'" value="'+j+'"'+(j===q.pick?' checked':'')+(exam.done?' disabled':'')+'> '+esc(o)+'</label>'; });
+      h+='</div>'; });
+    if(!exam.done) h+='<button id="examSubmit" class="check">✔ سلّم الامتحان</button>'; else h+='<div class="lesson-result '+(exam.score>=4?'ok':'bad')+'" style="display:block">'+(exam.score>=4?'🎉 نجحت! نتيجتك ':'لسه — نتيجتك ')+exam.score+' من 5'+(exam.score>=4?'':' (محتاج ٤ على الأقل)، راجع الدروس وجرّب تاني')+'</div>';
+    return h+'</div>'; }
+  function grade(k){ const form=body.querySelector('.exam');
+    exam.qs.forEach((q,i)=>{ const c=form.querySelector('input[name=q'+i+']:checked'); q.pick=c?+c.value:-1; });
+    if(exam.qs.some(q=>q.pick<0)){ toast('جاوب على كل الأسئلة الأول'); return; }
+    exam.score=exam.qs.filter(q=>q.pick===q.ans).length; exam.done=true;
+    const r=st['L'+k]||{}; r.best=Math.max(r.best||0,exam.score); if(exam.score>=4&&!r.passed){ r.passed=true; r.ts=Date.now(); } st['L'+k]=r; save();
+    render(); try{ achCheck({path:passedCount()}); renderAchBtn(); }catch(e){}
+    if(exam.score>=4) toast('🎓 اجتزت '+PATH[k].title); }
+  function cert(name){
+    const c=document.createElement('canvas'); c.width=1200; c.height=800; const g=c.getContext('2d');
+    g.fillStyle='#0b1220'; g.fillRect(0,0,1200,800); g.strokeStyle='#f5c542'; g.lineWidth=10; g.strokeRect(30,30,1140,740); g.strokeStyle='#2dd4a7'; g.lineWidth=3; g.strokeRect(52,52,1096,696);
+    g.direction='rtl'; g.textAlign='center'; g.fillStyle='#f5c542'; g.font='bold 76px Tahoma, Arial, sans-serif'; g.fillText('شهادة اجتياز المسار',600,180);
+    g.fillStyle='#cbd5e1'; g.font='34px Tahoma, Arial, sans-serif'; g.fillText('تشهد منصة «برمِج» لتعلّم البرمجة بالعربي بأن',600,275);
+    g.fillStyle='#2dd4a7'; g.font='bold 78px Tahoma, Arial, sans-serif'; g.fillText(name,600,395);
+    g.fillStyle='#cbd5e1'; g.font='32px Tahoma, Arial, sans-serif'; g.fillText('اجتاز بنجاح امتحانات المستويات الخمسة:',600,470);
+    PATH.forEach((L,k)=>{ g.fillText(L.icon+' '+L.title.replace(/^المستوى \S+: /,'')+' — '+(st['L'+k].best)+'/5',600,520+k*44); });
+    g.fillStyle='#64748b'; g.font='26px Tahoma, Arial, sans-serif'; g.fillText(new Date().toLocaleDateString('ar-EG'),600,755);
+    const a=document.createElement('a'); a.download='شهادة-المسار-برمج.png'; a.href=c.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); toast('اتنزلت شهادة المسار 🎓'); }
+  window.__barmejPath={state:()=>st,start,grade,render};
+  const tab=document.querySelector('.tab[data-panel="path"]'); if(tab) tab.addEventListener('click',()=>{ open=-1; exam=null; render(); });
+  render();
+})();
+
 const _normAr=s=>(s||'').toLowerCase().replace(/[\u0640\u064B-\u065F]/g,'').replace(/[\u0623\u0625\u0622]/g,'\u0627').replace(/\u0649/g,'\u064A').replace(/\u0629/g,'\u0647');
 /* --- examples --- */
 const exList=$('#exampleList');
@@ -1115,7 +1180,7 @@ $('#docsContent').innerHTML=`
 
 /* --- backup / restore --- */
 (function(){
-  const KEYS=['barmej-programs','barmej-lessons-done','barmej-challenges-done','barmej-fav-ex','barmej-daily','barmej-hist','barmej-projects'];
+  const KEYS=['barmej-programs','barmej-lessons-done','barmej-challenges-done','barmej-fav-ex','barmej-daily','barmej-hist','barmej-projects','barmej-path'];
   $('#backupBtn').addEventListener('click',()=>{ stashCurrent();
     const data={app:'barmej',v:1,time:new Date().toISOString(),keys:{}};
     try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(KEYS.includes(k)||k.startsWith('barmej-data:')) data.keys[k]=localStorage.getItem(k); } }catch(e){}
@@ -1245,6 +1310,8 @@ const BADGES=[
  {id:'lesall',icon:'🎓',t:'خريج برمِج',d:'خلّص كل الدروس',ok:c=>c.lessons>=BARMEJ_LESSONS.length},
  {id:'ch1',icon:'🧩',t:'حلّال ألغاز',d:'حل تحدي واحد',ok:c=>c.challenges>=1},
  {id:'proj1',icon:'🏗️',t:'بنّاء مشاريع',d:'خلّص مشروع موجّه كامل',ok:c=>c.projects>=1},
+ {id:'path1',icon:'🎓',t:'ناجح في امتحان',d:'اجتز امتحان مستوى في المسار',ok:c=>c.path>=1},
+ {id:'pathall',icon:'🏛️',t:'خريج المسار',d:'اجتز المستويات الخمسة',ok:c=>c.path>=5},
  {id:'chall',icon:'🏆',t:'بطل التحديات',d:'حل كل التحديات',ok:c=>c.challenges>=BARMEJ_CHALLENGES.length},
  {id:'cls',icon:'🧱',t:'بنّاء الأصناف',d:'استخدم صنف في برنامج شغّال',ok:c=>c.ran&&/(^|\n)\s*صنف\s+\S+/.test(c.code)},
  {id:'lam',icon:'⚡',t:'دالة بلا اسم',d:'اكتب دالة بدون اسم',ok:c=>c.ran&&/دالة\s*\(/.test(c.code)},
@@ -1261,12 +1328,12 @@ const BADGES=[
  {id:'theme',icon:'🌓',t:'ذواق',d:'بدّل المظهر',ok:c=>c.theme}
 ];
 const LEVELS=[[0,'مبتدئ 🌱'],[40,'متعلم 📗'],[100,'مبرمج 💻'],[180,'محترف 🔥'],[280,'خبير 🚀'],[400,'أسطورة 👑']];
-function achXP(s){ return doneLessons.size*10+doneChallenges.size*15+Object.keys(s.badges).length*5; }
+function achXP(s){ return doneLessons.size*10+doneChallenges.size*15+Object.keys(s.badges).length*5+(window.barmejPathPassed?window.barmejPathPassed()*25:0); }
 function achLevel(xp){ let k=0; for(let j=0;j<LEVELS.length;j++) if(xp>=LEVELS[j][0]) k=j; return k; }
 function renderAchBtn(){ const s=achState(), xp=achXP(s), k=achLevel(xp); const b=$('#achBtn'); if(b) b.textContent='🏆 '+(k+1); }
 function achCheck(extra){
   const s=achState(); if(extra&&extra.ran) s.runs++;
-  const ctx=Object.assign({streak:dailyStreakNow(),runs:s.runs,lessons:doneLessons.size,challenges:doneChallenges.size,projects:(window.barmejProjectsDone?window.barmejProjectsDone():0),code:''},extra||{});
+  const ctx=Object.assign({streak:dailyStreakNow(),runs:s.runs,lessons:doneLessons.size,challenges:doneChallenges.size,projects:(window.barmejProjectsDone?window.barmejProjectsDone():0),path:(window.barmejPathPassed?window.barmejPathPassed():0),code:''},extra||{});
   const newly=[]; for(const b of BADGES){ if(!s.badges[b.id]&&b.ok(ctx)){ s.badges[b.id]=Date.now(); newly.push(b); } }
   achSave(s);
   if(newly.length) toast('🏅 إنجاز جديد: '+newly.map(b=>b.icon+' '+b.t).join('، '));
