@@ -436,3 +436,4 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .bk-code-h{font-size:13px;opacity:.7}.bk-code{background:#050b17;border-radius:8px;padding:10px;direction:rtl;text-align:right;white-space:pre-wrap;min-height:40px;margin:4px 0}
 @media(max-width:640px){.bk-main{flex-direction:column}.bk-pal{width:auto;flex-direction:row;flex-wrap:wrap;position:static;max-height:none}.bk-ph{width:100%}}
 #panel-blocks.active{display:block}
+.bk-save input{background:#050b17;color:#e2e8f0;border:1px solid #2a3a5c;border-radius:8px;padding:6px 8px;font-family:inherit}.bk-save select{background:#0b1426;color:#e2e8f0;border:1px solid #2a3a5c;border-radius:8px;padding:6px;font-family:inherit}
