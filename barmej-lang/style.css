@@ -321,3 +321,24 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
   .console-wrap{ overflow-y:auto; flex:1.4 1 0 }
   .editor-wrap{ flex:.7 1 0 }
 }
+
+/* موبايل بالعرض (landscape): شريط علوي مضغوط ولوحة الرسم تاخد المساحة */
+@media (max-height:520px) and (orientation:landscape){
+  #topbar{ flex-wrap:nowrap; gap:6px; padding:3px 8px }
+  .tagline,.brand small{ display:none }
+  .tabs{ order:0; flex:1 1 auto; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none }
+  .tab{ white-space:nowrap; padding:4px 9px; font-size:12px; flex:0 0 auto }
+  .actions{ flex-wrap:nowrap; overflow-x:auto; max-width:50%; scrollbar-width:none; gap:3px }
+  .actions button{ padding:4px 5px; min-width:28px; font-size:13px; flex:0 0 auto }
+  .actions .lbl{ display:none }
+  #statusbar{ display:none }
+  #console{ flex:0 0 52px; min-height:30px }
+  .runbar{ padding:4px 8px }
+  .editor-head,.console-head{ padding:3px 8px }
+  .turtle-panel{ max-height:none; flex:1 1 0; min-height:0 }
+  .canvas-holder{ flex:1 1 0; min-height:0 }
+  #turtleCanvas{ max-width:100%; max-height:100%; object-fit:contain }
+  .console-head{ flex-wrap:nowrap }
+  .console-head > div{ display:flex; flex-wrap:nowrap; gap:4px; overflow-x:auto; scrollbar-width:none; max-width:80% }
+  .console-head button,.console-head select{ white-space:nowrap; flex:0 0 auto; padding:4px 8px }
+}
