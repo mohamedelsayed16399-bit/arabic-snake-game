@@ -463,3 +463,4 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .gf-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.gf-res{font-size:15px}.gf-res.ok{color:#34d399;font-weight:700}.gf-res.bad{color:#fca5a5}
 .gf-out{background:#030812;border-radius:8px;padding:8px;min-height:30px;white-space:pre-wrap}
 #panel-golf.active{display:block;padding:14px}
+.gf-daily{display:flex;gap:10px;align-items:center;margin-bottom:8px}#gfStreak{font-size:14px;color:#fbbf24}
