@@ -464,3 +464,13 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .gf-out{background:#030812;border-radius:8px;padding:8px;min-height:30px;white-space:pre-wrap}
 #panel-golf.active{display:block;padding:14px}
 .gf-daily{display:flex;gap:10px;align-items:center;margin-bottom:8px}#gfStreak{font-size:14px;color:#fbbf24}
+
+/* 🎞️ مصوّر الخوارزميات */
+#panel-viz.active{display:block;padding:14px}
+.viz-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.viz-hint{font-size:13px;opacity:.7}
+.viz-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.viz-desc{background:#101b33;border-radius:8px;padding:8px 10px;margin-bottom:8px;line-height:1.8}
+.viz-bars{display:flex;flex-direction:row;align-items:flex-end;height:260px;background:#050b17;border:1px solid #2a3a5c;border-radius:10px;padding:6px;box-sizing:border-box;direction:ltr}
+.viz-bar{background:#38bdf8;border-radius:3px 3px 0 0;box-sizing:border-box;border-left:1px solid #050b17}.viz-bar.hi{background:#fbbf24}.viz-bar.sw{background:#f87171}.viz-bar.ok{background:#34d399}
+.viz-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.viz-sp{font-size:13px;display:flex;gap:6px;align-items:center}.viz-stat{font-size:13px;color:#fbbf24}
+.viz-code-h{margin-top:6px;font-size:13px;opacity:.8}.viz-code{background:#030812;border-radius:8px;padding:10px;white-space:pre-wrap;overflow:auto}
