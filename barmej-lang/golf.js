@@ -25,14 +25,19 @@ const T=[
 ];
 let best={}; try{ best=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
 let gi=0;
+const DK='barmej-golf-daily'; let daily={}; try{ daily=JSON.parse(localStorage.getItem(DK)||'{}'); }catch(e){}
+const today=()=>{ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); };
+const dayIdx=()=>{ const d=new Date(); return (Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)*7)%T.length; };
+const streak=()=>{ let n=0; const d=new Date(); for(;;){ const k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); if(daily.days&&daily.days.includes(k)){ n++; d.setDate(d.getDate()-1); } else if(n===0&&k===today()){ d.setDate(d.getDate()-1); } else break; } return n; };
 const score=c=>c.replace(/\s+/g,'').length;
 const root=document.createElement('section'); root.id='panel-golf'; root.className='panel';
-root.innerHTML='<div class="gf-top"><b>⛳ جولف: أقصر كود</b><span class="gf-hint">نفس الناتج بأقل عدد حروف (من غير المسافات). الأقل يكسب.</span></div><div id="gfChips" class="gf-chips"></div><div id="gfText" class="gf-text"></div><textarea id="gfCode" class="gf-code" dir="rtl" spellcheck="false" placeholder="اكتب الكود هنا"></textarea><div class="gf-act"><button id="gfRun" class="run small">▶ شغّل وقيّم</button><button id="gfPar" class="ghost small">💡 كود مرجعي</button><span id="gfRes" class="gf-res"></span></div><pre id="gfOut" class="gf-out"></pre>';
+root.innerHTML='<div class="gf-top"><b>⛳ جولف: أقصر كود</b><span class="gf-hint">نفس الناتج بأقل عدد حروف (من غير المسافات). الأقل يكسب.</span></div><div class="gf-daily"><button id="gfDaily" class="run small">🔥 تحدي النهارده</button><span id="gfStreak"></span></div><div id="gfChips" class="gf-chips"></div><div id="gfText" class="gf-text"></div><textarea id="gfCode" class="gf-code" dir="rtl" spellcheck="false" placeholder="اكتب الكود هنا"></textarea><div class="gf-act"><button id="gfRun" class="run small">▶ شغّل وقيّم</button><button id="gfPar" class="ghost small">💡 كود مرجعي</button><span id="gfRes" class="gf-res"></span></div><pre id="gfOut" class="gf-out"></pre>';
 const dp=$('#panel-docs'); dp.parentNode.insertBefore(root,dp);
 const nav=document.querySelector('.tabs'); const tb=document.createElement('button'); tb.className='tab'; tb.dataset.panel='golf'; tb.textContent='⛳ جولف';
 const ed=nav.querySelector('[data-panel="blocks"]')||nav.querySelector('[data-panel="challenges"]'); nav.insertBefore(tb,ed?ed.nextSibling:null);
 tb.addEventListener('click',()=>{ nav.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===tb)); document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p===root)); render(); });
-function render(){ const ch=$('#gfChips'); ch.innerHTML=''; T.forEach((g,i)=>{ const b=document.createElement('button'); b.className='chip'+(i===gi?' on':'')+(best[i]?' done':''); b.textContent=(best[i]?'⛳ ':'')+(i+1)+'. '+g.t; b.onclick=()=>{ gi=i; $('#gfCode').value=''; $('#gfOut').textContent=''; render(); }; ch.appendChild(b); });
+function dRender(){ const done=daily.days&&daily.days.includes(today()); $('#gfStreak').textContent=(done?'✔ خلّصته النهارده • ':'')+'🔥 سلسلة: '+streak()+' يوم'; }
+function render(){ dRender(); const ch=$('#gfChips'); ch.innerHTML=''; T.forEach((g,i)=>{ const b=document.createElement('button'); b.className='chip'+(i===gi?' on':'')+(best[i]?' done':''); b.textContent=(best[i]?'⛳ ':'')+(i+1)+'. '+g.t; b.onclick=()=>{ gi=i; $('#gfCode').value=''; $('#gfOut').textContent=''; render(); }; ch.appendChild(b); });
  const g=T[gi], pr=score(g.par); $('#gfText').innerHTML=g.x+'<br><small>الـ par: '+pr+' حرف'+(best[gi]?' • أحسن نتيجة ليك: <b>'+best[gi]+'</b>':'')+'</small>'; $('#gfRes').textContent=''; $('#gfRes').className='gf-res'; }
 function run(c){ const out=[]; let r; try{ r=Barmej.runSource(c,{print:x=>out.push(String(x)),ask:()=>'5',draw(){},sleep(){}},{maxSteps:2e5}); }catch(e){ r={ok:false,error:String(e)}; } return {r,out}; }
 $('#gfRun').onclick=()=>{ const c=$('#gfCode').value; const g=T[gi]; const {r,out}=run(c); const res=$('#gfRes'); $('#gfOut').textContent=out.join('\n');
@@ -40,7 +45,9 @@ $('#gfRun').onclick=()=>{ const c=$('#gfCode').value; const g=T[gi]; const {r,ou
  if(out.join('\n')!==g.out.join('\n')){ res.className='gf-res bad'; res.textContent='الناتج مش مطابق للمطلوب.'; return; }
  const s=score(c), pr=score(g.par); const medal=s<pr?'🥇 تحت الـ par!':s===pr?'🥈 على الـ par':s<=pr*1.5?'🥉 قريب':'✅ صح، بس طوّل';
  if(!best[gi]||s<best[gi]){ best[gi]=s; try{ localStorage.setItem(KEY,JSON.stringify(best)); }catch(e){} }
+ if(gi===dayIdx()){ daily.days=daily.days||[]; if(!daily.days.includes(today())){ daily.days.push(today()); try{ localStorage.setItem(DK,JSON.stringify(daily)); }catch(e){} } }
  res.className='gf-res ok'; res.textContent=medal+' — '+s+' حرف (par '+pr+')'; render(); res.className='gf-res ok'; res.textContent=medal+' — '+s+' حرف (par '+pr+')'; };
+$('#gfDaily').onclick=()=>{ gi=dayIdx(); $('#gfCode').value=''; $('#gfOut').textContent=''; render(); };
 $('#gfPar').onclick=()=>{ $('#gfCode').value=T[gi].par; };
 window.BARMEJ_GOLF=T;
 render();
