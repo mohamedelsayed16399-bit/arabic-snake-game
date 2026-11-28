@@ -297,11 +297,14 @@ function floodStep(){if(!flood)return;flood.left--;if(flood.safe){log('🧱 ال
 function endFlood(){flood=null;$('bFlood').style.display='none';banner('')}
 $('bFlood').onclick=()=>{if(!flood)return;if(S.money<400)return toast('الفلوس مش كفاية');S.money-=400;flood.safe=true;toast('🧱 تم تركيب دفاعات الفيضان')};
 function monthly(){
- S.month++;if(S.diff<0.05&&S.money<200000)S.money+=200000;story();log('🧾 تقرير الشهر '+S.month+': دخل '+(S.income*30).toFixed(0)+' / مصروف '+(S.expense*30).toFixed(0)+' / صافي '+((S.income-S.expense)*30).toFixed(0));
+ S.month++;{const r=cityRank();if(lastRank&&r!==lastRank){log('🎖 مدينتك ترقّت إلى: '+r);banner('🎖 ترقية: '+r);S.money+=1000}lastRank=r;if(S.month%12===0)yearCard()}if(S.diff<0.05&&S.money<200000)S.money+=200000;story();log('🧾 تقرير الشهر '+S.month+': دخل '+(S.income*30).toFixed(0)+' / مصروف '+(S.expense*30).toFixed(0)+' / صافي '+((S.income-S.expense)*30).toFixed(0));
  if(S.appr<25){S.badMonths++;log('⚠ الرضا منخفض جدًا ('+S.appr+'%). '+(3-S.badMonths)+' شهور قبل الإقالة!')}else S.badMonths=Math.max(0,S.badMonths-1);
  if(S.badMonths>=3||S.money<-5000)gameOver(S.money<-5000?'💸 المدينة أفلست!':'🗳 المواطنين أقالوك!');
  save();
 }
+function cityRank(){const p=S.pop;return p<100?'🏘 قرية':p<300?'🏡 بلدة':p<700?'🏙 مدينة':p<1500?'🌆 مدينة كبرى':'🌃 عاصمة'}
+let lastRank='';
+function yearCard(){const y=2026+Math.floor(S.month/12);log('🏅 بطاقة أداء '+y+': '+cityRank()+' · سكان '+S.pop+' · رضا '+Math.round(S.appr)+'% · نقاط '+score());}
 function score(){return Math.round(S.pop*3+S.appr*10+Math.max(0,S.money)/50+S.month*20+Object.keys(S.ach||{}).length*150+S.missions*200)}
 function addScore(){try{const b=JSON.parse(localStorage.getItem('smartcity_board')||'[]');b.push({s:score(),p:S.pop,m:S.month,d:new Date().toLocaleDateString('ar-EG')});b.sort((x,y)=>y.s-x.s);localStorage.setItem('smartcity_board',JSON.stringify(b.slice(0,5)))}catch(_){}}
 function renderBoard(){let b=[];try{b=JSON.parse(localStorage.getItem('smartcity_board')||'[]')}catch(_){}$('boardList').innerHTML='<div style="margin:4px 0">نقاط مدينتك الحالية: <b class=good>'+score()+'</b></div>'+(b.length?b.map((r,i)=>'<div style="padding:4px;background:#1b2a49;border-radius:8px;margin:3px 0">'+(i+1)+'. '+r.s+' نقطة · سكان '+r.p+' · '+r.m+' شهر · '+r.d+'</div>').join(''):'<small>مفيش نتايج لسه: النتيجة بتتسجل لما تنتهي حكمك</small>')}
@@ -346,7 +349,7 @@ function advice(){const cnt=t=>cells.filter(c=>c.t===t).length;
 function ui(){
  $('sMoney').textContent=Math.floor(S.money);$('sMoney').parentNode.className='stat '+(S.money<0?'bad':'');
  const rk=S.pop<100?'قرية':S.pop<300?'بلدة':S.pop<800?'مدينة':S.pop<2000?'مدينة كبرى':'عاصمة';$('sPop').textContent=S.pop+' ('+rk+')';
- const y=2026+Math.floor(S.month/12),mo=S.month%12+1;$('sDate').textContent=mo+'/'+y;
+ const y=2026+Math.floor(S.month/12),mo=S.month%12+1;$('sDate').textContent=mo+'/'+y+' · '+cityRank();
  $('sAppr').textContent=S.appr;$('sAppr').className=S.appr<35?'bad':S.appr>65?'good':'';
  $('sPow').textContent=Math.round(S.sup)+'/'+Math.round(S.dem);$('sPow').className=S.pr<0.95?'bad':'';
  $('sWat').textContent=Math.round(S.wsup)+'/'+Math.round(S.wdem);$('sWat').className=S.wr<0.95?'bad':'';
