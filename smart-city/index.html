@@ -267,6 +267,8 @@ function randomEvent(){
  else if(r<0.65){S.fest=20;log('🎉 مهرجان! الناس سعيدة وبتصرف');S.money+=500}
  else if(r<0.85){S.boom=25;log('📈 ازدهار اقتصادي: الدخل زاد');}
  else if(r<0.88){startFlood()}
+ else if(r<0.90){S.heat=Math.max(S.heat,30);log('⚡ ضغط على الشبكة: ممكن انقطاع كهرباء لو الإنتاج قليل!');banner('⚡ ضغط على الشبكة')}
+ else if(r<0.915){const z=cells.map((c,i)=>[c,i]).filter(a=>isZone(a[0].t)&&a[0].pop>0);if(z.length){const[c,i]=z[Math.floor(Math.random()*z.length)];newInc(c,'crime',i%W,Math.floor(i/W));log('🚗💥 حادث مروري كبير وزحمة خانقة!');S.cong=Math.min(1,(S.cong||0)+0.15)}}
  else if(r<0.93){const z=cells.map((c,i)=>[c,i]).filter(a=>isZone(a[0].t)&&a[0].pop>0);if(z.length){const[c,i]=z[Math.floor(Math.random()*z.length)];newInc(c,'fire',i%W,Math.floor(i/W));log('⛈ عاصفة ضربت المدينة!')}}
  else{const z=cells.filter(c=>c.t>1&&isZone(c.t));const n=S.res.alarm?1:3;log(S.res.alarm?'🌍 زلزال! الإنذار المبكر قلل الخسائر':'🌍 زلزال ضرب المدينة!');beep(90,0.6);for(let k=0;k<n&&z.length;k++){const c=z[Math.floor(Math.random()*z.length)];c.pop=Math.floor(c.pop/2);c.fire=c.fire||1}}
 }
@@ -276,6 +278,9 @@ const DECS=[
  ['🏭 مصنع جديد عايز يفتح','شركة كبيرة عايزة تبني مصنع وتوفر وظايف، لكن هيلوث.',[['وافق (+1500 فلوس، رضا -5)',()=>{S.money+=1500;S.appr=Math.max(0,S.appr-5);S.bonusH=-3}],['ارفض (رضا +3)',()=>{S.bonusH=3}]]],
  ['🎓 جامعة تطلب دعم','الجامعة طلبت 1200 لدعم الأبحاث. هتفيد المدينة على المدى الطويل.',[['ادعم (-1200، دخل أعلى لفترة)',()=>{if(S.money>=1200){S.money-=1200;S.boom=Math.max(S.boom,40)}}],['اعتذر',()=>{}]]],
  ['📢 مظاهرة في الشارع','المواطنين بيطالبوا بتخفيض الضرائب.',[['اخفض الضريبة 3%',()=>{S.tax=Math.max(2,S.tax-3);$('tax').value=S.tax;$('taxV').textContent=S.tax}],['تجاهل (رضا -4)',()=>{S.bonusH=-4}]]],
+ ['🚑 إضراب الأطباء','الأطباء بيطالبوا بزيادة الرواتب 1000.',[['وافق (-1000، رضا +4)',()=>{if(S.money>=1000){S.money-=1000;S.bonusH=4}}],['ارفض (رضا -5)',()=>{S.bonusH=-5}]]],
+ ['🏟 بطولة دولية','مدينتك مرشحة لاستضافة بطولة. الاستضافة بتكلف 800 وبتجيب سياح.',[['استضف (-800، مهرجان وازدهار)',()=>{if(S.money>=800){S.money-=800;S.fest=Math.max(S.fest,25);S.boom=Math.max(S.boom,25)}}],['اعتذر',()=>{}]]],
+ ['🌱 مبادرة المدينة الخضراء','منظمة بيئية بتقترح حملة تشجير بـ 600.',[['وافق (-600، رضا +3)',()=>{if(S.money>=600){S.money-=600;S.bonusH=3}}],['ارفض',()=>{}]]],
  ['💎 مستثمر أجنبي','مستثمر عايز يشتري أرض عامة بـ 3000.',[['بيع (+3000، رضا -3)',()=>{S.money+=3000;S.bonusH=-3}],['ارفض',()=>{}]]]];
 let decOpen=false;
 function decision(){if(decOpen||S.over)return;const d=DECS[Math.floor(Math.random()*DECS.length)];decOpen=true;paused0=paused;if(!paused){paused=true;loop()}
