@@ -462,3 +462,4 @@ body.app-mode .app-title{ margin-inline-end:auto; font-weight:800; color:#2dd4a7
 .gf-code{width:100%;min-height:120px;box-sizing:border-box;background:#050b17;color:#e6edf7;border:1px solid #2a3a5c;border-radius:10px;padding:10px;font:15px/1.6 monospace}
 .gf-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.gf-res{font-size:15px}.gf-res.ok{color:#34d399;font-weight:700}.gf-res.bad{color:#fca5a5}
 .gf-out{background:#030812;border-radius:8px;padding:8px;min-height:30px;white-space:pre-wrap}
+#panel-golf.active{display:block;padding:14px}
